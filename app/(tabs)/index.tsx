@@ -17,6 +17,7 @@ import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
 import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
+import { SINGLE_USER_ID } from '@/lib/supabase';
 
 const CATEGORIES: Array<{ key: CategoryType; label: string }> = [
   { key: 'self_care', label: 'Self-Care' },
@@ -86,9 +87,9 @@ export default function HomeScreen() {
     const today = new Date().toISOString().split('T')[0];
 
     try {
-      await logHabitValue('user-id', habitId, today, value); // TODO: Replace with actual user ID
+      await logHabitValue(SINGLE_USER_ID, habitId, today, value);
 
-      // Update local state
+      // Update local state (score recalculation handled by useEffect)
       setDailyValues(prev => ({
         ...prev,
         [today]: {
@@ -96,14 +97,16 @@ export default function HomeScreen() {
           [habitId]: value,
         },
       }));
-
-      // Recalculate weekly score
-      const score = calculateWeeklyScore(habits, dailyValues);
-      setWeeklyScore(score);
     } catch (error) {
       console.error('Error saving habit value:', error);
     }
   };
+
+  // Recalculate weekly score whenever dailyValues or habits change
+  useEffect(() => {
+    const score = calculateWeeklyScore(habits, dailyValues);
+    setWeeklyScore(score);
+  }, [dailyValues, habits]);
 
   if (loading) {
     return (
@@ -152,7 +155,6 @@ export default function HomeScreen() {
           }
 
           const category = item as CategoryType;
-          const categoryData = CATEGORIES.find(c => c.key === category);
           const categoryHabits = habits.filter(h => h.category === category);
           const todayStr = new Date().toISOString().split('T')[0];
           const todayValues = dailyValues[todayStr] ?? {};
@@ -161,9 +163,8 @@ export default function HomeScreen() {
             <CategorySection
               category={category}
               habits={categoryHabits}
-              values={todayValues}
-              onValueChange={handleValueChange}
-              categoryLabel={categoryData?.label ?? ''}
+              habitValues={todayValues}
+              onHabitValueChange={handleValueChange}
             />
           );
         }}
