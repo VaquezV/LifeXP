@@ -29,13 +29,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="bar-chart" size={size} />,
-        }}
-      />
     </Tabs>
   );
 }
