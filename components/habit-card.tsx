@@ -1,4 +1,4 @@
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
@@ -16,52 +16,153 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  // Calculate completion percentage
   const completionPercentage = calculateHabitCompletion(habit, currentValue);
-
-  // Get category color for accent
   const categoryColor = CATEGORY_COLORS[habit.category];
   const accentColor = categoryColor.mid;
 
-  // Determine increment amount and unit label
-  const getIncrementConfig = () => {
-    switch (habit.frequency_type) {
-      case 'times_per_day':
-        return { increment: 1, unit: 'x', label: 'times' };
-      case 'per_day':
-        return {
-          increment: 5,
-          unit: 'min',
-          label: habit.target_value > 100 ? 'minutes' : 'units',
-        };
-      case 'times_per_week':
-        return { increment: 1, unit: 'x', label: 'week' };
-      default:
-        return { increment: 1, unit: '', label: '' };
+  const renderButtons = () => {
+    if (habit.frequency_type === 'per_day') {
+      // Presets: 0%, 25%, 50%, 75%, 100%
+      const presets = [
+        { label: '0', value: 0 },
+        { label: '¼', value: Math.floor(habit.target_value * 0.25) },
+        { label: '½', value: Math.floor(habit.target_value * 0.5) },
+        { label: '¾', value: Math.floor(habit.target_value * 0.75) },
+        { label: '1/1', value: habit.target_value },
+      ];
+
+      return (
+        <View style={styles.buttonContainer}>
+          {presets.map(preset => (
+            <Pressable
+              key={preset.value}
+              style={[
+                styles.presetButton,
+                currentValue === preset.value && {
+                  backgroundColor: accentColor,
+                },
+                currentValue !== preset.value && {
+                  borderColor: accentColor,
+                  borderWidth: 1,
+                },
+              ]}
+              onPress={() => onValueChange(habit.id, preset.value)}
+            >
+              <ThemedText
+                style={[
+                  styles.presetButtonText,
+                  {
+                    color:
+                      currentValue === preset.value ? '#ffffff' : accentColor,
+                  },
+                ]}
+              >
+                {preset.label}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      );
     }
-  };
 
-  const config = getIncrementConfig();
+    if (habit.frequency_type === 'times_per_day') {
+      // Integer buttons from 0 to target
+      const buttons = Array.from(
+        { length: habit.target_value + 1 },
+        (_, i) => i
+      );
 
-  const handleIncrement = () => {
-    onValueChange(habit.id, currentValue + config.increment);
-  };
+      return (
+        <View style={styles.buttonContainer}>
+          {buttons.map(num => (
+            <Pressable
+              key={num}
+              style={[
+                styles.countButton,
+                currentValue === num && {
+                  backgroundColor: accentColor,
+                },
+                currentValue !== num && {
+                  borderColor: accentColor,
+                  borderWidth: 1,
+                },
+              ]}
+              onPress={() => onValueChange(habit.id, num)}
+            >
+              <ThemedText
+                style={[
+                  styles.countButtonText,
+                  {
+                    color:
+                      currentValue === num ? '#ffffff' : accentColor,
+                  },
+                ]}
+              >
+                {num}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      );
+    }
 
-  const handleDecrement = () => {
-    const newValue = Math.max(0, currentValue - config.increment);
-    onValueChange(habit.id, newValue);
-  };
+    if (habit.frequency_type === 'times_per_week') {
+      // Yes/No buttons (0 or 1)
+      return (
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[
+              styles.yesnoButton,
+              currentValue === 0 && {
+                backgroundColor: accentColor,
+              },
+              currentValue !== 0 && {
+                borderColor: accentColor,
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => onValueChange(habit.id, 0)}
+          >
+            <ThemedText
+              style={[
+                styles.yesnoButtonText,
+                {
+                  color: currentValue === 0 ? '#ffffff' : accentColor,
+                },
+              ]}
+            >
+              Non
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.yesnoButton,
+              currentValue === 1 && {
+                backgroundColor: accentColor,
+              },
+              currentValue !== 1 && {
+                borderColor: accentColor,
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => onValueChange(habit.id, 1)}
+          >
+            <ThemedText
+              style={[
+                styles.yesnoButtonText,
+                {
+                  color: currentValue === 1 ? '#ffffff' : accentColor,
+                },
+              ]}
+            >
+              Oui
+            </ThemedText>
+          </Pressable>
+        </View>
+      );
+    }
 
-  const handleReset = () => {
-    onValueChange(habit.id, 0);
-  };
-
-  const handleHalf = () => {
-    onValueChange(habit.id, Math.floor(habit.target_value / 2));
-  };
-
-  const handleFull = () => {
-    onValueChange(habit.id, habit.target_value);
+    return null;
   };
 
   return (
@@ -77,10 +178,21 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
       <View style={styles.header}>
         <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
         <View style={styles.titleSection}>
-          <ThemedText type="defaultSemiBold" style={[styles.habitName, { color: isDark ? '#ffffff' : '#000000' }]}>
+          <ThemedText
+            type="defaultSemiBold"
+            style={[
+              styles.habitName,
+              { color: isDark ? '#ffffff' : '#000000' },
+            ]}
+          >
             {habit.name}
           </ThemedText>
-          <ThemedText style={[styles.frequencyLabel, { color: isDark ? '#999999' : '#666666' }]}>
+          <ThemedText
+            style={[
+              styles.frequencyLabel,
+              { color: isDark ? '#999999' : '#666666' },
+            ]}
+          >
             {habit.frequency_type === 'times_per_day'
               ? `${habit.target_value}x per day`
               : habit.frequency_type === 'per_day'
@@ -98,71 +210,7 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
         </View>
       </View>
 
-      <View style={styles.controlsSection}>
-        <View style={styles.valueDisplay}>
-          <ThemedText style={[styles.valueNumber, { color: isDark ? '#ffffff' : '#000000' }]}>
-            {currentValue}
-          </ThemedText>
-          <ThemedText style={[styles.valueUnit, { color: isDark ? '#999999' : '#666666' }]}>
-            {config.unit}
-          </ThemedText>
-        </View>
-
-        <View style={styles.buttonGroup}>
-          <Pressable
-            style={[styles.button, styles.minusButton]}
-            onPress={handleDecrement}
-          >
-            <ThemedText style={[styles.buttonText, { color: accentColor }]}>−</ThemedText>
-          </Pressable>
-
-          <Pressable
-            style={[styles.button, styles.plusButton, { backgroundColor: accentColor }]}
-            onPress={handleIncrement}
-          >
-            <ThemedText style={styles.buttonTextPlus}>+</ThemedText>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.quickActions}>
-        <Pressable
-          style={[styles.quickButton, { borderColor: isDark ? '#444444' : '#cccccc' }]}
-          onPress={handleReset}
-        >
-          <ThemedText
-            style={[
-              styles.quickButtonText,
-              { color: isDark ? '#aaaaaa' : '#666666' },
-            ]}
-          >
-            Reset
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          style={[styles.quickButton, { borderColor: isDark ? '#444444' : '#cccccc' }]}
-          onPress={handleHalf}
-        >
-          <ThemedText
-            style={[
-              styles.quickButtonText,
-              { color: isDark ? '#aaaaaa' : '#666666' },
-            ]}
-          >
-            Half
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          style={[styles.quickButton, { borderColor: accentColor }]}
-          onPress={handleFull}
-        >
-          <ThemedText
-            style={[styles.quickButtonText, { color: accentColor }]}
-          >
-            Full
-          </ThemedText>
-        </Pressable>
-      </View>
+      {renderButtons()}
     </ThemedView>
   );
 }
@@ -183,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   emoji: {
     fontSize: 28,
@@ -209,66 +257,46 @@ const styles = StyleSheet.create({
     minWidth: 45,
     textAlign: 'right',
   },
-  controlsSection: {
+  buttonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  valueDisplay: {
-    alignItems: 'center',
-  },
-  valueNumber: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  valueUnit: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
-  button: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
+  presetButton: {
+    flex: 1,
+    minWidth: '18%',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  minusButton: {
-    borderWidth: 1.5,
-    borderColor: '#666666',
+  presetButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
-  plusButton: {
-    borderRadius: 8,
-  },
-  buttonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  buttonTextPlus: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  quickButton: {
-    flex: 1,
-    paddingVertical: 8,
+  countButton: {
+    minWidth: 40,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quickButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
+  countButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  yesnoButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  yesnoButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
