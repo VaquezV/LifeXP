@@ -15,7 +15,6 @@ export interface HabitCardProps {
 export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const themeColors = isDark ? Colors.dark : Colors.light;
 
   // Calculate completion percentage
   const completionPercentage = calculateHabitCompletion(habit, currentValue);
