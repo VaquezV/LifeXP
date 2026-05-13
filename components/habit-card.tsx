@@ -1,6 +1,6 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors, CATEGORY_COLORS, getGradientColor } from '@/constants/Colors';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { Habit } from '@/lib/types';
@@ -20,56 +20,70 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
   // Calculate completion percentage
   const completionPercentage = calculateHabitCompletion(habit, currentValue);
 
-  // Get the background color based on completion
-  const backgroundColor = getGradientColor(habit.category, completionPercentage);
+  // Get category color for accent
+  const categoryColor = CATEGORY_COLORS[habit.category];
+  const accentColor = categoryColor.mid;
 
-  // Handle value change based on frequency type
-  const handleValueChange = (text: string) => {
-    const numValue = parseInt(text, 10) || 0;
-    onValueChange(habit.id, numValue);
-  };
-
-  // Determine input placeholder and keyboard type based on frequency
-  const getInputConfig = () => {
+  // Determine increment amount and unit label
+  const getIncrementConfig = () => {
     switch (habit.frequency_type) {
       case 'times_per_day':
-        return {
-          placeholder: `0-${habit.target_value}`,
-          label: 'times',
-          keyboardType: 'number-pad' as const,
-        };
+        return { increment: 1, unit: 'x', label: 'times' };
       case 'per_day':
         return {
-          placeholder: `${habit.min_value}-${habit.target_value}`,
-          label: habit.target_value > 100 ? 'min' : 'units',
-          keyboardType: 'number-pad' as const,
+          increment: 5,
+          unit: 'min',
+          label: habit.target_value > 100 ? 'minutes' : 'units',
         };
       case 'times_per_week':
-        return {
-          placeholder: '0',
-          label: 'week total',
-          keyboardType: 'number-pad' as const,
-        };
+        return { increment: 1, unit: 'x', label: 'week' };
       default:
-        return {
-          placeholder: '0',
-          label: '',
-          keyboardType: 'number-pad' as const,
-        };
+        return { increment: 1, unit: '', label: '' };
     }
   };
 
-  const inputConfig = getInputConfig();
+  const config = getIncrementConfig();
+
+  const handleIncrement = () => {
+    onValueChange(habit.id, currentValue + config.increment);
+  };
+
+  const handleDecrement = () => {
+    const newValue = Math.max(0, currentValue - config.increment);
+    onValueChange(habit.id, newValue);
+  };
+
+  const handleReset = () => {
+    onValueChange(habit.id, 0);
+  };
+
+  const handleHalf = () => {
+    const target =
+      habit.frequency_type === 'per_day' ? habit.target_value : habit.target_value;
+    onValueChange(habit.id, Math.floor(target / 2));
+  };
+
+  const handleFull = () => {
+    onValueChange(habit.id, habit.target_value);
+  };
 
   return (
-    <ThemedView style={[styles.card, { backgroundColor }]}>
+    <ThemedView
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+          borderLeftColor: accentColor,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
         <View style={styles.titleSection}>
-          <ThemedText type="defaultSemiBold" style={styles.habitName}>
+          <ThemedText type="defaultSemiBold" style={[styles.habitName, { color: isDark ? '#ffffff' : '#000000' }]}>
             {habit.name}
           </ThemedText>
-          <ThemedText style={styles.frequencyLabel}>
+          <ThemedText style={[styles.frequencyLabel, { color: isDark ? '#999999' : '#666666' }]}>
             {habit.frequency_type === 'times_per_day'
               ? `${habit.target_value}x per day`
               : habit.frequency_type === 'per_day'
@@ -77,45 +91,96 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
                 : `${habit.target_value}x per week`}
           </ThemedText>
         </View>
-        <ThemedText type="defaultSemiBold" style={styles.percentage}>
-          {completionPercentage}%
-        </ThemedText>
+        <View style={styles.percentageBox}>
+          <ThemedText
+            type="defaultSemiBold"
+            style={[styles.percentage, { color: accentColor }]}
+          >
+            {completionPercentage}%
+          </ThemedText>
+        </View>
       </View>
 
-      {habit.frequency_type !== 'times_per_week' && (
-        <View style={styles.inputSection}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                color: themeColors.text,
-                borderColor: themeColors.icon,
-                backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-              },
-            ]}
-            placeholderTextColor={themeColors.icon}
-            value={currentValue.toString()}
-            onChangeText={handleValueChange}
-            keyboardType={inputConfig.keyboardType}
-            placeholder={inputConfig.placeholder}
-          />
-          <ThemedText style={styles.unitLabel}>{inputConfig.label}</ThemedText>
+      <View style={styles.controlsSection}>
+        <View style={styles.valueDisplay}>
+          <ThemedText style={[styles.valueNumber, { color: isDark ? '#ffffff' : '#000000' }]}>
+            {currentValue}
+          </ThemedText>
+          <ThemedText style={[styles.valueUnit, { color: isDark ? '#999999' : '#666666' }]}>
+            {config.unit}
+          </ThemedText>
         </View>
-      )}
+
+        <View style={styles.buttonGroup}>
+          <Pressable
+            style={[styles.button, styles.minusButton]}
+            onPress={handleDecrement}
+          >
+            <ThemedText style={[styles.buttonText, { color: accentColor }]}>−</ThemedText>
+          </Pressable>
+
+          <Pressable
+            style={[styles.button, styles.plusButton, { backgroundColor: accentColor }]}
+            onPress={handleIncrement}
+          >
+            <ThemedText style={styles.buttonTextPlus}>+</ThemedText>
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.quickActions}>
+        <Pressable
+          style={[styles.quickButton, { borderColor: isDark ? '#444444' : '#cccccc' }]}
+          onPress={handleReset}
+        >
+          <ThemedText
+            style={[
+              styles.quickButtonText,
+              { color: isDark ? '#aaaaaa' : '#666666' },
+            ]}
+          >
+            Reset
+          </ThemedText>
+        </Pressable>
+        <Pressable
+          style={[styles.quickButton, { borderColor: isDark ? '#444444' : '#cccccc' }]}
+          onPress={handleHalf}
+        >
+          <ThemedText
+            style={[
+              styles.quickButtonText,
+              { color: isDark ? '#aaaaaa' : '#666666' },
+            ]}
+          >
+            Half
+          </ThemedText>
+        </Pressable>
+        <Pressable
+          style={[styles.quickButton, { borderColor: accentColor }]}
+          onPress={handleFull}
+        >
+          <ThemedText
+            style={[styles.quickButtonText, { color: accentColor }]}
+          >
+            Full
+          </ThemedText>
+        </Pressable>
+      </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 10,
+    borderLeftWidth: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -124,42 +189,89 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   emoji: {
-    fontSize: 32,
-    marginRight: 12,
+    fontSize: 28,
+    marginRight: 10,
   },
   titleSection: {
     flex: 1,
   },
   habitName: {
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 3,
   },
   frequencyLabel: {
-    fontSize: 12,
-    opacity: 0.7,
+    fontSize: 11,
+  },
+  percentageBox: {
+    alignItems: 'flex-end',
   },
   percentage: {
-    fontSize: 18,
-    minWidth: 50,
+    fontSize: 16,
+    fontWeight: 'bold',
+    minWidth: 45,
     textAlign: 'right',
   },
-  inputSection: {
+  controlsSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  valueDisplay: {
+    alignItems: 'center',
+  },
+  valueNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    lineHeight: 32,
+  },
+  valueUnit: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
     gap: 8,
   },
-  input: {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
+  button: {
+    width: 44,
+    height: 44,
     borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    fontWeight: '600',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  unitLabel: {
-    fontSize: 14,
-    opacity: 0.7,
-    minWidth: 50,
+  minusButton: {
+    borderWidth: 1.5,
+    borderColor: '#666666',
+  },
+  plusButton: {
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  buttonTextPlus: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

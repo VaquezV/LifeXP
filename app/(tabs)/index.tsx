@@ -138,7 +138,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
     >
       <FlatList
         data={['week-header', ...CATEGORIES.map(cat => cat.key), 'weekly-score']}
@@ -167,7 +167,7 @@ export default function HomeScreen() {
           );
         }}
         scrollEnabled={true}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
       />
     </SafeAreaView>
   );

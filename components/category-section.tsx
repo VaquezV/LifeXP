@@ -28,11 +28,10 @@ export function CategorySection({
 }: CategorySectionProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const themeColors = isDark ? Colors.dark : Colors.light;
 
-  // Get light tint from category color
+  // Get category color for accent
   const categoryColor = CATEGORY_COLORS[category];
-  const backgroundTint = categoryColor.light;
+  const accentColor = categoryColor.mid;
 
   // Filter habits for this category
   const categoryHabits = habits.filter(h => h.category === category);
@@ -46,13 +45,23 @@ export function CategorySection({
       style={[
         styles.section,
         {
-          backgroundColor: isDark ? '#1a1a1a' : backgroundTint,
+          backgroundColor: isDark ? '#0a0a0a' : '#ffffff',
         },
       ]}
     >
-      <ThemedText type="subtitle" style={styles.categoryTitle}>
-        {CATEGORY_LABELS[category]}
-      </ThemedText>
+      <View style={[styles.titleContainer, { borderBottomColor: accentColor }]}>
+        <ThemedText
+          type="subtitle"
+          style={[
+            styles.categoryTitle,
+            {
+              color: isDark ? '#ffffff' : '#000000',
+            },
+          ]}
+        >
+          {CATEGORY_LABELS[category]}
+        </ThemedText>
+      </View>
 
       <View style={styles.habitsContainer}>
         {categoryHabits.map(habit => (
@@ -70,17 +79,22 @@ export function CategorySection({
 
 const styles = StyleSheet.create({
   section: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    marginBottom: 16,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 0,
+    marginBottom: 8,
+  },
+  titleContainer: {
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 2,
+    marginBottom: 12,
   },
   categoryTitle: {
-    fontSize: 20,
-    marginBottom: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
   habitsContainer: {
-    gap: 0, // Gap handled by HabitCard's marginBottom
+    paddingHorizontal: 0,
+    paddingBottom: 12,
   },
 });
