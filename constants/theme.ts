@@ -51,3 +51,61 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const CATEGORY_COLORS = {
+  self_care: {
+    light: '#e8f5e9',    // 0%
+    mid: '#81c784',      // 50%
+    dark: '#2e7d32',     // 100%
+  },
+  dev_perso: {
+    light: '#f3e5f5',
+    mid: '#ba68c8',
+    dark: '#6a1b9a',
+  },
+  vie_familiale: {
+    light: '#ffebee',
+    mid: '#ef5350',
+    dark: '#c62828',
+  },
+  vie_pro: {
+    light: '#e3f2fd',
+    mid: '#42a5f5',
+    dark: '#1565c0',
+  },
+};
+
+export function getGradientColor(
+  category: keyof typeof CATEGORY_COLORS,
+  percentage: number
+): string {
+  const colors = CATEGORY_COLORS[category];
+  const clamped = Math.max(0, Math.min(100, percentage));
+
+  if (clamped <= 50) {
+    // Interpolate between light and mid
+    const ratio = clamped / 50;
+    return interpolateColor(colors.light, colors.mid, ratio);
+  } else {
+    // Interpolate between mid and dark
+    const ratio = (clamped - 50) / 50;
+    return interpolateColor(colors.mid, colors.dark, ratio);
+  }
+}
+
+// Helper: interpolate between two hex colors
+function interpolateColor(color1: string, color2: string, ratio: number): string {
+  const r1 = parseInt(color1.slice(1, 3), 16);
+  const g1 = parseInt(color1.slice(3, 5), 16);
+  const b1 = parseInt(color1.slice(5, 7), 16);
+
+  const r2 = parseInt(color2.slice(1, 3), 16);
+  const g2 = parseInt(color2.slice(3, 5), 16);
+  const b2 = parseInt(color2.slice(5, 7), 16);
+
+  const r = Math.round(r1 + (r2 - r1) * ratio);
+  const g = Math.round(g1 + (g2 - g1) * ratio);
+  const b = Math.round(b1 + (b2 - b1) * ratio);
+
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+}
