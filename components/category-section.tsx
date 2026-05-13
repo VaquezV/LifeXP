@@ -9,8 +9,9 @@ import { Habit, CategoryType } from '@/lib/types';
 export interface CategorySectionProps {
   category: CategoryType;
   habits: Habit[];
-  habitValues: Record<string, number>; // habit_id -> current value
-  onHabitValueChange: (habitId: string, newValue: number) => void;
+  weekDates: string[];
+  weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
+  onHabitValueChange: (habitId: string, date: string, newValue: number) => void;
 }
 
 const CATEGORY_LABELS: Record<CategoryType, string> = {
@@ -23,7 +24,8 @@ const CATEGORY_LABELS: Record<CategoryType, string> = {
 export function CategorySection({
   category,
   habits,
-  habitValues,
+  weekDates,
+  weekValues,
   onHabitValueChange,
 }: CategorySectionProps) {
   const colorScheme = useColorScheme();
@@ -68,7 +70,8 @@ export function CategorySection({
           <HabitCard
             key={habit.id}
             habit={habit}
-            currentValue={habitValues[habit.id] ?? 0}
+            weekDates={weekDates}
+            weekValues={weekValues}
             onValueChange={onHabitValueChange}
           />
         ))}

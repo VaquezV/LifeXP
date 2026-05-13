@@ -81,17 +81,15 @@ export default function HomeScreen() {
     loadData();
   }, [weekDates]);
 
-  const handleValueChange = async (habitId: string, value: number) => {
-    const today = new Date().toISOString().split('T')[0];
-
+  const handleValueChange = async (habitId: string, date: string, value: number) => {
     try {
-      await logHabitValue(SINGLE_USER_ID, habitId, today, value);
+      await logHabitValue(SINGLE_USER_ID, habitId, date, value);
 
       // Update local state (score recalculation handled by useEffect)
       setDailyValues(prev => ({
         ...prev,
-        [today]: {
-          ...(prev[today] ?? {}),
+        [date]: {
+          ...(prev[date] ?? {}),
           [habitId]: value,
         },
       }));
@@ -154,14 +152,13 @@ export default function HomeScreen() {
 
           const category = item as CategoryType;
           const categoryHabits = habits.filter(h => h.category === category);
-          const todayStr = new Date().toISOString().split('T')[0];
-          const todayValues = dailyValues[todayStr] ?? {};
 
           return (
             <CategorySection
               category={category}
               habits={categoryHabits}
-              habitValues={todayValues}
+              weekDates={weekDates}
+              weekValues={dailyValues}
               onHabitValueChange={handleValueChange}
             />
           );

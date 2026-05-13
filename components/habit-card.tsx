@@ -1,5 +1,6 @@
-import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useState, useMemo } from 'react';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -8,21 +9,102 @@ import { calculateHabitCompletion } from '@/lib/scoring';
 
 export interface HabitCardProps {
   habit: Habit;
-  currentValue: number;
-  onValueChange: (habitId: string, newValue: number) => void;
+  weekDates: string[];
+  weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
+  onValueChange: (habitId: string, date: string, newValue: number) => void;
 }
 
-export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps) {
+export function HabitCard({
+  habit,
+  weekDates,
+  weekValues,
+  onValueChange,
+}: HabitCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-
-  const completionPercentage = calculateHabitCompletion(habit, currentValue);
   const categoryColor = CATEGORY_COLORS[habit.category];
   const accentColor = categoryColor.mid;
 
-  const renderButtons = () => {
+  const dayNames = ['LU', 'MA', 'ME', 'JE', 'VE', 'SA', 'DI'];
+  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(today);
+
+  const selectedValue = weekValues[selectedDate]?.[habit.id] ?? 0;
+
+  // Calculate week total for display
+  const weekTotal = useMemo(() => {
+    return weekDates.reduce((sum, date) => {
+      return sum + (weekValues[date]?.[habit.id] ?? 0);
+    }, 0);
+  }, [weekDates, weekValues, habit.id]);
+
+  // Calculate weekly completion percentage
+  const weeklyCompletion = useMemo(() => {
+    if (habit.frequency_type === 'times_per_week') {
+      return Math.min(100, Math.floor((weekTotal / habit.target_value) * 100));
+    }
+    // For daily habits, calculate average
+    let totalCompletion = 0;
+    let count = 0;
+    for (const date of weekDates) {
+      const value = weekValues[date]?.[habit.id] ?? 0;
+      const completion = calculateHabitCompletion(habit, value);
+      totalCompletion += completion;
+      count++;
+    }
+    return Math.floor(totalCompletion / count);
+  }, [weekDates, weekValues, habit]);
+
+  const renderWeekDays = () => {
+    return (
+      <View style={styles.weekContainer}>
+        {weekDates.map((date, index) => {
+          const dateObj = new Date(date);
+          const dayNum = dateObj.getDate();
+          const isSelected = date === selectedDate;
+          const isToday = date === today;
+
+          return (
+            <Pressable
+              key={date}
+              style={[
+                styles.dayButton,
+                isSelected && { backgroundColor: accentColor },
+                !isSelected && { borderColor: accentColor, borderWidth: 1 },
+              ]}
+              onPress={() => setSelectedDate(date)}
+            >
+              <ThemedText
+                style={[
+                  styles.dayLabel,
+                  {
+                    color: isSelected ? '#ffffff' : accentColor,
+                    fontSize: 10,
+                  },
+                ]}
+              >
+                {dayNames[index]}
+              </ThemedText>
+              <ThemedText
+                style={[
+                  styles.dayNumber,
+                  {
+                    color: isSelected ? '#ffffff' : isDark ? '#ffffff' : '#000000',
+                    fontWeight: isToday ? '700' : '600',
+                  },
+                ]}
+              >
+                {dayNum}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  };
+
+  const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
-      // Presets: 0%, 25%, 50%, 75%, 100%
       const presets = [
         { label: '0', value: 0 },
         { label: '¼', value: Math.floor(habit.target_value * 0.25) },
@@ -38,22 +120,22 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
               key={preset.value}
               style={[
                 styles.presetButton,
-                currentValue === preset.value && {
+                selectedValue === preset.value && {
                   backgroundColor: accentColor,
                 },
-                currentValue !== preset.value && {
+                selectedValue !== preset.value && {
                   borderColor: accentColor,
                   borderWidth: 1,
                 },
               ]}
-              onPress={() => onValueChange(habit.id, preset.value)}
+              onPress={() => onValueChange(habit.id, selectedDate, preset.value)}
             >
               <ThemedText
                 style={[
                   styles.presetButtonText,
                   {
                     color:
-                      currentValue === preset.value ? '#ffffff' : accentColor,
+                      selectedValue === preset.value ? '#ffffff' : accentColor,
                   },
                 ]}
               >
@@ -66,7 +148,6 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
     }
 
     if (habit.frequency_type === 'times_per_day') {
-      // Integer buttons from 0 to target
       const buttons = Array.from(
         { length: habit.target_value + 1 },
         (_, i) => i
@@ -79,22 +160,21 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
               key={num}
               style={[
                 styles.countButton,
-                currentValue === num && {
+                selectedValue === num && {
                   backgroundColor: accentColor,
                 },
-                currentValue !== num && {
+                selectedValue !== num && {
                   borderColor: accentColor,
                   borderWidth: 1,
                 },
               ]}
-              onPress={() => onValueChange(habit.id, num)}
+              onPress={() => onValueChange(habit.id, selectedDate, num)}
             >
               <ThemedText
                 style={[
                   styles.countButtonText,
                   {
-                    color:
-                      currentValue === num ? '#ffffff' : accentColor,
+                    color: selectedValue === num ? '#ffffff' : accentColor,
                   },
                 ]}
               >
@@ -107,27 +187,26 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
     }
 
     if (habit.frequency_type === 'times_per_week') {
-      // Yes/No buttons (0 or 1)
       return (
         <View style={styles.buttonContainer}>
           <Pressable
             style={[
               styles.yesnoButton,
-              currentValue === 0 && {
+              selectedValue === 0 && {
                 backgroundColor: accentColor,
               },
-              currentValue !== 0 && {
+              selectedValue !== 0 && {
                 borderColor: accentColor,
                 borderWidth: 1,
               },
             ]}
-            onPress={() => onValueChange(habit.id, 0)}
+            onPress={() => onValueChange(habit.id, selectedDate, 0)}
           >
             <ThemedText
               style={[
                 styles.yesnoButtonText,
                 {
-                  color: currentValue === 0 ? '#ffffff' : accentColor,
+                  color: selectedValue === 0 ? '#ffffff' : accentColor,
                 },
               ]}
             >
@@ -137,21 +216,21 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
           <Pressable
             style={[
               styles.yesnoButton,
-              currentValue === 1 && {
+              selectedValue === 1 && {
                 backgroundColor: accentColor,
               },
-              currentValue !== 1 && {
+              selectedValue !== 1 && {
                 borderColor: accentColor,
                 borderWidth: 1,
               },
             ]}
-            onPress={() => onValueChange(habit.id, 1)}
+            onPress={() => onValueChange(habit.id, selectedDate, 1)}
           >
             <ThemedText
               style={[
                 styles.yesnoButtonText,
                 {
-                  color: currentValue === 1 ? '#ffffff' : accentColor,
+                  color: selectedValue === 1 ? '#ffffff' : accentColor,
                 },
               ]}
             >
@@ -205,12 +284,13 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
             type="defaultSemiBold"
             style={[styles.percentage, { color: accentColor }]}
           >
-            {completionPercentage}%
+            {weeklyCompletion}%
           </ThemedText>
         </View>
       </View>
 
-      {renderButtons()}
+      {renderWeekDays()}
+      {renderPresetButtons()}
     </ThemedView>
   );
 }
@@ -231,7 +311,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   emoji: {
     fontSize: 28,
@@ -256,6 +336,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     minWidth: 45,
     textAlign: 'right',
+  },
+  weekContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 12,
+    justifyContent: 'space-between',
+  },
+  dayButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayLabel: {
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  dayNumber: {
+    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
