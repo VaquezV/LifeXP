@@ -27,7 +27,7 @@ const CATEGORIES: Array<{ key: CategoryType; label: string }> = [
 ];
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
   const [habits, setHabits] = useState<Habit[]>([]);
