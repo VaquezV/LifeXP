@@ -57,9 +57,7 @@ export function HabitCard({ habit, currentValue, onValueChange }: HabitCardProps
   };
 
   const handleHalf = () => {
-    const target =
-      habit.frequency_type === 'per_day' ? habit.target_value : habit.target_value;
-    onValueChange(habit.id, Math.floor(target / 2));
+    onValueChange(habit.id, Math.floor(habit.target_value / 2));
   };
 
   const handleFull = () => {
