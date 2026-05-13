@@ -23,6 +23,7 @@ export function calculatePerDayCompletion(
   }
 
   const range = habit.target_value - habit.min_value;
+  if (range === 0) return value >= habit.target_value ? 100 : 0;
   const progress = value - habit.min_value;
   return Math.round((progress / range) * 100);
 }
@@ -39,13 +40,14 @@ export function calculateTimesPerDayCompletion(
     throw new Error('calculateTimesPerDayCompletion: habit must be times_per_day type');
   }
 
+  if (habit.target_value === 0) return 0;
   const percentage = (value / habit.target_value) * 100;
   return Math.max(0, Math.min(100, Math.round(percentage)));
 }
 
 /**
  * Calculate weekly completion % for a times_per_week habit
- * % = (total_week_value / (target_value * 7)) * 100, clamped [0, 100]
+ * % = (total_week_value / target_value) * 100, clamped [0, 100]
  */
 export function calculateTimesPerWeekCompletion(
   habit: Habit,
@@ -55,8 +57,8 @@ export function calculateTimesPerWeekCompletion(
     throw new Error('calculateTimesPerWeekCompletion: habit must be times_per_week type');
   }
 
-  const weekTarget = habit.target_value * 7;
-  const percentage = (weekTotalValue / weekTarget) * 100;
+  if (habit.target_value === 0) return 0;
+  const percentage = (weekTotalValue / habit.target_value) * 100;
   return Math.max(0, Math.min(100, Math.round(percentage)));
 }
 
@@ -140,9 +142,13 @@ export function calculateWeeklyScore(
       // Use week total
       completionPercentages.push(calculateHabitCompletion(habit, weekTotal));
     } else {
-      // For daily habits: use average across 7 days
-      const dailyAverage = weekTotal / dates.length;
-      completionPercentages.push(calculateHabitCompletion(habit, dailyAverage));
+      // For daily habits: score each day, then average the scores
+      const dailyScores: number[] = [];
+      dates.forEach(date => {
+        const dayValue = weekLogs[date]?.[habit.id] ?? 0;
+        dailyScores.push(calculateHabitCompletion(habit, dayValue));
+      });
+      completionPercentages.push(Math.round(dailyScores.reduce((sum, s) => sum + s, 0) / dates.length));
     }
   });
 
