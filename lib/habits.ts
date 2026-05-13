@@ -14,15 +14,13 @@ function ensureSupabase() {
  */
 export async function fetchHabits(userId?: string): Promise<Habit[]> {
   const client = ensureSupabase();
-  let query = client.from('habits').select('*');
+  const filterUserId = userId || SINGLE_USER_ID;
 
-  if (userId) {
-    query = query.eq('user_id', userId);
-  } else {
-    query = query.eq('user_id', SINGLE_USER_ID);
-  }
-
-  const { data, error } = await query.order('created_at', { ascending: true });
+  const { data, error } = await client
+    .from('habits')
+    .select('*')
+    .eq('user_id', filterUserId)
+    .order('created_at', { ascending: true });
 
   if (error) {
     throw error;

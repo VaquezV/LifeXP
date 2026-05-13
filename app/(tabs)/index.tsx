@@ -1,5 +1,5 @@
 // lifexp/app/(tabs)/index.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -37,8 +37,8 @@ export default function HomeScreen() {
   >({}); // date -> (habit_id -> value)
   const [weeklyScore, setWeeklyScore] = useState(0);
 
-  // Get current week (Mon-Sun)
-  const getWeekDates = useCallback(() => {
+  // Get current week (Mon-Sun) - memoized to prevent infinite loops
+  const weekDates = useMemo(() => {
     const now = new Date();
     const dayOfWeek = now.getDay();
     const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
@@ -52,8 +52,6 @@ export default function HomeScreen() {
     }
     return dates;
   }, []);
-
-  const weekDates = getWeekDates();
 
   // Load habits and logs
   useEffect(() => {
