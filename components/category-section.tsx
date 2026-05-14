@@ -1,10 +1,12 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { HabitCard } from './habit-card';
+import { AddHabitCard } from './add-habit-card';
 import { Habit, CategoryType } from '@/lib/types';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export interface CategorySectionProps {
   category: CategoryType;
@@ -12,6 +14,7 @@ export interface CategorySectionProps {
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
   onHabitValueChange: (habitId: string, date: string, newValue: number) => void;
+  onAddHabit?: (habit: any) => Promise<void>;
 }
 
 const CATEGORY_LABELS: Record<CategoryType, string> = {
@@ -27,6 +30,7 @@ export function CategorySection({
   weekDates,
   weekValues,
   onHabitValueChange,
+  onAddHabit,
 }: CategorySectionProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -38,7 +42,7 @@ export function CategorySection({
   // Filter habits for this category
   const categoryHabits = habits.filter(h => h.category === category);
 
-  if (categoryHabits.length === 0) {
+  if (categoryHabits.length === 0 && !onAddHabit) {
     return null;
   }
 
@@ -75,6 +79,26 @@ export function CategorySection({
             onValueChange={onHabitValueChange}
           />
         ))}
+        {onAddHabit && (
+          <Pressable
+            style={[
+              styles.addHabitButton,
+              {
+                backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+                borderColor: accentColor,
+              },
+            ]}
+            onPress={() => {
+              // Open add habit modal with pre-selected category
+              onAddHabit({ category }).catch(() => {});
+            }}
+          >
+            <MaterialIcons name="add" size={24} color={accentColor} />
+            <ThemedText style={[styles.addHabitText, { color: accentColor }]}>
+              Add
+            </ThemedText>
+          </Pressable>
+        )}
       </View>
     </ThemedView>
   );
@@ -99,5 +123,19 @@ const styles = StyleSheet.create({
   habitsContainer: {
     paddingHorizontal: 0,
     paddingBottom: 12,
+  },
+  addHabitButton: {
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addHabitText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
