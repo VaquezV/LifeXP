@@ -103,17 +103,30 @@ export function HabitCard({
     );
   };
 
+  const getSegmentSize = (targetMinutes: number): number => {
+    if (targetMinutes < 30) return 5;
+    if (targetMinutes < 60) return 15;
+    if (targetMinutes < 300) return 30;
+    return 60;
+  };
+
+  const formatTime = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h${mins}` : `${hours}h`;
+  };
+
   const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
-      // Create 10 slider segments for easy clicking
-      const segments = 10;
-      const segmentValue = Math.ceil(habit.target_value / segments);
+      const segmentSize = getSegmentSize(habit.target_value);
+      const segments = Math.ceil(habit.target_value / segmentSize);
 
       return (
         <View style={styles.sliderContainer}>
           <View style={styles.sliderBar}>
             {Array.from({ length: segments + 1 }).map((_, i) => {
-              const value = i * segmentValue;
+              const value = Math.min(i * segmentSize, habit.target_value);
               const isActive = selectedValue >= value;
               return (
                 <Pressable
@@ -123,7 +136,7 @@ export function HabitCard({
                     isActive && { backgroundColor: accentColor },
                     !isActive && { backgroundColor: isDark ? '#333333' : '#cccccc' },
                   ]}
-                  onPress={() => onValueChange(habit.id, selectedDate, Math.min(value, habit.target_value))}
+                  onPress={() => onValueChange(habit.id, selectedDate, value)}
                 />
               );
             })}
@@ -133,10 +146,10 @@ export function HabitCard({
               0
             </ThemedText>
             <ThemedText style={[styles.sliderValue, { color: accentColor }]}>
-              {selectedValue}
+              {formatTime(selectedValue)}
             </ThemedText>
             <ThemedText style={[styles.sliderLabel, { color: isDark ? '#ffffff' : '#000000' }]}>
-              {habit.target_value}
+              {formatTime(habit.target_value)}
             </ThemedText>
           </View>
         </View>

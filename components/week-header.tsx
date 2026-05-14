@@ -1,7 +1,8 @@
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, View, Pressable, Dimensions } from 'react-native';
 import { ThemedText } from './themed-text';
 import { getGradientColor } from '@/constants/theme';
 import { CategoryType } from '@/lib/types';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export interface DayData {
   date: string; // YYYY-MM-DD format
@@ -16,6 +17,11 @@ export interface WeekHeaderProps {
 }
 
 export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const screenWidth = Dimensions.get('window').width;
+  const isSmallScreen = screenWidth < 380;
+
   const handleDayPress = (dayData: DayData) => {
     if (onDayPress) {
       onDayPress(dayData);
@@ -28,9 +34,13 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
     return parts[2] || '';
   };
 
-  return (
-    <View style={styles.container}>
-      {days.map((day, index) => {
+  // Split days into two rows on small screens
+  const firstRow = isSmallScreen ? days.slice(0, 4) : days;
+  const secondRow = isSmallScreen ? days.slice(4) : [];
+
+  const renderRow = (rowDays: DayData[]) => (
+    <View style={styles.row}>
+      {rowDays.map((day, index) => {
         const backgroundColor = getGradientColor(day.category, day.completion);
         const dayNumber = getDayNumber(day.date);
 
@@ -38,7 +48,7 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
           <Pressable
             key={index}
             onPress={() => handleDayPress(day)}
-            style={styles.dayCard}
+            style={[styles.dayCard, isSmallScreen && styles.dayCardSmall]}
             android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
           >
             <View style={[styles.dayCardContent, { backgroundColor }]}>
@@ -64,21 +74,41 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
       })}
     </View>
   );
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
+      ]}
+    >
+      {renderRow(firstRow)}
+      {secondRow.length > 0 && renderRow(secondRow)}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222222',
+  },
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginBottom: 8,
   },
   dayCard: {
     flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  dayCardSmall: {
+    borderRadius: 10,
   },
   dayCardContent: {
     alignItems: 'center',
@@ -94,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dayNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

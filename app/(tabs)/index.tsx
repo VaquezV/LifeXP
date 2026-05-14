@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/Colors';
+import { AppHeader } from '@/components/app-header';
 import { WeekHeader } from '@/components/week-header';
 import { CategorySection } from '@/components/category-section';
 import { WeeklyScore } from '@/components/weekly-score';
@@ -37,17 +38,12 @@ export default function HomeScreen() {
   >({}); // date -> (habit_id -> value)
   const [weeklyScore, setWeeklyScore] = useState(0);
 
-  // Get current week (Mon-Sun) - memoized to prevent infinite loops
+  // Get last 7 days ending today
   const weekDates = useMemo(() => {
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    const monday = new Date(now.setDate(diff));
-
     const dates: string[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(monday);
-      date.setDate(date.getDate() + i);
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
@@ -119,16 +115,16 @@ export default function HomeScreen() {
   }
 
   // Build day headers
-  const dayNames = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'];
-  const dayHeaders = weekDates.map((date, index) => {
+  const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const dayHeaders = weekDates.map((date) => {
+    const dateObj = new Date(date + 'T00:00:00');
     const todayLogs = dailyValues[date] ?? {};
     const completion = calculateDayCompletion(habits, todayLogs);
-    // Simple logic: use the first habit's category for dominant color
     const dominantCategory: CategoryType = 'self_care';
 
     return {
       date,
-      dayName: dayNames[index],
+      dayName: dayNames[dateObj.getDay()].substring(0, 3),
       completion,
       category: dominantCategory,
     };
@@ -139,9 +135,13 @@ export default function HomeScreen() {
       style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
     >
       <FlatList
-        data={['week-header', ...CATEGORIES.map(cat => cat.key), 'weekly-score']}
+        data={['app-header', 'week-header', ...CATEGORIES.map(cat => cat.key), 'weekly-score']}
         keyExtractor={item => item}
         renderItem={({ item }) => {
+          if (item === 'app-header') {
+            return <AppHeader weeklyScore={weeklyScore} />;
+          }
+
           if (item === 'week-header') {
             return <WeekHeader days={dayHeaders} />;
           }
