@@ -115,16 +115,17 @@ export default function HomeScreen() {
   }
 
   // Build day headers
-  const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const dayNames = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
   const dayHeaders = weekDates.map((date) => {
-    const dateObj = new Date(date + 'T00:00:00');
+    const [year, month, day] = date.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
     const todayLogs = dailyValues[date] ?? {};
     const completion = calculateDayCompletion(habits, todayLogs);
     const dominantCategory: CategoryType = 'self_care';
 
     return {
       date,
-      dayName: dayNames[dateObj.getDay()].substring(0, 3),
+      dayName: dayNames[dateObj.getDay()],
       completion,
       category: dominantCategory,
     };
@@ -132,7 +133,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
+      style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
     >
       <FlatList
         data={['app-header', 'week-header', ...CATEGORIES.map(cat => cat.key), 'weekly-score']}

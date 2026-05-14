@@ -120,13 +120,13 @@ export function HabitCard({
   const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
       const segmentSize = getSegmentSize(habit.target_value);
-      const segments = Math.ceil(habit.target_value / segmentSize);
+      const numSegments = Math.floor(habit.target_value / segmentSize);
 
       return (
         <View style={styles.sliderContainer}>
           <View style={styles.sliderBar}>
-            {Array.from({ length: segments + 1 }).map((_, i) => {
-              const value = Math.min(i * segmentSize, habit.target_value);
+            {Array.from({ length: numSegments + 1 }).map((_, i) => {
+              const value = i * segmentSize;
               const isActive = selectedValue >= value;
               return (
                 <Pressable
