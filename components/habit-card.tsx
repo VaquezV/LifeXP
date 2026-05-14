@@ -103,45 +103,42 @@ export function HabitCard({
     );
   };
 
-  const sliderRef = useRef<View>(null);
-  const [sliderWidth, setSliderWidth] = useState(0);
-
-  const handleSliderPress = (e: any) => {
-    const x = e.nativeEvent.locationX;
-    const proportion = Math.max(0, Math.min(1, x / sliderWidth));
-    const newValue = Math.round(proportion * habit.target_value);
-    onValueChange(habit.id, selectedDate, newValue);
-  };
-
   const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
-      const completionProportion = habit.target_value > 0 ? selectedValue / habit.target_value : 0;
-      const filledWidth = `${Math.max(0, Math.min(100, completionProportion * 100))}%`;
-
-      const filledPercentage = habit.target_value > 0 ? (selectedValue / habit.target_value) * 100 : 0;
+      // Create 10 slider segments for easy clicking
+      const segments = 10;
+      const segmentValue = Math.ceil(habit.target_value / segments);
 
       return (
         <View style={styles.sliderContainer}>
-          <Pressable
-            ref={sliderRef}
-            onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
-            onPress={handleSliderPress}
-            style={styles.sliderBar}
-          >
-            {/* Completed portion */}
-            <View
-              style={[
-                styles.sliderFilled,
-                {
-                  width: `${Math.max(0, Math.min(100, filledPercentage))}%`,
-                  backgroundColor: accentColor,
-                },
-              ]}
-            />
-          </Pressable>
-          <ThemedText style={[styles.sliderValue, { color: accentColor }]}>
-            {selectedValue}/{habit.target_value}
-          </ThemedText>
+          <View style={styles.sliderBar}>
+            {Array.from({ length: segments + 1 }).map((_, i) => {
+              const value = i * segmentValue;
+              const isActive = selectedValue >= value;
+              return (
+                <Pressable
+                  key={i}
+                  style={[
+                    styles.sliderSegment,
+                    isActive && { backgroundColor: accentColor },
+                    !isActive && { backgroundColor: isDark ? '#333333' : '#cccccc' },
+                  ]}
+                  onPress={() => onValueChange(habit.id, selectedDate, Math.min(value, habit.target_value))}
+                />
+              );
+            })}
+          </View>
+          <View style={styles.sliderLabelContainer}>
+            <ThemedText style={[styles.sliderLabel, { color: isDark ? '#ffffff' : '#000000' }]}>
+              0
+            </ThemedText>
+            <ThemedText style={[styles.sliderValue, { color: accentColor }]}>
+              {selectedValue}
+            </ThemedText>
+            <ThemedText style={[styles.sliderLabel, { color: isDark ? '#ffffff' : '#000000' }]}>
+              {habit.target_value}
+            </ThemedText>
+          </View>
         </View>
       );
     }
@@ -403,17 +400,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sliderBar: {
-    height: 24,
+    height: 32,
     borderRadius: 6,
     overflow: 'hidden',
-    backgroundColor: '#333333',
+    flexDirection: 'row',
+    gap: 1,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
   },
-  sliderFilled: {
-    height: 24,
+  sliderSegment: {
+    flex: 1,
+    borderRadius: 4,
+  },
+  sliderLabelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  sliderLabel: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   sliderValue: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     textAlign: 'center',
   },
 });
