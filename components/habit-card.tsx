@@ -1,6 +1,6 @@
 import { StyleSheet, View, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -103,46 +103,45 @@ export function HabitCard({
     );
   };
 
+  const sliderRef = useRef<View>(null);
+  const [sliderWidth, setSliderWidth] = useState(0);
+
+  const handleSliderPress = (e: any) => {
+    const x = e.nativeEvent.locationX;
+    const proportion = Math.max(0, Math.min(1, x / sliderWidth));
+    const newValue = Math.round(proportion * habit.target_value);
+    onValueChange(habit.id, selectedDate, newValue);
+  };
+
   const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
-      const presets = [
-        { label: '0', value: 0 },
-        { label: '¼', value: Math.floor(habit.target_value * 0.25) },
-        { label: '½', value: Math.floor(habit.target_value * 0.5) },
-        { label: '¾', value: Math.floor(habit.target_value * 0.75) },
-        { label: '1/1', value: habit.target_value },
-      ];
+      const completionProportion = habit.target_value > 0 ? selectedValue / habit.target_value : 0;
+      const filledWidth = `${Math.max(0, Math.min(100, completionProportion * 100))}%`;
+
+      const filledPercentage = habit.target_value > 0 ? (selectedValue / habit.target_value) * 100 : 0;
 
       return (
-        <View style={styles.buttonContainer}>
-          {presets.map(preset => (
-            <Pressable
-              key={preset.value}
+        <View style={styles.sliderContainer}>
+          <Pressable
+            ref={sliderRef}
+            onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
+            onPress={handleSliderPress}
+            style={styles.sliderBar}
+          >
+            {/* Completed portion */}
+            <View
               style={[
-                styles.presetButton,
-                selectedValue === preset.value && {
+                styles.sliderFilled,
+                {
+                  width: `${Math.max(0, Math.min(100, filledPercentage))}%`,
                   backgroundColor: accentColor,
                 },
-                selectedValue !== preset.value && {
-                  borderColor: accentColor,
-                  borderWidth: 1,
-                },
               ]}
-              onPress={() => onValueChange(habit.id, selectedDate, preset.value)}
-            >
-              <ThemedText
-                style={[
-                  styles.presetButtonText,
-                  {
-                    color:
-                      selectedValue === preset.value ? '#ffffff' : accentColor,
-                  },
-                ]}
-              >
-                {preset.label}
-              </ThemedText>
-            </Pressable>
-          ))}
+            />
+          </Pressable>
+          <ThemedText style={[styles.sliderValue, { color: accentColor }]}>
+            {selectedValue}/{habit.target_value}
+          </ThemedText>
         </View>
       );
     }
@@ -399,5 +398,22 @@ const styles = StyleSheet.create({
   yesnoButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  sliderContainer: {
+    gap: 8,
+  },
+  sliderBar: {
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: '#333333',
+  },
+  sliderFilled: {
+    height: 24,
+  },
+  sliderValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
