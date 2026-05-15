@@ -102,8 +102,8 @@ function aggregateMonthly(
     vie_pro: [],
   };
 
-  // Get last 8 weeks (oldest to newest)
-  for (let week = 7; week >= 0; week--) {
+  // Get last 4 weeks: aggregate 7 days per point, ending today
+  for (let week = 3; week >= 0; week--) {
     let weekTotal = 0;
     let dayCount = 0;
     const categoryTotals: Record<CategoryType, number> = {
@@ -119,7 +119,7 @@ function aggregateMonthly(
       vie_pro: 0,
     };
 
-    // Average for 7 days in this week
+    // 7 days per week, ending at today
     for (let day = 6; day >= 0; day--) {
       const date = new Date(today);
       date.setDate(date.getDate() - (week * 7 + day));
@@ -127,28 +127,23 @@ function aggregateMonthly(
       const dayLogs = dailyValues[dateStr] ?? {};
 
       const dayCompletion = calculateDayCompletion(habits, dayLogs);
-      if (Object.keys(dayLogs).length > 0 || dayCompletion > 0) {
-        weekTotal += dayCompletion;
-        dayCount++;
-      }
+      weekTotal += dayCompletion;
+      dayCount++;
 
-      // Per category
       for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
         const catHabits = habits.filter(h => h.category === category);
         const catCompletion = calculateDayCompletion(catHabits, dayLogs);
-        if (Object.keys(dayLogs).length > 0 || catCompletion > 0) {
-          categoryTotals[category] += catCompletion;
-          categoryDays[category]++;
-        }
+        categoryTotals[category] += catCompletion;
+        categoryDays[category]++;
       }
     }
 
     const weekLabel = `W${week + 1}`;
-    const weekValue = dayCount > 0 ? Math.round(weekTotal / dayCount) : 0;
+    const weekValue = Math.round(weekTotal / dayCount);
     points.unshift({ label: weekLabel, date: '', value: weekValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
-      const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
+      const catValue = Math.round(categoryTotals[category] / categoryDays[category]);
       categoryPoints[category].unshift({ label: weekLabel, date: '', value: catValue });
     }
   }
@@ -175,8 +170,8 @@ function aggregateQuarterly(
     vie_pro: [],
   };
 
-  // Get last 12 weeks (oldest to newest)
-  for (let week = 11; week >= 0; week--) {
+  // Get last 13 weeks, ending today
+  for (let week = 12; week >= 0; week--) {
     let weekTotal = 0;
     let dayCount = 0;
     const categoryTotals: Record<CategoryType, number> = {
@@ -199,27 +194,23 @@ function aggregateQuarterly(
       const dayLogs = dailyValues[dateStr] ?? {};
 
       const dayCompletion = calculateDayCompletion(habits, dayLogs);
-      if (Object.keys(dayLogs).length > 0 || dayCompletion > 0) {
-        weekTotal += dayCompletion;
-        dayCount++;
-      }
+      weekTotal += dayCompletion;
+      dayCount++;
 
       for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
         const catHabits = habits.filter(h => h.category === category);
         const catCompletion = calculateDayCompletion(catHabits, dayLogs);
-        if (Object.keys(dayLogs).length > 0 || catCompletion > 0) {
-          categoryTotals[category] += catCompletion;
-          categoryDays[category]++;
-        }
+        categoryTotals[category] += catCompletion;
+        categoryDays[category]++;
       }
     }
 
     const weekLabel = `W${week + 1}`;
-    const weekValue = dayCount > 0 ? Math.round(weekTotal / dayCount) : 0;
+    const weekValue = Math.round(weekTotal / dayCount);
     points.unshift({ label: weekLabel, date: '', value: weekValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
-      const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
+      const catValue = Math.round(categoryTotals[category] / categoryDays[category]);
       categoryPoints[category].unshift({ label: weekLabel, date: '', value: catValue });
     }
   }
@@ -246,10 +237,15 @@ function aggregateYearly(
     vie_pro: [],
   };
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  // Get last 12 months
-  for (let month = 11; month >= 0; month--) {
+  // Get last 12 months, ending with current month
+  for (let monthsBack = 11; monthsBack >= 0; monthsBack--) {
+    const targetDate = new Date(today);
+    targetDate.setMonth(targetDate.getMonth() - monthsBack);
+    const targetYear = targetDate.getFullYear();
+    const targetMonth = targetDate.getMonth();
+
     let monthTotal = 0;
     let dayCount = 0;
     const categoryTotals: Record<CategoryType, number> = {
@@ -265,40 +261,35 @@ function aggregateYearly(
       vie_pro: 0,
     };
 
-    const targetMonth = today.getMonth() - month;
-    const targetYear = today.getFullYear() - (targetMonth < 0 ? 1 : 0);
-    const actualMonth = (targetMonth + 12) % 12;
+    // Get all days in this month
+    const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const startDay = monthsBack === 0 ? 1 : 1; // Current month: only count until today
+    const endDay = monthsBack === 0 ? today.getDate() : daysInMonth; // Current month: stop at today
 
-    // Get days in this month
-    const daysInMonth = new Date(targetYear, actualMonth + 1, 0).getDate();
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(targetYear, actualMonth, day);
+    for (let day = startDay; day <= endDay; day++) {
+      const date = new Date(targetYear, targetMonth, day);
       const dateStr = date.toISOString().split('T')[0];
       const dayLogs = dailyValues[dateStr] ?? {};
 
       const dayCompletion = calculateDayCompletion(habits, dayLogs);
-      if (Object.keys(dayLogs).length > 0 || dayCompletion > 0) {
-        monthTotal += dayCompletion;
-        dayCount++;
-      }
+      monthTotal += dayCompletion;
+      dayCount++;
 
       for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
         const catHabits = habits.filter(h => h.category === category);
         const catCompletion = calculateDayCompletion(catHabits, dayLogs);
-        if (Object.keys(dayLogs).length > 0 || catCompletion > 0) {
-          categoryTotals[category] += catCompletion;
-          categoryDays[category]++;
-        }
+        categoryTotals[category] += catCompletion;
+        categoryDays[category]++;
       }
     }
 
-    const monthLabel = months[actualMonth];
+    const monthLabel = monthLabels[targetMonth];
     const monthValue = dayCount > 0 ? Math.round(monthTotal / dayCount) : 0;
-    points.unshift({ label: monthLabel, date: '', value: monthValue });
+    points.push({ label: monthLabel, date: '', value: monthValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
       const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
-      categoryPoints[category].unshift({ label: monthLabel, date: '', value: catValue });
+      categoryPoints[category].push({ label: monthLabel, date: '', value: catValue });
     }
   }
 
