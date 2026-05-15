@@ -11,12 +11,12 @@ import {
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/Colors';
 import { AppHeader } from '@/components/app-header';
-import { WeekHeader } from '@/components/week-header';
+import { WeekSummary } from '@/components/week-summary';
 import { CategorySection } from '@/components/category-section';
 import { WeeklyScore } from '@/components/weekly-score';
 import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
-import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
+import { calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
 import { SINGLE_USER_ID } from '@/lib/supabase';
 
@@ -114,23 +114,6 @@ export default function HomeScreen() {
     );
   }
 
-  // Build day headers
-  const dayNames = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
-  const dayHeaders = weekDates.map((date) => {
-    const [year, month, day] = date.split('-').map(Number);
-    const dateObj = new Date(year, month - 1, day);
-    const todayLogs = dailyValues[date] ?? {};
-    const completion = calculateDayCompletion(habits, todayLogs);
-    const dominantCategory: CategoryType = 'self_care';
-
-    return {
-      date,
-      dayName: dayNames[dateObj.getDay()],
-      completion,
-      category: dominantCategory,
-    };
-  });
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
@@ -144,7 +127,18 @@ export default function HomeScreen() {
           }
 
           if (item === 'week-header') {
-            return <WeekHeader days={dayHeaders} />;
+            return habits.length > 0 ? (
+              <WeekSummary
+                weekDays={weekDates.map((date, idx) => ({
+                  abbr: ['LU', 'MA', 'ME', 'JE', 'VE', 'SA', 'DI'][new Date(date).getDay()],
+                  date: new Date(date).getDate().toString().padStart(2, '0'),
+                  isCompleted: Math.random() > 0.5, // Replace with actual completion logic
+                  isToday: date === new Date().toISOString().split('T')[0],
+                }))}
+                weeklyCompletion={weeklyScore}
+                accentColor="#2a9d8f"
+              />
+            ) : null;
           }
 
           if (item === 'weekly-score') {
