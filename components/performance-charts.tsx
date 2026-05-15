@@ -41,23 +41,15 @@ export function PerformanceCharts({
     return Math.round(sum / chartData.global.length);
   }, [chartData.global]);
 
-  // Create chart data for overall progress (global only)
-  const overallChartData = useMemo(() => ({
-    global: chartData.global,
-    self_care: [],
-    dev_perso: [],
-    vie_familiale: [],
-    vie_pro: [],
-  } as ChartData), [chartData.global]);
-
-  // Create chart data for each category
-  const createCategoryChartData = (category: CategoryType): ChartData => ({
-    global: [],
-    self_care: category === 'self_care' ? chartData.self_care : [],
-    dev_perso: category === 'dev_perso' ? chartData.dev_perso : [],
-    vie_familiale: category === 'vie_familiale' ? chartData.vie_familiale : [],
-    vie_pro: category === 'vie_pro' ? chartData.vie_pro : [],
-  });
+  // Get category data
+  const getCategoryData = (category: CategoryType) => {
+    switch (category) {
+      case 'self_care': return chartData.self_care;
+      case 'dev_perso': return chartData.dev_perso;
+      case 'vie_familiale': return chartData.vie_familiale;
+      case 'vie_pro': return chartData.vie_pro;
+    }
+  };
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
@@ -91,29 +83,30 @@ export function PerformanceCharts({
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Overall Progress Chart */}
-        <View style={styles.chartSection}>
-          <ThemedText style={styles.chartTitle}>Overall Progress</ThemedText>
-          <LineChart
-            data={overallChartData}
-            showGlobal={true}
-            showCategories={false}
-          />
-        </View>
+        <LineChart
+          title="Overall Progress"
+          data={chartData.global}
+          color="#999999"
+        />
 
         {/* Category Charts */}
         {(['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const).map((category) => {
           const label = CATEGORY_LABELS[category];
-          const categoryChartData = createCategoryChartData(category);
+          const categoryData = getCategoryData(category);
+          const colors: Record<CategoryType, string> = {
+            self_care: '#2a9d8f',
+            dev_perso: '#aa96da',
+            vie_familiale: '#f38181',
+            vie_pro: '#5dade2',
+          };
 
           return (
-            <View key={category} style={styles.chartSection}>
-              <ThemedText style={styles.chartTitle}>{label}</ThemedText>
-              <LineChart
-                data={categoryChartData}
-                showGlobal={false}
-                showCategories={true}
-              />
-            </View>
+            <LineChart
+              key={category}
+              title={label}
+              data={categoryData}
+              color={colors[category]}
+            />
           );
         })}
       </ScrollView>
