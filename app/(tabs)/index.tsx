@@ -13,7 +13,6 @@ import { Colors } from '@/constants/Colors';
 import { AppHeader } from '@/components/app-header';
 import { WeekSummary } from '@/components/week-summary';
 import { CategorySection } from '@/components/category-section';
-import { WeeklyScore } from '@/components/weekly-score';
 import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
 import { calculateWeeklyScore } from '@/lib/scoring';
@@ -119,11 +118,11 @@ export default function HomeScreen() {
       style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
     >
       <FlatList
-        data={['app-header', 'week-header', ...CATEGORIES.map(cat => cat.key), 'weekly-score']}
+        data={['app-header', 'week-header', ...CATEGORIES.map(cat => cat.key)]}
         keyExtractor={item => item}
         renderItem={({ item }) => {
           if (item === 'app-header') {
-            return <AppHeader weeklyScore={weeklyScore} />;
+            return <AppHeader />;
           }
 
           if (item === 'week-header') {
@@ -139,10 +138,6 @@ export default function HomeScreen() {
                 accentColor="#2a9d8f"
               />
             ) : null;
-          }
-
-          if (item === 'weekly-score') {
-            return <WeeklyScore percentage={weeklyScore} />;
           }
 
           const category = item as CategoryType;
