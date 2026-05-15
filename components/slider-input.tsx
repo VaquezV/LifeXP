@@ -22,13 +22,32 @@ export function SliderInput({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const formatTime = (minutes: number): string => {
+  // Smart rounding for display: round to nearest sensible value
+  const smartRound = (val: number): number => {
     if (max <= 60) {
-      return `${Math.round(minutes)}m`;
+      // Minutes: round to nearest 5
+      return Math.round(val / 5) * 5;
     }
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    // Hours: round to nearest 15 minutes
+    return Math.round(val / 15) * 15;
+  };
+
+  const displayValue = smartRound(value);
+
+  const formatTime = (minutes: number): string => {
+    const rounded = smartRound(minutes);
+    if (max <= 60) {
+      return `${rounded}m`;
+    }
+    const hours = Math.floor(rounded / 60);
+    const mins = rounded % 60;
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  };
+
+  const handleSliderChange = (newValue: number) => {
+    // Round to smart value before updating
+    const rounded = smartRound(newValue);
+    onValueChange(rounded);
   };
 
   return (
@@ -37,9 +56,9 @@ export function SliderInput({
         style={styles.slider}
         minimumValue={min}
         maximumValue={max}
-        step={step}
-        value={value}
-        onValueChange={onValueChange}
+        step={0.5}
+        value={displayValue}
+        onValueChange={handleSliderChange}
         minimumTrackTintColor={accentColor}
         maximumTrackTintColor={isDark ? '#333333' : '#cccccc'}
         thumbTintColor={accentColor}
@@ -48,7 +67,7 @@ export function SliderInput({
         styles.value,
         { color: accentColor },
       ]}>
-        {formatTime(value)}
+        {formatTime(displayValue)}
       </Text>
       <View style={styles.labels}>
         <Text style={styles.label}>
