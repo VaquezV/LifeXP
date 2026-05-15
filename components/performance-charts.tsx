@@ -7,7 +7,7 @@ import { LineChart } from './line-chart';
 import { aggregateChartData, ChartData } from '@/lib/chart-data';
 import { Habit, CategoryType } from '@/lib/types';
 
-type ViewMode = 'week' | 'month' | 'quarter' | 'year';
+type ViewMode = 'week' | 'month' | 'year';
 
 interface PerformanceChartsProps {
   habits: Habit[];
@@ -59,7 +59,7 @@ export function PerformanceCharts({
 
       {/* Period selector */}
       <View style={styles.modeSelector}>
-        {(['week', 'month', 'quarter', 'year'] as const).map((mode) => (
+        {(['week', 'month', 'year'] as const).map((mode) => (
           <Pressable
             key={mode}
             style={[
