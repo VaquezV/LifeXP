@@ -1,39 +1,41 @@
+import { useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/hooks/use-translation';
 import { Colors, CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { HabitCard } from './habit-card';
 import { AddHabitCard } from './add-habit-card';
+import { CategoryModal } from './category-modal';
 import { Habit, CategoryType } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export interface CategorySectionProps {
   category: CategoryType;
+  categoryLabel: string;
   habits: Habit[];
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
   onHabitValueChange: (habitId: string, date: string, newValue: number) => void;
   onAddHabit?: (habit: any) => Promise<void>;
+  onUpdateCategory?: (label: string, color: string) => void;
 }
-
-const CATEGORY_LABELS: Record<CategoryType, string> = {
-  self_care: 'Self Care',
-  dev_perso: 'Personal Development',
-  vie_familiale: 'Family Life',
-  vie_pro: 'Professional',
-};
 
 export function CategorySection({
   category,
+  categoryLabel,
   habits,
   weekDates,
   weekValues,
   onHabitValueChange,
   onAddHabit,
+  onUpdateCategory,
 }: CategorySectionProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useTranslation();
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   // Get category color for accent
   const categoryColor = CATEGORY_COLORS[category];
@@ -46,6 +48,12 @@ export function CategorySection({
     return null;
   }
 
+  const handleSaveCategory = (name: string, color: string) => {
+    if (onUpdateCategory) {
+      onUpdateCategory(name, color);
+    }
+  };
+
   return (
     <ThemedView
       style={[
@@ -55,6 +63,14 @@ export function CategorySection({
         },
       ]}
     >
+      <CategoryModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleSaveCategory}
+        initialName={categoryLabel}
+        initialColor={accentColor}
+      />
+
       <View style={[styles.titleContainer, { borderBottomColor: accentColor }]}>
         <ThemedText
           type="subtitle"
@@ -65,8 +81,16 @@ export function CategorySection({
             },
           ]}
         >
-          {CATEGORY_LABELS[category]}
+          {categoryLabel}
         </ThemedText>
+        {onUpdateCategory && (
+          <Pressable
+            onPress={() => setEditModalVisible(true)}
+            style={styles.editButton}
+          >
+            <MaterialIcons name="edit" size={20} color={accentColor} />
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.habitsContainer}>
@@ -115,10 +139,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderBottomWidth: 2,
     marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   categoryTitle: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  editButton: {
+    padding: 4,
   },
   habitsContainer: {
     paddingHorizontal: 0,

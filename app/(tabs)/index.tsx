@@ -33,7 +33,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const { t } = useTranslation();
   const colors = Colors[colorScheme];
-  const CATEGORIES = getCategories(t);
+  const initialCategories = getCategories(t);
 
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,7 @@ export default function HomeScreen() {
     Record<string, Record<string, number>>
   >({}); // date -> (habit_id -> value)
   const [weeklyScore, setWeeklyScore] = useState(0);
+  const [categories, setCategories] = useState(initialCategories);
 
   // Get last 7 days ending today
   const weekDates = useMemo(() => {
@@ -123,7 +124,7 @@ export default function HomeScreen() {
       style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
     >
       <FlatList
-        data={['app-header', 'week-header', ...CATEGORIES.map(cat => cat.key)]}
+        data={['app-header', 'week-header', ...categories.map(cat => cat.key)]}
         keyExtractor={item => item}
         renderItem={({ item }) => {
           if (item === 'app-header') {
@@ -147,14 +148,27 @@ export default function HomeScreen() {
 
           const category = item as CategoryType;
           const categoryHabits = habits.filter(h => h.category === category);
+          const catData = categories.find(c => c.key === category);
+          const categoryLabel = catData?.label || category;
+
+          const handleUpdateCategory = (newLabel: string, newColor: string) => {
+            setCategories(prev =>
+              prev.map(c =>
+                c.key === category ? { ...c, label: newLabel } : c
+              )
+            );
+          };
 
           return (
             <CategorySection
+              key={category}
               category={category}
+              categoryLabel={categoryLabel}
               habits={categoryHabits}
               weekDates={weekDates}
               weekValues={dailyValues}
               onHabitValueChange={handleValueChange}
+              onUpdateCategory={handleUpdateCategory}
             />
           );
         }}
