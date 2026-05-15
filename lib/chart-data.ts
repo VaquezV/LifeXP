@@ -126,6 +126,14 @@ function aggregateMonthly(
       vie_pro: 0,
     };
 
+    // Get representative date (middle of week)
+    const midDayOffset = Math.floor((week.start + week.end) / 2);
+    const midDate = new Date(today);
+    midDate.setDate(midDate.getDate() - midDayOffset);
+    const dayOfMonth = midDate.getDate();
+    const monthNum = midDate.getMonth() + 1;
+    const weekLabel = `${String(dayOfMonth).padStart(2, '0')}/${String(monthNum).padStart(2, '0')}`;
+
     for (let dayOffset = week.start; dayOffset <= week.end && dayOffset >= 0; dayOffset++) {
       const date = new Date(today);
       date.setDate(date.getDate() - dayOffset);
@@ -144,7 +152,6 @@ function aggregateMonthly(
       }
     }
 
-    const weekLabel = `W${i + 1}`;
     const weekValue = dayCount > 0 ? Math.round(weekTotal / dayCount) : 0;
     points.push({ label: weekLabel, date: '', value: weekValue });
 
