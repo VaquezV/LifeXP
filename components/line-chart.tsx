@@ -1,6 +1,6 @@
 import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import Svg, { Path, Defs, LinearGradient, Stop, TSpan } from 'react-native-svg';
+import Svg, { Path, Defs, LinearGradient, Stop, TSpan, Line } from 'react-native-svg';
 import { DataPoint } from '@/lib/chart-data';
 
 interface LineChartProps {
@@ -87,6 +87,16 @@ export function LineChart({ title, data, color }: LineChartProps) {
             </LinearGradient>
           </Defs>
 
+          {/* 100% reference line */}
+          <Line
+            x1={padding.left}
+            y1={padding.top}
+            x2={padding.left + innerWidth}
+            y2={padding.top}
+            stroke={isDark ? '#444444' : '#cccccc'}
+            strokeWidth="0.5"
+          />
+
           {/* Fill under curve */}
           <Path
             d={generateFillPath()}
@@ -106,9 +116,18 @@ export function LineChart({ title, data, color }: LineChartProps) {
 
         {/* X-axis labels */}
         <View style={[styles.labelsContainer, { height: labelHeight }]}>
-          {labelIndices.map((idx) => {
+          {labelIndices.map((idx, arrayIdx) => {
             const label = data[idx].label;
             const xPercent = (idx / Math.max(1, data.length - 1)) * 100;
+            let marginLeft = -20; // Default centered
+
+            // Adjust first and last labels to stay within bounds
+            if (arrayIdx === 0) {
+              marginLeft = 0; // Shift right (no left margin)
+            } else if (arrayIdx === labelIndices.length - 1) {
+              marginLeft = -40; // Shift left (full width to the left)
+            }
+
             return (
               <Text
                 key={idx}
@@ -117,6 +136,7 @@ export function LineChart({ title, data, color }: LineChartProps) {
                   {
                     color: isDark ? '#aaaaaa' : '#666666',
                     left: `${xPercent}%`,
+                    marginLeft,
                   },
                 ]}
               >
