@@ -9,6 +9,7 @@ import {
   Text,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/hooks/use-translation';
 import { Colors } from '@/constants/Colors';
 import { AppHeader } from '@/components/app-header';
 import { WeekSummary } from '@/components/week-summary';
@@ -19,16 +20,20 @@ import { calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
 import { SINGLE_USER_ID } from '@/lib/supabase';
 
-const CATEGORIES: { key: CategoryType; label: string }[] = [
-  { key: 'self_care', label: 'Self-Care' },
-  { key: 'dev_perso', label: 'Dev Perso' },
-  { key: 'vie_familiale', label: 'Vie Familiale' },
-  { key: 'vie_pro', label: 'Vie Pro' },
-];
+function getCategories(t: any): { key: CategoryType; label: string }[] {
+  return [
+    { key: 'self_care', label: t('selfCare') },
+    { key: 'dev_perso', label: t('personalDev') },
+    { key: 'vie_familiale', label: t('familyLife') },
+    { key: 'vie_pro', label: t('professional') },
+  ];
+}
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
+  const { t } = useTranslation();
   const colors = Colors[colorScheme];
+  const CATEGORIES = getCategories(t);
 
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);

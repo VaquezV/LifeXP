@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/hooks/use-translation';
 import { ThemedText } from './themed-text';
 
 export interface AppHeaderProps {
@@ -9,6 +10,7 @@ export interface AppHeaderProps {
 export function AppHeader({ weeklyScore }: AppHeaderProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View
@@ -27,7 +29,7 @@ export function AppHeader({ weeklyScore }: AppHeaderProps) {
             { color: isDark ? '#ffffff' : '#000000' },
           ]}
         >
-          Life XP
+          {t('lifeXP')}
         </ThemedText>
       </View>
     </View>

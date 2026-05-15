@@ -3,6 +3,7 @@ import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/hooks/use-translation';
 import { LineChart } from './line-chart';
 import { aggregateChartData, ChartData } from '@/lib/chart-data';
 import { Habit, CategoryType } from '@/lib/types';
@@ -14,12 +15,14 @@ interface PerformanceChartsProps {
   dailyValues: Record<string, Record<string, number>>;
 }
 
-const CATEGORY_LABELS: Record<CategoryType, string> = {
-  self_care: 'Self Care',
-  dev_perso: 'Personal Dev',
-  vie_familiale: 'Family Life',
-  vie_pro: 'Professional',
-};
+function getCategoryLabels(t: any): Record<CategoryType, string> {
+  return {
+    self_care: t('selfCare'),
+    dev_perso: t('personalDev'),
+    vie_familiale: t('familyLife'),
+    vie_pro: t('professional'),
+  };
+}
 
 export function PerformanceCharts({
   habits,
@@ -27,7 +30,9 @@ export function PerformanceCharts({
 }: PerformanceChartsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const categoryLabels = getCategoryLabels(t);
 
   // Aggregate chart data based on view mode
   const chartData = useMemo(() => {
@@ -51,10 +56,16 @@ export function PerformanceCharts({
     }
   };
 
+  const modeLabels: Record<ViewMode, string> = {
+    week: t('semaine'),
+    month: t('mois'),
+    year: t('annee'),
+  };
+
   return (
     <ThemedView style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Performance</ThemedText>
+        <ThemedText style={styles.title}>{t('performance')}</ThemedText>
       </View>
 
       {/* Period selector */}
@@ -75,7 +86,7 @@ export function PerformanceCharts({
                 viewMode === mode && styles.modeButtonTextActive,
               ]}
             >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              {modeLabels[mode]}
             </ThemedText>
           </Pressable>
         ))}
@@ -84,14 +95,14 @@ export function PerformanceCharts({
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Overall Progress Chart */}
         <LineChart
-          title="Overall Progress"
+          title={t('overallProgress')}
           data={chartData.global}
           color="#999999"
         />
 
         {/* Category Charts */}
         {(['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const).map((category) => {
-          const label = CATEGORY_LABELS[category];
+          const label = categoryLabels[category];
           const categoryData = getCategoryData(category);
           const colors: Record<CategoryType, string> = {
             self_care: '#2a9d8f',
