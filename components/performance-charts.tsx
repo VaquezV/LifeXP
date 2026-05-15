@@ -1,166 +1,129 @@
-import React, { useState, useMemo, memo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import React, { useState, useMemo } from 'react';
+import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LineChart } from './line-chart';
-import { Habit } from '@/lib/types';
-import { aggregateChartData } from '@/lib/chart-data';
+import { aggregateChartData, ChartData } from '@/lib/chart-data';
+import { Habit, CategoryType } from '@/lib/types';
 
 type ViewMode = 'week' | 'month' | 'quarter' | 'year';
 
-export interface PerformanceChartsProps {
+interface PerformanceChartsProps {
   habits: Habit[];
   dailyValues: Record<string, Record<string, number>>;
-  allDates: string[];
 }
 
-function PerformanceChartsComponent({
+const CATEGORY_LABELS: Record<CategoryType, string> = {
+  self_care: 'Self Care',
+  dev_perso: 'Personal Dev',
+  vie_familiale: 'Family Life',
+  vie_pro: 'Professional',
+};
+
+export function PerformanceCharts({
   habits,
   dailyValues,
-  allDates,
 }: PerformanceChartsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
+  // Aggregate chart data based on view mode
   const chartData = useMemo(() => {
     return aggregateChartData(habits, dailyValues, viewMode);
   }, [habits, dailyValues, viewMode]);
 
+  // Calculate overall score from global data
+  const overallScore = useMemo(() => {
+    if (chartData.global.length === 0) return 0;
+    const sum = chartData.global.reduce((acc, point) => acc + point.value, 0);
+    return Math.round(sum / chartData.global.length);
+  }, [chartData.global]);
+
+  // Create chart data for overall progress (global only)
+  const overallChartData = useMemo(() => ({
+    global: chartData.global,
+    self_care: [],
+    dev_perso: [],
+    vie_familiale: [],
+    vie_pro: [],
+  } as ChartData), [chartData.global]);
+
+  // Create chart data for each category
+  const createCategoryChartData = (category: CategoryType): ChartData => ({
+    global: [],
+    self_care: category === 'self_care' ? chartData.self_care : [],
+    dev_perso: category === 'dev_perso' ? chartData.dev_perso : [],
+    vie_familiale: category === 'vie_familiale' ? chartData.vie_familiale : [],
+    vie_pro: category === 'vie_pro' ? chartData.vie_pro : [],
+  });
+
   return (
-    <ScrollView>
-      <ThemedView
-        style={[
-          styles.container,
-          { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
-        ]}
-      >
-        <View style={styles.header}>
-          <ThemedText
-            style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>Performance</ThemedText>
+      </View>
+
+      {/* Period selector */}
+      <View style={styles.modeSelector}>
+        {(['week', 'month', 'quarter', 'year'] as const).map((mode) => (
+          <Pressable
+            key={mode}
+            style={[
+              styles.modeButton,
+              viewMode === mode && styles.modeButtonActive,
+              viewMode !== mode && styles.modeButtonInactive,
+            ]}
+            onPress={() => setViewMode(mode)}
           >
-            Performance
-          </ThemedText>
-        </View>
-
-        {/* View Mode Selector */}
-        <View style={styles.modeSelector}>
-          {(['week', 'month', 'quarter', 'year'] as const).map((mode) => (
-            <Pressable
-              key={mode}
+            <ThemedText
               style={[
-                styles.modeButton,
-                viewMode === mode && {
-                  backgroundColor: '#4caf50',
-                  borderColor: '#4caf50',
-                },
-                viewMode !== mode && {
-                  borderColor: isDark ? '#444444' : '#cccccc',
-                  borderWidth: 1,
-                },
+                styles.modeButtonText,
+                viewMode === mode && styles.modeButtonTextActive,
               ]}
-              onPress={() => setViewMode(mode)}
             >
-              <ThemedText
-                style={[
-                  styles.modeButtonText,
-                  {
-                    color:
-                      viewMode === mode
-                        ? '#ffffff'
-                        : isDark
-                          ? '#aaaaaa'
-                          : '#666666',
-                  },
-                ]}
-              >
-                {mode === 'week'
-                  ? 'Semaine'
-                  : mode === 'month'
-                    ? 'Mois'
-                    : mode === 'quarter'
-                      ? 'Trimestre'
-                      : 'Année'}
-              </ThemedText>
-            </Pressable>
-          ))}
-        </View>
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </View>
 
-        {/* Charts */}
-        <View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Overall Progress Chart */}
+        <View style={styles.chartSection}>
+          <ThemedText style={styles.chartTitle}>Overall Progress</ThemedText>
           <LineChart
-            title="Overall Progress"
-            data={chartData.global}
-            color={isDark ? '#aaaaaa' : '#666666'}
-          />
-          <LineChart
-            title="Self Care"
-            data={chartData.self_care}
-            color="#2e7d32"
-          />
-          <LineChart
-            title="Personal Dev"
-            data={chartData.dev_perso}
-            color="#6a1b9a"
-          />
-          <LineChart
-            title="Family Life"
-            data={chartData.vie_familiale}
-            color="#c62828"
-          />
-          <LineChart
-            title="Professional"
-            data={chartData.vie_pro}
-            color="#1565c0"
+            data={overallChartData}
+            showGlobal={true}
+            showCategories={false}
           />
         </View>
 
-        {/* Legend */}
-        <View style={styles.legendSection}>
-          <View style={styles.legendRow}>
-            <View
-              style={[
-                styles.legendDot,
-                { backgroundColor: isDark ? '#aaaaaa' : '#666666' },
-              ]}
-            />
-            <ThemedText style={styles.legendText}>Total</ThemedText>
-          </View>
-          <View style={styles.legendRow}>
-            <View
-              style={[styles.legendDot, { backgroundColor: '#2e7d32' }]}
-            />
-            <ThemedText style={styles.legendText}>Self Care</ThemedText>
-          </View>
-          <View style={styles.legendRow}>
-            <View
-              style={[styles.legendDot, { backgroundColor: '#6a1b9a' }]}
-            />
-            <ThemedText style={styles.legendText}>Personal Dev</ThemedText>
-          </View>
-          <View style={styles.legendRow}>
-            <View
-              style={[styles.legendDot, { backgroundColor: '#c62828' }]}
-            />
-            <ThemedText style={styles.legendText}>Family Life</ThemedText>
-          </View>
-          <View style={styles.legendRow}>
-            <View
-              style={[styles.legendDot, { backgroundColor: '#1565c0' }]}
-            />
-            <ThemedText style={styles.legendText}>Professional</ThemedText>
-          </View>
-        </View>
-      </ThemedView>
-    </ScrollView>
+        {/* Category Charts */}
+        {(['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const).map((category) => {
+          const label = CATEGORY_LABELS[category];
+          const categoryChartData = createCategoryChartData(category);
+
+          return (
+            <View key={category} style={styles.chartSection}>
+              <ThemedText style={styles.chartTitle}>{label}</ThemedText>
+              <LineChart
+                data={categoryChartData}
+                showGlobal={false}
+                showCategories={true}
+              />
+            </View>
+          );
+        })}
+      </ScrollView>
+    </ThemedView>
   );
 }
 
-export const PerformanceCharts = memo(PerformanceChartsComponent);
-
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
@@ -168,7 +131,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '700',
   },
   modeSelector: {
@@ -180,34 +143,36 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modeButtonActive: {
+    backgroundColor: '#2a9d8f',
+    borderColor: '#2a9d8f',
+  },
+  modeButtonInactive: {
+    backgroundColor: 'transparent',
+    borderColor: '#333333',
+    borderWidth: 1,
   },
   modeButtonText: {
     fontSize: 12,
     fontWeight: '600',
+    color: '#999999',
   },
-  legendSection: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#222222',
+  modeButtonTextActive: {
+    color: '#ffffff',
   },
-  legendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  scrollContent: {
+    paddingBottom: 40,
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  chartSection: {
+    marginBottom: 28,
   },
-  legendText: {
-    fontSize: 12,
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 12,
   },
 });

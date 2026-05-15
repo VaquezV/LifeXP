@@ -1,55 +1,55 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Pressable, StyleSheet } from 'react-native';
+import { ThemedText } from './themed-text';
 
 interface DayButtonProps {
-  date: string; // DD format
-  isCompleted?: boolean;
-  isToday?: boolean;
+  date: string; // formatted date string (e.g., "01", "15")
+  isCompleted: boolean;
+  isToday: boolean;
   accentColor: string;
-  onPress?: () => void;
+  onPress: () => void;
 }
 
 export function DayButton({
   date,
-  isCompleted = false,
-  isToday = false,
+  isCompleted,
+  isToday,
   accentColor,
   onPress,
 }: DayButtonProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const backgroundColor = isCompleted
-    ? accentColor.replace('ff', '2a') // Darken accent for completed state
-    : '#333333';
-
-  const textColor = isCompleted ? '#ffffff' : isToday ? accentColor : '#999999';
-
   return (
     <Pressable
       style={[
         styles.button,
-        { backgroundColor },
+        isCompleted && { backgroundColor: accentColor },
+        !isCompleted && { borderColor: accentColor, borderWidth: 1 },
       ]}
       onPress={onPress}
     >
-      <Text style={[styles.text, { color: textColor }]}>
+      <ThemedText
+        style={[
+          styles.dateText,
+          {
+            color: isCompleted ? '#ffffff' : accentColor,
+            fontWeight: isToday ? '700' : '600',
+          },
+        ]}
+      >
         {date}
-      </Text>
+      </ThemedText>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  text: {
-    fontSize: 12,
-    fontWeight: '600',
+  dateText: {
+    fontSize: 14,
   },
 });
