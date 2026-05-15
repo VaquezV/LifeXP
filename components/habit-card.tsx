@@ -6,6 +6,8 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { Habit } from '@/lib/types';
 import { calculateHabitCompletion } from '@/lib/scoring';
+import { DayButton } from './day-button';
+import { SliderInput } from './slider-input';
 
 export interface HabitCardProps {
   habit: Habit;
@@ -60,43 +62,18 @@ export function HabitCard({
       <View style={styles.weekContainer}>
         {weekDates.map((date, index) => {
           const dateObj = new Date(date);
-          const dayNum = dateObj.getDate();
+          const dayNum = dateObj.getDate().toString().padStart(2, '0');
           const isSelected = date === selectedDate;
-          const isToday = date === today;
 
           return (
-            <Pressable
+            <DayButton
               key={date}
-              style={[
-                styles.dayButton,
-                isSelected && { backgroundColor: accentColor },
-                !isSelected && { borderColor: accentColor, borderWidth: 1 },
-              ]}
+              date={dayNum}
+              isCompleted={isSelected}
+              isToday={date === today}
+              accentColor={accentColor}
               onPress={() => setSelectedDate(date)}
-            >
-              <ThemedText
-                style={[
-                  styles.dayLabel,
-                  {
-                    color: isSelected ? '#ffffff' : accentColor,
-                    fontSize: 10,
-                  },
-                ]}
-              >
-                {dayNames[index]}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  styles.dayNumber,
-                  {
-                    color: isSelected ? '#ffffff' : isDark ? '#ffffff' : '#000000',
-                    fontWeight: isToday ? '700' : '600',
-                  },
-                ]}
-              >
-                {dayNum}
-              </ThemedText>
-            </Pressable>
+            />
           );
         })}
       </View>
@@ -119,40 +96,15 @@ export function HabitCard({
 
   const renderPresetButtons = () => {
     if (habit.frequency_type === 'per_day') {
-      const segmentSize = getSegmentSize(habit.target_value);
-      const numSegments = Math.floor(habit.target_value / segmentSize);
-
       return (
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderBar}>
-            {Array.from({ length: numSegments + 1 }).map((_, i) => {
-              const value = i * segmentSize;
-              const isActive = selectedValue >= value;
-              return (
-                <Pressable
-                  key={i}
-                  style={[
-                    styles.sliderSegment,
-                    isActive && { backgroundColor: accentColor },
-                    !isActive && { backgroundColor: isDark ? '#333333' : '#cccccc' },
-                  ]}
-                  onPress={() => onValueChange(habit.id, selectedDate, value)}
-                />
-              );
-            })}
-          </View>
-          <View style={styles.sliderLabelContainer}>
-            <ThemedText style={[styles.sliderLabel, { color: isDark ? '#ffffff' : '#000000' }]}>
-              0
-            </ThemedText>
-            <ThemedText style={[styles.sliderValue, { color: accentColor }]}>
-              {formatTime(selectedValue)}
-            </ThemedText>
-            <ThemedText style={[styles.sliderLabel, { color: isDark ? '#ffffff' : '#000000' }]}>
-              {formatTime(habit.target_value)}
-            </ThemedText>
-          </View>
-        </View>
+        <SliderInput
+          value={selectedValue}
+          min={habit.min_value}
+          max={habit.target_value}
+          step={15}
+          accentColor={accentColor}
+          onValueChange={(value) => onValueChange(habit.id, selectedDate, value)}
+        />
       );
     }
 
@@ -348,7 +300,7 @@ const styles = StyleSheet.create({
   },
   weekContainer: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
     marginBottom: 12,
     justifyContent: 'space-between',
   },
