@@ -19,17 +19,6 @@ export default function DashboardScreen() {
   const [dailyValues, setDailyValues] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
 
-  // Generate dates for last 120 days (covers year view)
-  const last120Days = useMemo(() => {
-    const dates: string[] = [];
-    for (let i = 119; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-    return dates;
-  }, []);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -37,10 +26,14 @@ export default function DashboardScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        // Load logs for last 120 days in one efficient query
-        const startDate = last120Days[0];
-        const endDate = last120Days[last120Days.length - 1];
-        const logs = await fetchAllLogsForDateRange(startDate, endDate);
+        // Load logs for last 120 days (covers year view)
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 119);
+        const logs = await fetchAllLogsForDateRange(
+          startDate.toISOString().split('T')[0],
+          today.toISOString().split('T')[0]
+        );
         setDailyValues(logs);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -50,7 +43,7 @@ export default function DashboardScreen() {
     };
 
     loadData();
-  }, [last120Days]);
+  }, []);
 
   if (loading) {
     return (
@@ -85,7 +78,6 @@ export default function DashboardScreen() {
         <PerformanceCharts
           habits={habits}
           dailyValues={dailyValues}
-          allDates={last120Days}
         />
       </ScrollView>
     </SafeAreaView>
