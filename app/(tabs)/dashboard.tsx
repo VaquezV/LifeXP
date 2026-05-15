@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { DashboardView } from '@/components/dashboard-view';
+import { PerformanceCharts } from '@/components/performance-charts';
 import { fetchHabits } from '@/lib/habits';
-import { fetchAllLogsForDate } from '@/lib/habit-logs';
+import { fetchAllLogsForDateRange } from '@/lib/habit-logs';
 import { Habit } from '@/lib/types';
 
 const styles = {
@@ -37,12 +37,11 @@ export default function DashboardScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        // Load logs for last 120 days
-        const weekLogs: Record<string, Record<string, number>> = {};
-        for (const date of last120Days) {
-          weekLogs[date] = await fetchAllLogsForDate(date);
-        }
-        setDailyValues(weekLogs);
+        // Load logs for last 120 days in one efficient query
+        const startDate = last120Days[0];
+        const endDate = last120Days[last120Days.length - 1];
+        const logs = await fetchAllLogsForDateRange(startDate, endDate);
+        setDailyValues(logs);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -83,7 +82,11 @@ export default function DashboardScreen() {
           { backgroundColor: isDark ? '#000000' : '#ffffff' },
         ]}
       >
-        <DashboardView habits={habits} dailyValues={dailyValues} />
+        <PerformanceCharts
+          habits={habits}
+          dailyValues={dailyValues}
+          allDates={last120Days}
+        />
       </ScrollView>
     </SafeAreaView>
   );
