@@ -1,47 +1,34 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
+import { SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { DashboardCharts } from '@/components/dashboard-charts';
+import { DashboardView } from '@/components/dashboard-view';
 import { fetchHabits } from '@/lib/habits';
-import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
-import { calculateWeeklyScore } from '@/lib/scoring';
-import { Habit, CategoryType } from '@/lib/types';
+import { fetchAllLogsForDate } from '@/lib/habit-logs';
+import { Habit } from '@/lib/types';
+
+const styles = {
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
+};
 
 export default function DashboardScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const isDark = colorScheme === 'dark';
 
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [dailyValues, setDailyValues] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
-  const [weeklyScores, setWeeklyScores] = useState<number[]>([]);
-  const [categoryScores, setCategoryScores] = useState<Record<CategoryType, number[]>>({
-    self_care: [],
-    dev_perso: [],
-    vie_familiale: [],
-    vie_pro: [],
-  });
 
-  // Generate dummy data for last 12 weeks
-  const generateDummyData = () => {
-    const globalScores = Array.from({ length: 12 }, () =>
-      Math.floor(Math.random() * 50 + 40)
-    );
-    const catScores: Record<CategoryType, number[]> = {
-      self_care: Array.from({ length: 12 }, () =>
-        Math.floor(Math.random() * 50 + 40)
-      ),
-      dev_perso: Array.from({ length: 12 }, () =>
-        Math.floor(Math.random() * 50 + 40)
-      ),
-      vie_familiale: Array.from({ length: 12 }, () =>
-        Math.floor(Math.random() * 50 + 40)
-      ),
-      vie_pro: Array.from({ length: 12 }, () =>
-        Math.floor(Math.random() * 50 + 40)
-      ),
-    };
-    return { globalScores, catScores };
-  };
+  // Generate dates for last 120 days (covers year view)
+  const last120Days = useMemo(() => {
+    const dates: string[] = [];
+    for (let i = 119; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    return dates;
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,10 +37,12 @@ export default function DashboardScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        // For now, generate dummy data
-        const { globalScores, catScores } = generateDummyData();
-        setWeeklyScores(globalScores);
-        setCategoryScores(catScores);
+        // Load logs for last 120 days
+        const weekLogs: Record<string, Record<string, number>> = {};
+        for (const date of last120Days) {
+          weekLogs[date] = await fetchAllLogsForDate(date);
+        }
+        setDailyValues(weekLogs);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -62,7 +51,7 @@ export default function DashboardScreen() {
     };
 
     loadData();
-  }, []);
+  }, [last120Days]);
 
   if (loading) {
     return (
@@ -94,20 +83,8 @@ export default function DashboardScreen() {
           { backgroundColor: isDark ? '#000000' : '#ffffff' },
         ]}
       >
-        <DashboardCharts
-          globalWeeklyScores={weeklyScores}
-          categoryScores={categoryScores}
-        />
+        <DashboardView habits={habits} dailyValues={dailyValues} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-});
