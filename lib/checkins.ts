@@ -53,17 +53,17 @@ export type DashboardData = {
   streak: number;
   todayCheckin: CheckinSummary | null;
   todayTotal: number;
-  weeklyDomainSeries: Array<{
+  weeklyDomainSeries: {
     domain: ReturnType<typeof getDomainDefinition>;
     scores: ScoreValue[];
     weeklyMax: number;
     weeklyTotal: number;
-  }>;
-  weeklyGoalSeries: Array<{
+  }[];
+  weeklyGoalSeries: {
     completed: number;
     domain: ReturnType<typeof getDomainDefinition>;
     target: number;
-  }>;
+  }[];
   weeklyLabels: string[];
 };
 

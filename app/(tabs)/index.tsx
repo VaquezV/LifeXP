@@ -20,7 +20,7 @@ import { calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
 import { SINGLE_USER_ID } from '@/lib/supabase';
 
-const CATEGORIES: Array<{ key: CategoryType; label: string }> = [
+const CATEGORIES: { key: CategoryType; label: string }[] = [
   { key: 'self_care', label: 'Self-Care' },
   { key: 'dev_perso', label: 'Dev Perso' },
   { key: 'vie_familiale', label: 'Vie Familiale' },

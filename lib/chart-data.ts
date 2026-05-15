@@ -64,17 +64,19 @@ function aggregateWeekly(
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
     const dayNum = date.getDate();
+    const monthNum = date.getMonth() + 1;
+    const label = `${dayNum}/${monthNum}`;
 
     const dayLogs = dailyValues[dateStr] ?? {};
     const dayCompletion = calculateDayCompletion(habits, dayLogs);
 
-    points.push({ label: `${dayNum}`, date: dateStr, value: dayCompletion });
+    points.push({ label, date: dateStr, value: dayCompletion });
 
     // Per category
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
       const catHabits = habits.filter(h => h.category === category);
       const catCompletion = calculateDayCompletion(catHabits, dayLogs);
-      categoryPoints[category].push({ label: `${dayNum}`, date: dateStr, value: catCompletion });
+      categoryPoints[category].push({ label, date: dateStr, value: catCompletion });
     }
   }
 
@@ -100,7 +102,7 @@ function aggregateMonthly(
     vie_pro: [],
   };
 
-  // Get last 8 weeks
+  // Get last 8 weeks (oldest to newest)
   for (let week = 7; week >= 0; week--) {
     let weekTotal = 0;
     let dayCount = 0;
@@ -143,20 +145,20 @@ function aggregateMonthly(
 
     const weekLabel = `W${week + 1}`;
     const weekValue = dayCount > 0 ? Math.round(weekTotal / dayCount) : 0;
-    points.push({ label: weekLabel, date: '', value: weekValue });
+    points.unshift({ label: weekLabel, date: '', value: weekValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
       const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
-      categoryPoints[category].push({ label: weekLabel, date: '', value: catValue });
+      categoryPoints[category].unshift({ label: weekLabel, date: '', value: catValue });
     }
   }
 
   return {
-    global: points.reverse(),
-    self_care: categoryPoints.self_care.reverse(),
-    dev_perso: categoryPoints.dev_perso.reverse(),
-    vie_familiale: categoryPoints.vie_familiale.reverse(),
-    vie_pro: categoryPoints.vie_pro.reverse(),
+    global: points,
+    self_care: categoryPoints.self_care,
+    dev_perso: categoryPoints.dev_perso,
+    vie_familiale: categoryPoints.vie_familiale,
+    vie_pro: categoryPoints.vie_pro,
   };
 }
 
@@ -173,7 +175,7 @@ function aggregateQuarterly(
     vie_pro: [],
   };
 
-  // Get last 12 weeks
+  // Get last 12 weeks (oldest to newest)
   for (let week = 11; week >= 0; week--) {
     let weekTotal = 0;
     let dayCount = 0;
@@ -214,20 +216,20 @@ function aggregateQuarterly(
 
     const weekLabel = `W${week + 1}`;
     const weekValue = dayCount > 0 ? Math.round(weekTotal / dayCount) : 0;
-    points.push({ label: weekLabel, date: '', value: weekValue });
+    points.unshift({ label: weekLabel, date: '', value: weekValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
       const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
-      categoryPoints[category].push({ label: weekLabel, date: '', value: catValue });
+      categoryPoints[category].unshift({ label: weekLabel, date: '', value: catValue });
     }
   }
 
   return {
-    global: points.reverse(),
-    self_care: categoryPoints.self_care.reverse(),
-    dev_perso: categoryPoints.dev_perso.reverse(),
-    vie_familiale: categoryPoints.vie_familiale.reverse(),
-    vie_pro: categoryPoints.vie_pro.reverse(),
+    global: points,
+    self_care: categoryPoints.self_care,
+    dev_perso: categoryPoints.dev_perso,
+    vie_familiale: categoryPoints.vie_familiale,
+    vie_pro: categoryPoints.vie_pro,
   };
 }
 
@@ -292,20 +294,20 @@ function aggregateYearly(
 
     const monthLabel = months[actualMonth];
     const monthValue = dayCount > 0 ? Math.round(monthTotal / dayCount) : 0;
-    points.push({ label: monthLabel, date: '', value: monthValue });
+    points.unshift({ label: monthLabel, date: '', value: monthValue });
 
     for (const category of ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const) {
       const catValue = categoryDays[category] > 0 ? Math.round(categoryTotals[category] / categoryDays[category]) : 0;
-      categoryPoints[category].push({ label: monthLabel, date: '', value: catValue });
+      categoryPoints[category].unshift({ label: monthLabel, date: '', value: catValue });
     }
   }
 
   return {
-    global: points.reverse(),
-    self_care: categoryPoints.self_care.reverse(),
-    dev_perso: categoryPoints.dev_perso.reverse(),
-    vie_familiale: categoryPoints.vie_familiale.reverse(),
-    vie_pro: categoryPoints.vie_pro.reverse(),
+    global: points,
+    self_care: categoryPoints.self_care,
+    dev_perso: categoryPoints.dev_perso,
+    vie_familiale: categoryPoints.vie_familiale,
+    vie_pro: categoryPoints.vie_pro,
   };
 }
 

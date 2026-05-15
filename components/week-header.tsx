@@ -54,14 +54,6 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
             <View style={[styles.dayCardContent, { backgroundColor }]}>
               <ThemedText
                 type="defaultSemiBold"
-                style={styles.dayName}
-                lightColor="#000"
-                darkColor="#fff"
-              >
-                {day.dayName}
-              </ThemedText>
-              <ThemedText
-                type="defaultSemiBold"
                 style={styles.dayNumber}
                 lightColor="#000"
                 darkColor="#fff"
@@ -113,18 +105,13 @@ const styles = StyleSheet.create({
   dayCardContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 8,
     borderRadius: 12,
-  },
-  dayName: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 4,
+    aspectRatio: 1,
   },
   dayNumber: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });

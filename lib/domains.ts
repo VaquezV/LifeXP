@@ -91,11 +91,11 @@ export const MAX_DAILY_SCORE = DOMAINS.length * 2;
 export const MAX_WEEKLY_SCORE = DOMAINS.reduce((sum, domain) => sum + domain.weeklyMaxScore, 0);
 export const STREAK_TARGET_SCORE = 10;
 
-export const SCORE_OPTIONS: Array<{
+export const SCORE_OPTIONS: {
   icon: string;
   label: string;
   value: ScoreValue;
-}> = [
+}[] = [
   { value: 2, label: 'Fait', icon: '✅' },
   { value: 1, label: 'Partiel', icon: '⚠️' },
   { value: 0, label: 'Raté', icon: '❌' },

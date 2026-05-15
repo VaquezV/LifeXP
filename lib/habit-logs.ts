@@ -156,3 +156,37 @@ export async function fetchAllLogsForDate(
 
   return record;
 }
+
+/**
+ * Fetch all logs for a date range efficiently in one query
+ */
+export async function fetchAllLogsForDateRange(
+  startDate: string,
+  endDate: string,
+  userId?: string,
+): Promise<Record<string, Record<string, number>>> {
+  const client = ensureSupabase();
+  const uid = userId || SINGLE_USER_ID;
+
+  const { data, error } = await client
+    .from('habit_logs')
+    .select('date, habit_id, value')
+    .eq('user_id', uid)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .order('date', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const result: Record<string, Record<string, number>> = {};
+  for (const log of data ?? []) {
+    if (!result[log.date]) {
+      result[log.date] = {};
+    }
+    result[log.date][log.habit_id] = log.value;
+  }
+
+  return result;
+}

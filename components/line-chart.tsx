@@ -1,254 +1,158 @@
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import Svg, { Path, Circle, Line, Text as SvgText, G } from 'react-native-svg';
-import { CATEGORY_COLORS } from '@/constants/Colors';
-import { CategoryType } from '@/lib/types';
-import { DataPoint, ChartData } from '@/lib/chart-data';
+import Svg, { Path, Defs, LinearGradient, Stop, TSpan } from 'react-native-svg';
+import { DataPoint } from '@/lib/chart-data';
 
 interface LineChartProps {
-  data: ChartData;
-  showGlobal?: boolean;
-  showCategories?: boolean;
+  title: string;
+  data: DataPoint[];
+  color: string;
 }
 
-export function LineChart({
-  data,
-  showGlobal = true,
-  showCategories = true,
-}: LineChartProps) {
+export function LineChart({ title, data, color }: LineChartProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const screenWidth = Dimensions.get('window').width;
 
-  // Chart dimensions
-  const chartWidth = screenWidth - 60; // accounting for padding
-  const chartHeight = 200;
-  const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+  // Chart dimensions - more width, less height
+  const chartWidth = screenWidth - 32;
+  const chartHeight = 100;
+  const labelHeight = 24;
+  const padding = { top: 0, right: 12, bottom: 0, left: 12 };
   const innerWidth = chartWidth - padding.left - padding.right;
-  const innerHeight = chartHeight - padding.top - padding.bottom;
+  const innerHeight = chartHeight;
 
-  // Get data points (use global for point labels)
-  const points = data.global.length > 0 ? data.global : [];
-  if (points.length === 0) {
+  // If no data, return empty
+  if (data.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
-        <View style={styles.emptyState} />
+      <View style={styles.chartSection}>
+        <Text style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}>
+          {title}
+        </Text>
+        <View style={[styles.emptyChart, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]} />
       </View>
     );
   }
 
-  const getPointX = (index: number) => padding.left + (index / Math.max(1, points.length - 1)) * innerWidth;
-  const getPointY = (value: number) => padding.top + innerHeight - (value / 100) * innerHeight;
+  const getPointX = (index: number) =>
+    padding.left + (index / Math.max(1, data.length - 1)) * innerWidth;
+  const getPointY = (value: number) => innerHeight - (value / 100) * innerHeight;
 
-  const generatePath = (dataPoints: DataPoint[]): string => {
-    if (dataPoints.length === 0) return '';
-
+  const generatePath = (): string => {
     let path = '';
-    for (let i = 0; i < dataPoints.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       const x = getPointX(i);
-      const y = getPointY(dataPoints[i].value);
+      const y = getPointY(data[i].value);
 
       if (i === 0) {
         path += `M ${x} ${y}`;
       } else {
         const prevX = getPointX(i - 1);
-        const prevY = getPointY(dataPoints[i - 1].value);
-
-        // Smooth curve (quadratic Bézier)
+        const prevY = getPointY(data[i - 1].value);
         const controlX = (prevX + x) / 2;
         const controlY = prevY;
-
         path += ` Q ${controlX} ${controlY} ${x} ${y}`;
       }
     }
     return path;
   };
 
-  const lineColors: Record<string, string> = {
-    global: isDark ? '#aaaaaa' : '#666666',
-    self_care: CATEGORY_COLORS.self_care.mid,
-    dev_perso: CATEGORY_COLORS.dev_perso.mid,
-    vie_familiale: CATEGORY_COLORS.vie_familiale.mid,
-    vie_pro: CATEGORY_COLORS.vie_pro.mid,
+  const generateFillPath = (): string => {
+    let path = generatePath();
+    const lastX = getPointX(data.length - 1);
+    const lastY = getPointY(data[data.length - 1].value);
+    const firstX = getPointX(0);
+    path += ` L ${lastX} ${innerHeight} L ${firstX} ${innerHeight} Z`;
+    return path;
   };
 
+  // Select labels to show (max 5 for readability)
+  const labelIndices = data.length > 5
+    ? [0, Math.floor(data.length / 4), Math.floor(data.length / 2), Math.floor((3 * data.length) / 4), data.length - 1]
+    : data.map((_, i) => i);
+
+  const gradientAlpha = isDark ? '0.25' : '0.2';
+
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
-      <Svg width={chartWidth} height={chartHeight}>
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map((val) => {
-          const y = getPointY(val);
-          return (
-            <G key={`grid-${val}`}>
-              <Line
-                x1={padding.left}
-                y1={y}
-                x2={chartWidth - padding.right}
-                y2={y}
-                stroke={isDark ? '#222222' : '#eeeeee'}
-                strokeWidth="1"
-              />
-              <SvgText
-                x={padding.left - 10}
-                y={y + 5}
-                fontSize="10"
-                fill={isDark ? '#666666' : '#aaaaaa'}
-                textAnchor="end"
-              >
-                {val}%
-              </SvgText>
-            </G>
-          );
-        })}
+    <View style={styles.chartSection}>
+      <Text style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}>
+        {title}
+      </Text>
+      <View>
+        <Svg width={chartWidth} height={chartHeight}>
+          <Defs>
+            <LinearGradient id={`grad-${title}`} x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor={color} stopOpacity={gradientAlpha} />
+              <Stop offset="100%" stopColor={color} stopOpacity="0" />
+            </LinearGradient>
+          </Defs>
 
-        {/* Y-axis */}
-        <Line
-          x1={padding.left}
-          y1={padding.top}
-          x2={padding.left}
-          y2={chartHeight - padding.bottom}
-          stroke={isDark ? '#333333' : '#cccccc'}
-          strokeWidth="2"
-        />
-
-        {/* X-axis */}
-        <Line
-          x1={padding.left}
-          y1={chartHeight - padding.bottom}
-          x2={chartWidth - padding.right}
-          y2={chartHeight - padding.bottom}
-          stroke={isDark ? '#333333' : '#cccccc'}
-          strokeWidth="2"
-        />
-
-        {/* Global line */}
-        {showGlobal && data.global.length > 0 && (
+          {/* Fill under curve */}
           <Path
-            d={generatePath(data.global)}
-            stroke={lineColors.global}
-            strokeWidth="2"
+            d={generateFillPath()}
+            fill={`url(#grad-${title})`}
+          />
+
+          {/* Line */}
+          <Path
+            d={generatePath()}
+            stroke={color}
+            strokeWidth="2.5"
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        )}
-
-        {/* Category lines */}
-        {showCategories && (
-          <>
-            {(Object.keys(data) as (keyof typeof data)[]).filter(
-              (key) => key !== 'global'
-            ).map((category) => (
-              <Path
-                key={`line-${category}`}
-                d={generatePath(data[category as CategoryType])}
-                stroke={lineColors[category] || '#000000'}
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ))}
-          </>
-        )}
-
-        {/* Data points */}
-        {points.map((point, index) => {
-          const x = getPointX(index);
-          const y = getPointY(point.value);
-          return (
-            <Circle
-              key={`point-${index}`}
-              cx={x}
-              cy={y}
-              r="4"
-              fill={isDark ? '#ffffff' : '#000000'}
-              stroke={isDark ? '#1a1a1a' : '#ffffff'}
-              strokeWidth="2"
-            />
-          );
-        })}
+        </Svg>
 
         {/* X-axis labels */}
-        {points.map((point, index) => {
-          // Only show some labels to avoid crowding
-          const shouldShow = points.length <= 7 || index % Math.ceil(points.length / 7) === 0;
-          if (!shouldShow) return null;
-
-          const x = getPointX(index);
-          return (
-            <SvgText
-              key={`label-${index}`}
-              x={x}
-              y={chartHeight - padding.bottom + 20}
-              fontSize="10"
-              fill={isDark ? '#666666' : '#aaaaaa'}
-              textAnchor="middle"
-            >
-              {point.label}
-            </SvgText>
-          );
-        })}
-      </Svg>
-
-      {/* Legend */}
-      <View style={styles.legend}>
-        {showGlobal && (
-          <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                { backgroundColor: lineColors.global },
-              ]}
-            />
-          </View>
-        )}
-        {showCategories && (
-          <>
-            {(
-              ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as CategoryType[]
-            ).map((category) => (
-              <View key={`legend-${category}`} style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: lineColors[category] },
-                  ]}
-                />
-              </View>
-            ))}
-          </>
-        )}
+        <View style={[styles.labelsContainer, { height: labelHeight }]}>
+          {labelIndices.map((idx) => {
+            const label = data[idx].label;
+            const xPercent = (idx / Math.max(1, data.length - 1)) * 100;
+            return (
+              <Text
+                key={idx}
+                style={[
+                  styles.label,
+                  {
+                    color: isDark ? '#aaaaaa' : '#666666',
+                    left: `${xPercent}%`,
+                  },
+                ]}
+              >
+                {label}
+              </Text>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 30,
-    paddingVertical: 16,
-    borderRadius: 8,
+  chartSection: {
+    marginBottom: 32,
   },
-  emptyState: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
+  title: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  legend: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-    justifyContent: 'center',
+  emptyChart: {
+    height: 100,
+    borderRadius: 6,
   },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  labelsContainer: {
+    position: 'relative',
+    width: '100%',
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  label: {
+    position: 'absolute',
+    fontSize: 10,
+    fontWeight: '500',
+    marginLeft: -20,
+    width: 40,
+    textAlign: 'center',
   },
 });
