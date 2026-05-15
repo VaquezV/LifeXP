@@ -4,16 +4,21 @@ import { useState, useMemo, useRef } from 'react';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
+import { HabitModal } from './habit-modal';
 import { Habit } from '@/lib/types';
 import { calculateHabitCompletion } from '@/lib/scoring';
 import { DayButton } from './day-button';
 import { SliderInput } from './slider-input';
+import { updateHabit, deleteHabit } from '@/lib/habit-operations';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export interface HabitCardProps {
   habit: Habit;
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
   onValueChange: (habitId: string, date: string, newValue: number) => void;
+  onHabitUpdate?: (updatedHabit: Habit) => void;
+  onHabitDelete?: (habitId: string) => void;
 }
 
 export function HabitCard({
@@ -21,6 +26,8 @@ export function HabitCard({
   weekDates,
   weekValues,
   onValueChange,
+  onHabitUpdate,
+  onHabitDelete,
 }: HabitCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -30,6 +37,7 @@ export function HabitCard({
   const dayNames = ['LU', 'MA', 'ME', 'JE', 'VE', 'SA', 'DI'];
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const selectedValue = weekValues[selectedDate]?.[habit.id] ?? 0;
 
@@ -205,18 +213,40 @@ export function HabitCard({
     return null;
   };
 
+  const handleSaveHabit = async (updates: Partial<Habit>) => {
+    const updated = await updateHabit(habit.id, updates);
+    if (updated && onHabitUpdate) {
+      onHabitUpdate(updated);
+    }
+  };
+
+  const handleDeleteHabit = async () => {
+    const success = await deleteHabit(habit.id);
+    if (success && onHabitDelete) {
+      onHabitDelete(habit.id);
+    }
+  };
+
   return (
-    <ThemedView
-      style={[
-        styles.card,
-        {
-          backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-          borderLeftColor: accentColor,
-        },
-      ]}
-    >
-      <View style={styles.header}>
-        <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
+    <>
+      <HabitModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleSaveHabit}
+        onDelete={handleDeleteHabit}
+        habit={habit}
+      />
+      <ThemedView
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+            borderLeftColor: accentColor,
+          },
+        ]}
+      >
+        <View style={styles.header}>
+          <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
         <View style={styles.titleSection}>
           <ThemedText
             type="defaultSemiBold"
@@ -248,11 +278,18 @@ export function HabitCard({
             {weeklyCompletion}%
           </ThemedText>
         </View>
+        <Pressable
+          onPress={() => setEditModalVisible(true)}
+          style={styles.editButton}
+        >
+          <MaterialIcons name="edit" size={20} color={accentColor} />
+        </Pressable>
       </View>
 
       {renderWeekDays()}
       {renderPresetButtons()}
-    </ThemedView>
+      </ThemedView>
+    </>
   );
 }
 
@@ -290,13 +327,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   percentageBox: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    marginRight: 8,
   },
   percentage: {
     fontSize: 16,
     fontWeight: 'bold',
     minWidth: 45,
-    textAlign: 'right',
+    textAlign: 'center',
+  },
+  editButton: {
+    padding: 4,
   },
   weekContainer: {
     flexDirection: 'row',

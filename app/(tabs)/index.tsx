@@ -99,6 +99,16 @@ export default function HomeScreen() {
     }
   };
 
+  const handleHabitUpdate = (updatedHabit: Habit) => {
+    setHabits(prev =>
+      prev.map(h => h.id === updatedHabit.id ? updatedHabit : h)
+    );
+  };
+
+  const handleHabitDelete = (habitId: string) => {
+    setHabits(prev => prev.filter(h => h.id !== habitId));
+  };
+
   // Recalculate weekly score whenever dailyValues or habits change
   useEffect(() => {
     const score = calculateWeeklyScore(habits, dailyValues);
@@ -168,6 +178,8 @@ export default function HomeScreen() {
               weekDates={weekDates}
               weekValues={dailyValues}
               onHabitValueChange={handleValueChange}
+              onHabitUpdate={handleHabitUpdate}
+              onHabitDelete={handleHabitDelete}
               onUpdateCategory={handleUpdateCategory}
             />
           );

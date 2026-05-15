@@ -18,6 +18,8 @@ export interface CategorySectionProps {
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>; // date -> (habit_id -> value)
   onHabitValueChange: (habitId: string, date: string, newValue: number) => void;
+  onHabitUpdate?: (updatedHabit: Habit) => void;
+  onHabitDelete?: (habitId: string) => void;
   onAddHabit?: (habit: any) => Promise<void>;
   onUpdateCategory?: (label: string, color: string) => void;
 }
@@ -29,6 +31,8 @@ export function CategorySection({
   weekDates,
   weekValues,
   onHabitValueChange,
+  onHabitUpdate,
+  onHabitDelete,
   onAddHabit,
   onUpdateCategory,
 }: CategorySectionProps) {
@@ -101,6 +105,8 @@ export function CategorySection({
             weekDates={weekDates}
             weekValues={weekValues}
             onValueChange={onHabitValueChange}
+            onHabitUpdate={onHabitUpdate}
+            onHabitDelete={onHabitDelete}
           />
         ))}
         {onAddHabit && (
