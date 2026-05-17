@@ -53,3 +53,74 @@ union all
 select id, 7, 7, 'Une semaine de pratique', '📅' from public.preset_habits where name = 'Musique'
 union all
 select id, 10, 10, 'Dix sessions', '🎉' from public.preset_habits where name = 'Musique';
+
+-- Dents (Teeth Brushing)
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Dents', 'self_care', 'debutant', '🪥', 'times_per_day', 2, 1, 2, 3, false, true, true, false, false);
+
+-- Douche (Shower)
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Douche', 'self_care', 'debutant', '🚿', 'times_per_week', 3, 3, 3, 5, true, true, true, true, true);
+
+-- Chien (Dog Care)
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Chien', 'vie_familiale', 'debutant', '🐕', 'per_day', 1, 40, 60, 90, true, true, true, false, true);
+
+-- Massage Partenaire (Partner Massage)
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Massage Partenaire', 'vie_familiale', 'debutant', '💆', 'times_per_week', 3, 2, 3, 4, true, true, true, false, true);
+
+-- Recettes (Recipes)
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Recettes', 'vie_familiale', 'debutant', '🍳', 'times_per_week', 5, 3, 5, 8, true, true, true, false, true);
+
+-- Badges for Dents
+insert into public.preset_badges (preset_habit_id, badge_level, consecutive_days, badge_name, badge_emoji)
+select id, 1, 1, 'Premiers brossages', '🪥' from public.preset_habits where name = 'Dents'
+union all
+select id, 3, 3, 'Trois jours', '🪥🪥🪥' from public.preset_habits where name = 'Dents'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Dents'
+union all
+select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Dents'
+union all
+-- Badges for Douche
+select id, 1, 1, 'Première douche', '🚿' from public.preset_habits where name = 'Douche'
+union all
+select id, 3, 3, 'Trois douches', '🚿🚿🚿' from public.preset_habits where name = 'Douche'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Douche'
+union all
+select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Douche'
+union all
+-- Badges for Chien
+select id, 1, 1, 'Premier soin du chien', '🐕' from public.preset_habits where name = 'Chien'
+union all
+select id, 3, 3, 'Trois soins', '🐕🐕🐕' from public.preset_habits where name = 'Chien'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Chien'
+union all
+select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Chien'
+union all
+-- Badges for Massage Partenaire
+select id, 1, 1, 'Premier massage', '💆' from public.preset_habits where name = 'Massage Partenaire'
+union all
+select id, 3, 3, 'Trois massages', '💆💆💆' from public.preset_habits where name = 'Massage Partenaire'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Massage Partenaire'
+union all
+select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Massage Partenaire'
+union all
+-- Badges for Recettes
+select id, 1, 1, 'Première recette', '🍳' from public.preset_habits where name = 'Recettes'
+union all
+select id, 3, 3, 'Trois recettes', '🍳🍳🍳' from public.preset_habits where name = 'Recettes'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Recettes'
+union all
+select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Recettes';
