@@ -65,9 +65,6 @@ const styles = StyleSheet.create({
     height: 155,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
     overflow: 'hidden',
   },
 });
