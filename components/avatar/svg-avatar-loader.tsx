@@ -40,7 +40,7 @@ function SVGAvatarLoaderComponent({
 
   return (
     <View style={[styles.container, { transform: [{ scale }] }]}>
-      <View style={styles.background}>
+      <View style={styles.svgWrapper}>
         {assetUri && (
           <SvgUri
             width={140}
@@ -60,19 +60,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  background: {
-    width: 160,
-    height: 175,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+  svgWrapper: {
+    width: 140,
+    height: 155,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 6,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
   },
 });
