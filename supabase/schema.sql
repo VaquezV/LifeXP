@@ -147,3 +147,7 @@ create policy open_preset_badges_policy on public.preset_badges
   to anon, authenticated
   using (true)
   with check (true);
+
+alter table public.habits add column if not exists preset_habit_id uuid references public.preset_habits(id) on delete set null;
+
+create index if not exists habits_preset_habit_idx on public.habits(preset_habit_id);
