@@ -63,7 +63,7 @@ export async function fetchPresetHabitsByCategory(category: string): Promise<Pre
 
 export async function fetchPresetHabitByNameAndExpertise(
   name: string,
-  expertise: 'debutant' | 'intermediaire' | 'expert'
+  expertise: 'debutant' | 'intermediaire' | 'expert' | 'enfant' | 'ado' | 'adulte_homme' | 'adulte_femme' | 'standard'
 ): Promise<PresetHabit | null> {
   const { data, error } = await supabase
     .from('preset_habits')

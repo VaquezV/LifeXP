@@ -42,7 +42,7 @@ export interface PresetHabit {
   id: string;
   name: string;
   category: CategoryType;
-  expertise: 'debutant' | 'intermediaire' | 'expert';
+  expertise: 'debutant' | 'intermediaire' | 'expert' | 'enfant' | 'ado' | 'adulte_homme' | 'adulte_femme' | 'standard';
   emoji: string;
   frequency_type: FrequencyType;
   frequency_value: number;

@@ -89,7 +89,7 @@ create table if not exists public.preset_habits (
 
   name text not null,
   category text not null check (category in ('self_care', 'dev_perso', 'vie_familiale', 'vie_pro')),
-  expertise text not null check (expertise in ('debutant', 'intermediaire', 'expert')),
+  expertise text not null check (expertise in ('debutant', 'intermediaire', 'expert', 'enfant', 'ado', 'adulte_homme', 'adulte_femme', 'standard')),
   emoji text,
 
   frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week')),
