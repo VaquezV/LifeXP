@@ -83,3 +83,41 @@ create policy open_habits_policy on public.habits
 
 create policy open_habit_logs_policy on public.habit_logs
   for all to anon, authenticated using (true) with check (true);
+
+create table if not exists public.preset_habits (
+  id uuid primary key default gen_random_uuid(),
+
+  name text not null,
+  category text not null check (category in ('self_care', 'dev_perso', 'vie_familiale', 'vie_pro')),
+  expertise text not null check (expertise in ('debutant', 'intermediaire', 'expert')),
+  emoji text,
+
+  frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week')),
+  frequency_value integer not null,
+  min_value integer not null,
+  target_value integer not null,
+  max_value integer not null,
+
+  editable_min_value boolean default true,
+  editable_target_value boolean default true,
+  editable_max_value boolean default true,
+  editable_frequency_type boolean default true,
+  editable_frequency_value boolean default true,
+
+  created_at timestamptz not null default timezone('utc', now()),
+
+  constraint preset_habits_name_expertise_unique unique (name, expertise)
+);
+
+create index if not exists preset_habits_category_idx on public.preset_habits(category);
+create index if not exists preset_habits_name_idx on public.preset_habits(name);
+
+alter table public.preset_habits disable row level security;
+
+drop policy if exists open_preset_habits_policy on public.preset_habits;
+
+create policy open_preset_habits_policy on public.preset_habits
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
