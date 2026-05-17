@@ -40,13 +40,15 @@ function SVGAvatarLoaderComponent({
 
   return (
     <View style={[styles.container, { transform: [{ scale }] }]}>
-      {assetUri && (
-        <SvgUri
-          width={140}
-          height={155}
-          uri={assetUri}
-        />
-      )}
+      <View style={styles.svgWrapper}>
+        {assetUri && (
+          <SvgUri
+            width={140}
+            height={155}
+            uri={assetUri}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -57,5 +59,15 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  svgWrapper: {
+    width: 140,
+    height: 155,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
 });
