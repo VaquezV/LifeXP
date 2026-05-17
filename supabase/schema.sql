@@ -121,3 +121,29 @@ create policy open_preset_habits_policy on public.preset_habits
   to anon, authenticated
   using (true)
   with check (true);
+
+create table if not exists public.preset_badges (
+  id uuid primary key default gen_random_uuid(),
+  preset_habit_id uuid not null references public.preset_habits(id) on delete cascade,
+
+  badge_level integer not null,
+  consecutive_days integer not null,
+  badge_name text,
+  badge_emoji text,
+
+  created_at timestamptz not null default timezone('utc', now()),
+
+  constraint preset_badges_preset_level_unique unique (preset_habit_id, badge_level)
+);
+
+create index if not exists preset_badges_preset_habit_idx on public.preset_badges(preset_habit_id);
+
+alter table public.preset_badges disable row level security;
+
+drop policy if exists open_preset_badges_policy on public.preset_badges;
+
+create policy open_preset_badges_policy on public.preset_badges
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
