@@ -36,7 +36,7 @@ export function WeekSummary({
   const animatedCompletion = useSharedValue(weeklyCompletion);
 
   const donutSize = 120;
-  const radius = 55;
+  const radius = 52;
   const circumference = 2 * Math.PI * radius;
 
   useEffect(() => {
@@ -51,12 +51,14 @@ export function WeekSummary({
       circumference - (animatedCompletion.value / 100) * circumference,
   }));
 
+  const cardBackground = getCardBackgroundColor(weeklyCompletion, isDark);
+
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#101416' : '#f3f7f6',
+          backgroundColor: cardBackground,
           borderColor: isDark ? '#1d262b' : '#dce8e4',
         },
       ]}
@@ -184,10 +186,10 @@ export function WeekSummary({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 22,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
     marginBottom: 20,
-    gap: 12,
+    gap: 8,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scoreColumn: {
-    width: 128,
+    width: 130,
     alignItems: 'center',
     gap: 10,
   },
@@ -208,8 +210,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
   },
   donutWrapper: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
   },
   mascotColumn: {
     flex: 1,
@@ -218,17 +220,17 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 4,
     justifyContent: 'center',
   },
   dayItem: {
-    width: '13.4%',
-    minWidth: 40,
+    width: '12%',
+    minWidth: 30,
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
     borderRadius: 12,
     paddingVertical: 6,
-    paddingHorizontal: 3,
+    paddingHorizontal: 2,
     borderWidth: 1,
   },
   dayAbbr: {
@@ -248,6 +250,58 @@ const styles = StyleSheet.create({
   },
 });
 
+function getCardBackgroundColor(score: number, isDark: boolean): string {
+  // Color palette matching avatar emotional states
+  const colorStops = [
+    { score: 0, light: '#fef2f2', dark: '#1a0f0f' },    // exhausted - dark red
+    { score: 20, light: '#fce7e6', dark: '#2a1515' },
+    { score: 40, light: '#f5e6f0', dark: '#251820' },   // sad - dark purple
+    { score: 60, light: '#e8f0f5', dark: '#1a2530' },   // neutral - dark blue-gray
+    { score: 80, light: '#e6f5ed', dark: '#1a2f24' },   // content - green
+    { score: 100, light: '#e6fff5', dark: '#0d2d1f' },  // epic - bright green
+  ];
+
+  // Find the two closest color stops
+  let start = colorStops[0];
+  let end = colorStops[colorStops.length - 1];
+
+  for (let i = 0; i < colorStops.length - 1; i++) {
+    if (score >= colorStops[i].score && score <= colorStops[i + 1].score) {
+      start = colorStops[i];
+      end = colorStops[i + 1];
+      break;
+    }
+  }
+
+  // Interpolate between the two colors
+  const range = end.score - start.score;
+  const progress = (score - start.score) / range;
+
+  const startColor = isDark ? start.dark : start.light;
+  const endColor = isDark ? end.dark : end.light;
+
+  return interpolateColor(startColor, endColor, progress);
+}
+
+function interpolateColor(color1: string, color2: string, progress: number): string {
+  const c1 = hexToRgb(color1);
+  const c2 = hexToRgb(color2);
+
+  const r = Math.round(c1.r + (c2.r - c1.r) * progress);
+  const g = Math.round(c1.g + (c2.g - c1.g) * progress);
+  const b = Math.round(c1.b + (c2.b - c1.b) * progress);
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const normalized = hex.replace('#', '');
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return { r, g, b };
+}
+
 function getCompletionBackground(
   accentColor: string,
   completion: number,
@@ -264,9 +318,9 @@ function hexToRgba(hex: string, alpha: number): string {
   const value =
     normalized.length === 3
       ? normalized
-          .split('')
-          .map(char => char + char)
-          .join('')
+        .split('')
+        .map(char => char + char)
+        .join('')
       : normalized;
 
   const r = parseInt(value.slice(0, 2), 16);
