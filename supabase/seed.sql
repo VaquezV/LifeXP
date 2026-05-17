@@ -56,6 +56,11 @@ insert into public.preset_habits (name, category, expertise, emoji, frequency_ty
 values
   ('Massage Partenaire', 'vie_familiale', 'standard', '💆', 'times_per_week', 3, 2, 3, 4, true, true, true, false, true);
 
+-- Enfants
+insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
+values
+  ('Enfants', 'vie_familiale', 'standard', '🧒', 'per_day', 1, 0, 30, 60, true, true, true, false, true);
+
 -- Recettes (Recipes)
 insert into public.preset_habits (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value, editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
 values
@@ -97,6 +102,15 @@ union all
 select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Massage Partenaire' and expertise = 'standard'
 union all
 select id, 10, 10, 'Dix jours', '🎉' from public.preset_habits where name = 'Massage Partenaire' and expertise = 'standard'
+union all
+-- Badges for Enfants
+select id, 1, 1, 'Premier moment', '🧒' from public.preset_habits where name = 'Enfants' and expertise = 'standard'
+union all
+select id, 3, 3, 'Trois moments', '🧒🧒🧒' from public.preset_habits where name = 'Enfants' and expertise = 'standard'
+union all
+select id, 7, 7, 'Une semaine', '📅' from public.preset_habits where name = 'Enfants' and expertise = 'standard'
+union all
+select id, 10, 10, 'Dix moments', '🎉' from public.preset_habits where name = 'Enfants' and expertise = 'standard'
 union all
 -- Badges for Recettes
 select id, 1, 1, 'Première recette', '🍳' from public.preset_habits where name = 'Recettes' and expertise = 'standard'

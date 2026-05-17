@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  Switch,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Habit } from '@/lib/types';
@@ -278,7 +277,7 @@ export function HabitModal({
                   { color: isDark ? '#ffffff' : '#000000' },
                 ]}
               >
-                Delete "{name}"?
+                Delete &quot;{name}&quot;?
               </Text>
               <Text
                 style={[

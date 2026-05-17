@@ -1,11 +1,20 @@
 import { supabase, SINGLE_USER_ID } from '@/lib/supabase';
 import { Habit } from '@/lib/types';
 
+function ensureSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client is not configured');
+  }
+
+  return supabase;
+}
+
 export async function updateHabit(
   habitId: string,
   updates: Partial<Habit>
 ): Promise<Habit | null> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('habits')
     .update(updates)
     .eq('id', habitId)
@@ -22,7 +31,8 @@ export async function updateHabit(
 }
 
 export async function deleteHabit(habitId: string): Promise<boolean> {
-  const { error: logsError } = await supabase
+  const client = ensureSupabase();
+  const { error: logsError } = await client
     .from('habit_logs')
     .delete()
     .eq('habit_id', habitId);
@@ -31,7 +41,7 @@ export async function deleteHabit(habitId: string): Promise<boolean> {
     console.error('Error deleting habit logs:', logsError);
   }
 
-  const { error } = await supabase
+  const { error } = await client
     .from('habits')
     .delete()
     .eq('id', habitId)

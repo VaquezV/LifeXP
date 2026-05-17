@@ -7,7 +7,7 @@ import { LineChart } from './line-chart';
 import { Habit } from '@/lib/types';
 import { aggregateChartData } from '@/lib/chart-data';
 
-type ViewMode = 'week' | 'month' | 'quarter' | 'year';
+type ViewMode = 'week' | 'month' | 'year';
 
 export interface DashboardViewProps {
   habits: Habit[];
@@ -41,7 +41,7 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
 
         {/* View Mode Selector */}
         <View style={styles.modeSelector}>
-          {(['week', 'month', 'quarter', 'year'] as const).map((mode) => (
+          {(['week', 'month', 'year'] as const).map((mode) => (
             <Pressable
               key={mode}
               style={[
@@ -74,9 +74,7 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
                   ? 'Semaine'
                   : mode === 'month'
                     ? 'Mois'
-                    : mode === 'quarter'
-                      ? 'Trimestre'
-                      : 'Année'}
+                    : 'Année'}
               </ThemedText>
             </Pressable>
           ))}

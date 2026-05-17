@@ -6,11 +6,14 @@ export interface Habit {
   user_id: string;
   category: CategoryType;
   name: string;
+  description?: string | null;
   emoji: string;
   frequency_type: FrequencyType;
   frequency_value: number;
   min_value: number;
   target_value: number;
+  max_value: number | null;
+  preset_habit_id: string | null;
   created_at: string;
 }
 
@@ -18,6 +21,7 @@ export interface HabitLog {
   id: string;
   user_id: string;
   habit_id: string;
+  preset_habit_id: string | null;
   date: string; // YYYY-MM-DD
   value: number;
   created_at: string;

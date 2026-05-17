@@ -1,8 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { PresetHabit, PresetBadge, PresetHabitWithBadges } from '@/lib/types';
 
+function ensureSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client is not configured');
+  }
+
+  return supabase;
+}
+
 export async function fetchPresetHabits(): Promise<PresetHabit[]> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('preset_habits')
     .select('*')
     .order('category')
@@ -31,7 +40,8 @@ export async function fetchPresetHabitsWithBadges(): Promise<PresetHabitWithBadg
 }
 
 export async function fetchBadgesForPreset(presetHabitId: string): Promise<PresetBadge[]> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('preset_badges')
     .select('*')
     .eq('preset_habit_id', presetHabitId)
@@ -46,7 +56,8 @@ export async function fetchBadgesForPreset(presetHabitId: string): Promise<Prese
 }
 
 export async function fetchPresetHabitsByCategory(category: string): Promise<PresetHabit[]> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('preset_habits')
     .select('*')
     .eq('category', category)
@@ -65,7 +76,8 @@ export async function fetchPresetHabitByNameAndExpertise(
   name: string,
   expertise: 'debutant' | 'intermediaire' | 'expert' | 'enfant' | 'ado' | 'adulte_homme' | 'adulte_femme' | 'standard'
 ): Promise<PresetHabit | null> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('preset_habits')
     .select('*')
     .eq('name', name)

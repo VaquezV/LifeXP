@@ -1,5 +1,4 @@
 import { supabase, SINGLE_USER_ID } from '@/lib/supabase';
-import { CategoryType } from '@/lib/types';
 
 export interface Category {
   id: string;
@@ -9,8 +8,17 @@ export interface Category {
   created_at: string;
 }
 
+function ensureSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client is not configured');
+  }
+
+  return supabase;
+}
+
 export async function fetchCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('categories')
     .select('*')
     .eq('user_id', SINGLE_USER_ID);
@@ -24,7 +32,8 @@ export async function fetchCategories(): Promise<Category[]> {
 }
 
 export async function createCategory(name: string, color: string): Promise<Category | null> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('categories')
     .insert({
       name,
@@ -47,7 +56,8 @@ export async function updateCategory(
   name: string,
   color: string
 ): Promise<Category | null> {
-  const { data, error } = await supabase
+  const client = ensureSupabase();
+  const { data, error } = await client
     .from('categories')
     .update({ name, color })
     .eq('id', id)
@@ -64,7 +74,8 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<boolean> {
-  const { error } = await supabase
+  const client = ensureSupabase();
+  const { error } = await client
     .from('categories')
     .delete()
     .eq('id', id)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { PerformanceCharts } from '@/components/performance-charts';

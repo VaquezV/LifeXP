@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeeklyMascot Preview - Distinct Emotions</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      color: #ffffff;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 50px;
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #2a9d8f, #78f8d6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      padding: 12px 20px;
+      border: 2px solid #2a9d8f;
+      background: transparent;
+      color: #78f8d6;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95em;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+      background: rgba(42, 157, 143, 0.2);
+      border-color: #78f8d6;
+    }
+
+    .control-btn.active {
+      background: #2a9d8f;
+      border-color: #2a9d8f;
+      color: #ffffff;
+    }
+
+    .states-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    .state-card {
+      background: rgba(42, 157, 143, 0.08);
+      border: 1px solid #2a9d8f;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .state-card:hover {
+      background: rgba(42, 157, 143, 0.15);
+      border-color: #78f8d6;
+      transform: translateY(-5px);
+    }
+
+    .mascot-container {
+      width: 100%;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      overflow: visible;
+      position: relative;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      max-width: 220px;
+      max-height: 240px;
+    }
+
+    .state-label {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: #78f8d6;
+      margin-bottom: 5px;
+    }
+
+    .state-score {
+      font-size: 0.9em;
+      color: #aaa;
+    }
+
+    .interactive-section {
+      background: rgba(42, 157, 143, 0.08);
+      border: 1px solid #2a9d8f;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .interactive-section h2 {
+      margin-bottom: 30px;
+      color: #78f8d6;
+      font-size: 1.5em;
+    }
+
+    .score-slider {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 20px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #c62828, #ff9800, #ffd700, #2a9d8f, #2196F3, #9c27b0, #78f8d6);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .score-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(120, 248, 214, 0.8);
+    }
+
+    .score-slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      border: 2px solid #2a9d8f;
+      box-shadow: 0 0 15px rgba(120, 248, 214, 0.8);
+    }
+
+    .interactive-mascot-container {
+      width: 100%;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 30px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-display {
+      font-size: 3.5em;
+      font-weight: 700;
+      color: #78f8d6;
+      margin: 20px 0 10px;
+    }
+
+    .emotional-text {
+      font-size: 1.3em;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-30px);
+      }
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .mascot-bounce {
+      animation: bounce 0.8s ease-in-out infinite;
+    }
+
+    .mascot-float {
+      animation: float 2s ease-in-out infinite;
+    }
+
+    .glow-intense {
+      filter: drop-shadow(0 0 30px rgba(120, 248, 214, 0.8)) drop-shadow(0 0 60px rgba(120, 248, 214, 0.4));
+    }
+
+    .star {
+      animation: spin 3s linear infinite;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🎭 WeeklyMascot - Exaggerated Emotions</h1>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="control-btn active" onclick="showState(10)">😴 Exhausted (0-20%)</button>
+      <button class="control-btn" onclick="showState(30)">😭 Sad (20-40%)</button>
+      <button class="control-btn" onclick="showState(50)">😐 Neutral (40-60%)</button>
+      <button class="control-btn" onclick="showState(70)">🙂 Content (60-80%)</button>
+      <button class="control-btn" onclick="showState(87)">😄 Happy (80-95%)</button>
+      <button class="control-btn" onclick="showState(98)">🤩 EPIC (95-100%)</button>
+    </div>
+
+    <!-- Static States Grid -->
+    <div class="states-grid">
+      <!-- EXHAUSTED -->
+      <div class="state-card">
+        <div class="state-label">😴 Exhausted</div>
+        <div class="state-score">0-20%</div>
+        <div class="mascot-container">
+          <svg viewBox="0 0 240 240" width="220" height="240">
+            <defs>
+              <linearGradient id="beam-exhausted" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#8b3a3a" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Aura (removed) -->
+            <!-- Body (slumped) -->
+            <ellipse cx="120" cy="130" rx="48" ry="55" fill="#8b3a3a" stroke="#c62828" strokeWidth="4" />
+
+            <!-- Shadow under mascot -->
+            <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.3" />
+            <!-- Antenna (droopy curve) -->
+            <path d="M 120 85 Q 110 60 100 45" fill="none" stroke="#c62828" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core (dim) -->
+            <circle cx="100" cy="42" r="6" fill="#8b3a3a" stroke="#c62828" strokeWidth="3" />
+            <!-- Eyebrows (down) -->
+            <line x1="88" y1="110" x2="105" y2="120" stroke="#2a2a2a" strokeWidth="10" strokeLinecap="round" />
+            <line x1="135" y1="120" x2="152" y2="110" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Eyes CLOSED (X) -->
+            <line x1="95" y1="115" x2="105" y2="125" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <line x1="105" y1="115" x2="95" y2="125" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <line x1="135" y1="115" x2="145" y2="125" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <line x1="145" y1="115" x2="135" y2="125" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Mouth (tiny, closed) -->
+            <line x1="110" y1="155" x2="130" y2="155" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Feet -->
+            <circle cx="95" cy="190" r="8" fill="#c62828" opacity="0.6" />
+            <circle cx="145" cy="190" r="8" fill="#c62828" opacity="0.6" />
+            <!-- Z's (sleeping) -->
+            <text x="160" y="100" fontSize="24" fill="#c62828" opacity="0.6">Z</text>
+            <text x="175" y="70" fontSize="28" fill="#c62828" opacity="0.4">z</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SAD -->
+      <div class="state-card">
+        <div class="state-label">😭 Sad</div>
+        <div class="state-score">20-40%</div>
+        <div class="mascot-container">
+          <svg viewBox="0 0 240 240" width="220" height="240">
+            <defs>
+              <linearGradient id="beam-sad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#7a5c7c" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Aura (removed) -->
+            <!-- Body -->
+            <ellipse cx="120" cy="125" rx="50" ry="58" fill="#7a5c7c" stroke="#9575b0" strokeWidth="4" />
+            <!-- Highlight -->
+            <!-- <ellipse cx="102" cy="98" rx="21" ry="13" fill="#ffffff" opacity="0.12" /> -->
+            <!-- Shadow -->
+            <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.25" />
+            <!-- Antenna -->
+            <line x1="120" y1="80" x2="120" y2="45" stroke="#9575b0" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core -->
+            <circle cx="120" cy="37" r="7" fill="#7a5c7c" stroke="#9575b0" strokeWidth="3" />
+            <!-- Eyebrows (sad angle - inverted) -->
+            <line x1="88" y1="115" x2="108" y2="105" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <line x1="132" y1="105" x2="152" y2="115" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Eyes (droopy, sad) -->
+            <ellipse cx="98" cy="118" rx="10" ry="8" fill="#2a2a2a" />
+            <ellipse cx="142" cy="118" rx="10" ry="8" fill="#2a2a2a" />
+            <!-- Tears (single thick) -->
+            <line x1="98" y1="128" x2="98" y2="152" stroke="#6ba3ff" strokeWidth="6" strokeLinecap="round" />
+            <circle cx="98" cy="157" r="3.5" fill="#6ba3ff" />
+            <line x1="142" y1="128" x2="142" y2="152" stroke="#6ba3ff" strokeWidth="6" strokeLinecap="round" />
+            <circle cx="142" cy="157" r="3.5" fill="#6ba3ff" />
+            <!-- Mouth (big sad frown - inverted) -->
+            <path d="M 105 155 Q 120 135 135 155" fill="none" stroke="#2a2a2a" strokeWidth="6" strokeLinecap="round" />
+            <!-- Cheeks (sad) -->
+            <circle cx="78" cy="145" r="8" fill="#ff9999" opacity="0.4" />
+            <circle cx="162" cy="145" r="8" fill="#ff9999" opacity="0.4" />
+            <!-- Feet -->
+            <circle cx="95" cy="190" r="8" fill="#9575b0" opacity="0.7" />
+            <circle cx="145" cy="190" r="8" fill="#9575b0" opacity="0.7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- NEUTRAL -->
+      <div class="state-card">
+        <div class="state-label">😐 Neutral</div>
+        <div class="state-score">40-60%</div>
+        <div class="mascot-container">
+          <svg viewBox="0 0 240 240" width="220" height="240">
+            <defs>
+              <linearGradient id="beam-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#6b7a8a" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Aura (removed) -->
+            <!-- Body -->
+            <ellipse cx="120" cy="120" rx="52" ry="60" fill="#6b7a8a" stroke="#8a9aaa" strokeWidth="4" />
+
+            <!-- Shadow -->
+            <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.20" />
+            <!-- Antenna (normal) -->
+            <line x1="120" y1="75" x2="120" y2="35" stroke="#8a9aaa" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core -->
+            <circle cx="120" cy="28" r="8" fill="#6b7a8a" stroke="#8a9aaa" strokeWidth="3" />
+            <!-- Eyebrows (neutral) -->
+            <line x1="90" y1="100" x2="108" y2="100" stroke="#2a2a2a" strokeWidth="4" strokeLinecap="round" />
+            <line x1="132" y1="100" x2="150" y2="100" stroke="#2a2a2a" strokeWidth="4" strokeLinecap="round" />
+            <!-- Eyes (half-open) -->
+            <ellipse cx="98" cy="112" rx="10" ry="5" fill="#2a2a2a" />
+            <ellipse cx="142" cy="112" rx="10" ry="5" fill="#2a2a2a" />
+            <!-- Mouth (flat line) -->
+            <line x1="105" y1="155" x2="135" y2="155" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Feet -->
+            <circle cx="95" cy="185" r="8" fill="#8a9aaa" opacity="0.7" />
+            <circle cx="145" cy="185" r="8" fill="#8a9aaa" opacity="0.7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="state-card">
+        <div class="state-label">🙂 Content</div>
+        <div class="state-score">60-80%</div>
+        <div class="mascot-container">
+          <svg viewBox="0 0 240 240" width="220" height="240">
+            <defs>
+              <linearGradient id="beam-content" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#4a9b7f" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Aura (removed) -->
+            <!-- Body (upright, confident) -->
+            <ellipse cx="120" cy="118" rx="54" ry="58" fill="#4a9b7f" stroke="#7dbfb0" strokeWidth="4" />
+
+            <!-- Shadow -->
+            <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.18" />
+            <!-- Antenna -->
+            <line x1="120" y1="73" x2="120" y2="25" stroke="#7dbfb0" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core -->
+            <circle cx="120" cy="18" r="9" fill="#4a9b7f" stroke="#7dbfb0" strokeWidth="3" />
+            <!-- Eyebrows (happy angle) -->
+            <line x1="88" y1="95" x2="108" y2="100" stroke="#2a2a2a" strokeWidth="4" strokeLinecap="round" />
+            <line x1="132" y1="100" x2="152" y2="95" stroke="#2a2a2a" strokeWidth="4" strokeLinecap="round" />
+            <!-- Eyes (clear, bright) -->
+            <circle cx="98" cy="108" r="6" fill="#2a2a2a" />
+            <circle cx="142" cy="108" r="6" fill="#2a2a2a" />
+            <!-- Eyes shine -->
+            <circle cx="100" cy="106" r="2" fill="#ffffff" opacity="0.8" />
+            <circle cx="144" cy="106" r="2" fill="#ffffff" opacity="0.8" />
+            <!-- Mouth (gentle smile - inverted) -->
+            <path d="M 105 148 Q 120 158 135 148" fill="none" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Cheeks (happy) -->
+            <circle cx="83" cy="135" r="9" fill="#ffb3ba" opacity="0.5" />
+            <circle cx="157" cy="135" r="9" fill="#ffb3ba" opacity="0.5" />
+            <!-- Feet -->
+            <circle cx="95" cy="185" r="8" fill="#7dbfb0" opacity="0.8" />
+            <circle cx="145" cy="185" r="8" fill="#7dbfb0" opacity="0.8" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- HAPPY -->
+      <div class="state-card">
+        <div class="state-label">😄 Happy</div>
+        <div class="state-score">80-95%</div>
+        <div class="mascot-container">
+          <svg viewBox="0 0 240 240" width="220" height="240">
+            <defs>
+              <linearGradient id="beam-happy" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#2ec573" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Aura -->
+            <circle cx="120" cy="120" r="80" fill="#2ec573" opacity="0.18" />
+            <!-- Aura glow -->
+            <circle cx="120" cy="120" r="65" fill="#5fdd9b" opacity="0.08" />
+            <!-- Body (energetic) -->
+            <ellipse cx="120" cy="115" rx="56" ry="56" fill="#2ec573" stroke="#5fdd9b" strokeWidth="4" />
+
+            <!-- Shadow -->
+            <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.15" />
+            <!-- Antenna (up high) -->
+            <line x1="120" y1="70" x2="120" y2="10" stroke="#5fdd9b" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core (bigger) -->
+            <circle cx="120" cy="5" r="11" fill="#2ec573" stroke="#5fdd9b" strokeWidth="4" />
+            <!-- Eyebrows (excited - straight) -->
+            <line x1="85" y1="82" x2="110" y2="82" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <line x1="130" y1="82" x2="155" y2="82" stroke="#2a2a2a" strokeWidth="5" strokeLinecap="round" />
+            <!-- Eyes (BIG, wide open) -->
+            <ellipse cx="98" cy="105" rx="11" ry="13" fill="#2a2a2a" />
+            <ellipse cx="142" cy="105" rx="11" ry="13" fill="#2a2a2a" />
+            <!-- Eyes shine (large) -->
+            <circle cx="101" cy="101" r="3.5" fill="#ffffff" opacity="0.9" />
+            <circle cx="145" cy="101" r="3.5" fill="#ffffff" opacity="0.9" />
+            <!-- Mouth (BIG smile - inverted) -->
+            <path d="M 102 145 Q 120 165 138 145" fill="none" stroke="#2a2a2a" strokeWidth="6" strokeLinecap="round" />
+            <!-- Cheeks (big) -->
+            <circle cx="83" cy="132" r="11" fill="#ff9cb5" opacity="0.6" />
+            <circle cx="157" cy="132" r="11" fill="#ff9cb5" opacity="0.6" />
+            <!-- Feet -->
+            <circle cx="95" cy="185" r="9" fill="#5fdd9b" opacity="0.9" />
+            <circle cx="145" cy="185" r="9" fill="#5fdd9b" opacity="0.9" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- EPIC -->
+      <div class="state-card">
+        <div class="state-label">🤩 EPIC</div>
+        <div class="state-score">95-100%</div>
+        <div class="mascot-container" style="position: relative;">
+          <svg viewBox="0 0 240 240" width="220" height="240"
+            style="filter: drop-shadow(0 0 30px rgba(120, 248, 214, 0.8));">
+            <defs>
+              <linearGradient id="beam-epic" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Epic ring -->
+            <circle cx="120" cy="120" r="85" fill="none" stroke="#00ff88" strokeWidth="3" opacity="0.7" />
+            <!-- Aura layers (removed) -->
+            <circle cx="120" cy="120" r="70" fill="#7fffd4" opacity="0.16" />
+            <!-- Body (GLOWING) -->
+            <ellipse cx="120" cy="112" rx="58" ry="55" fill="#00ff88" stroke="#7fffd4" strokeWidth="5" />
+            <!-- Highlight (intense) -->
+            <ellipse cx="102" cy="85" rx="25" ry="18" fill="#ffffff" opacity="0.42" />
+            <!-- Antenna (VERY high, glowing) -->
+            <line x1="120" y1="68" x2="120" y2="-10" stroke="#7fffd4" strokeWidth="4" strokeLinecap="round" />
+            <!-- Antenna core (HUGE) -->
+            <circle cx="120" cy="-15" r="14" fill="#00ff88" stroke="#7fffd4" strokeWidth="4" />
+            <!-- Eyebrows (extreme happiness - straight) -->
+            <line x1="82" y1="80" x2="112" y2="80" stroke="#2a2a2a" strokeWidth="6" strokeLinecap="round" />
+            <line x1="128" y1="80" x2="158" y2="80" stroke="#2a2a2a" strokeWidth="6" strokeLinecap="round" />
+            <!-- Eyes (HUGE, stars) -->
+            <g id="leftEyeEpic">
+              <ellipse cx="98" cy="103" rx="13" ry="16" fill="#2a2a2a" />
+              <polygon points="98,85 102,95 94,95" fill="#ffff00" />
+              <polygon points="98,121 102,111 94,111" fill="#ffff00" />
+            </g>
+            <g id="rightEyeEpic">
+              <ellipse cx="142" cy="103" rx="13" ry="16" fill="#2a2a2a" />
+              <polygon points="142,85 146,95 138,95" fill="#ffff00" />
+              <polygon points="142,121 146,111 138,111" fill="#ffff00" />
+            </g>
+            <!-- Eyes shine -->
+            <circle cx="99" cy="100" r="4" fill="#ffffff" opacity="1" />
+            <circle cx="143" cy="100" r="4" fill="#ffffff" opacity="1" />
+            <!-- Mouth (HUGE GRIN - inverted) -->
+            <path d="M 100 140 Q 120 165 140 140" fill="#00ff88" stroke="#2a2a2a" strokeWidth="7"
+              strokeLinecap="round" />
+            <!-- Cheeks (INTENSE) -->
+            <circle cx="82" cy="128" r="12" fill="#ff69b4" opacity="0.7" />
+            <circle cx="160" cy="128" r="12" fill="#ff69b4" opacity="0.7" />
+            <!-- Feet -->
+            <circle cx="95" cy="183" r="10" fill="#00ff88" opacity="1" />
+            <circle cx="145" cy="183" r="10" fill="#00ff88" opacity="1" />
+            <!-- Stars inside -->
+            <polygon points="120,55 123,63 131,63 125,68 128,76 120,71 112,76 115,68 109,63 117,63" fill="#ffff00"
+              opacity="0.8" />
+          </svg>
+          <!-- Floating stars around -->
+          <div style="position: absolute; font-size: 1.5em; animation: spin 3s linear infinite; top: 20px; left: 20px;">
+            ⭐</div>
+          <div
+            style="position: absolute; font-size: 1.8em; animation: spin 2s linear infinite reverse; top: 30px; right: 25px;">
+            ✨</div>
+          <div
+            style="position: absolute; font-size: 1.4em; animation: spin 2.5s linear infinite; bottom: 40px; left: 30px;">
+            ⭐</div>
+          <div
+            style="position: absolute; font-size: 1.6em; animation: spin 2s linear infinite reverse; bottom: 35px; right: 30px;">
+            ✨</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Section -->
+    <div class="interactive-section">
+      <h2>🎮 Interactive Slider Demo</h2>
+      <input type="range" class="score-slider" min="0" max="100" value="50" id="scoreSlider"
+        oninput="updateMascot(this.value)">
+      <div class="score-display" id="scoreDisplay">50%</div>
+      <div class="emotional-text" id="emotionalText">Neutral, meh</div>
+
+      <div class="interactive-mascot-container" id="mascotContainer">
+        <svg id="interactiveMascot" viewBox="0 0 240 240" width="280" height="300">
+          <defs>
+            <linearGradient id="beamInteractive" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#6b7a8a" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <!-- Aura back -->
+          <circle id="auraBack" cx="120" cy="120" r="70" fill="#6b7a8a" opacity="0.10" />
+          <!-- Aura front -->
+          <circle id="auraFront" cx="120" cy="120" r="55" fill="#8a9aaa" opacity="0" />
+          <!-- Epic ring -->
+          <circle id="epicRing" cx="120" cy="120" r="85" fill="none" stroke="#00ff88" strokeWidth="3" opacity="0" />
+          <!-- Body -->
+          <ellipse id="body" cx="120" cy="120" rx="52" ry="60" fill="#6b7a8a" stroke="#8a9aaa" strokeWidth="4" />
+          <!-- Highlight -->
+          <ellipse id="highlight" cx="102" cy="95" rx="22" ry="14" fill="#ffffff" opacity="0.18" />
+          <!-- Shadow -->
+          <ellipse cx="120" cy="195" rx="35" ry="8" fill="#000000" opacity="0.20" />
+          <!-- Antenna stem -->
+          <line id="antennaStem" x1="120" y1="75" x2="120" y2="35" stroke="#8a9aaa" strokeWidth="4"
+            strokeLinecap="round" />
+          <!-- Antenna core -->
+          <circle id="antennaCore" cx="120" cy="28" r="8" fill="#6b7a8a" stroke="#8a9aaa" strokeWidth="3" />
+          <!-- Left eyebrow -->
+          <line id="leftBrow" x1="90" y1="100" x2="108" y2="106" stroke="#2a2a2a" strokeWidth="4"
+            strokeLinecap="round" />
+          <!-- Right eyebrow -->
+          <line id="rightBrow" x1="132" y1="106" x2="150" y2="100" stroke="#2a2a2a" strokeWidth="4"
+            strokeLinecap="round" />
+          <!-- Left eye -->
+          <ellipse id="leftEye" cx="98" cy="112" rx="10" ry="5" fill="#2a2a2a" />
+          <!-- Right eye -->
+          <ellipse id="rightEye" cx="142" cy="112" rx="10" ry="5" fill="#2a2a2a" />
+          <!-- Left eye shine -->
+          <circle id="leftShine" cx="100" cy="110" r="2" fill="#ffffff" opacity="0.3" />
+          <!-- Right eye shine -->
+          <circle id="rightShine" cx="144" cy="110" r="2" fill="#ffffff" opacity="0.3" />
+          <!-- Left tear -->
+          <line id="leftTear" x1="98" y1="120" x2="98" y2="140" stroke="#6ba3ff" strokeWidth="0"
+            strokeLinecap="round" />
+          <!-- Right tear -->
+          <line id="rightTear" x1="142" y1="120" x2="142" y2="140" stroke="#6ba3ff" strokeWidth="0"
+            strokeLinecap="round" />
+          <!-- Mouth -->
+          <path id="mouth" d="M 105 155 Q 120 155 135 155" fill="none" stroke="#2a2a2a" strokeWidth="5"
+            strokeLinecap="round" />
+          <!-- Left cheek -->
+          <circle id="leftCheek" cx="78" cy="135" r="8" fill="#ffb3ba" opacity="0" />
+          <!-- Right cheek -->
+          <circle id="rightCheek" cx="162" cy="135" r="8" fill="#ffb3ba" opacity="0" />
+          <!-- Feet -->
+          <circle id="leftFoot" cx="95" cy="185" r="8" fill="#8a9aaa" opacity="0.7" />
+          <circle id="rightFoot" cx="145" cy="185" r="8" fill="#8a9aaa" opacity="0.7" />
+          <!-- Sparkles -->
+          <circle id="sparkLeft" cx="40" cy="90" r="3" fill="#ffff00" opacity="0" />
+          <circle id="sparkTop" cx="120" cy="10" r="4" fill="#ffff00" opacity="0" />
+          <circle id="sparkRight" cx="200" cy="96" r="3" fill="#ffff00" opacity="0" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const emotionalStates = [
+      { score: 0, label: 'Exhausted', text: 'Barely alive...', color: '#c62828' },
+      { score: 20, label: 'Sad', text: 'Low energy 😭', color: '#9575b0' },
+      { score: 40, label: 'Neutral', text: 'Meh', color: '#6b7a8a' },
+      { score: 60, label: 'Content', text: 'Small smile 🙂', color: '#4a9b7f' },
+      { score: 80, label: 'Happy', text: 'Energetic! 😄', color: '#2ec573' },
+      { score: 95, label: 'EPIC', text: 'Maximum hype!!! 🤩✨', color: '#00ff88' },
+    ];
+
+    const colorPalettes = {
+      0: { body: '#8b3a3a', stroke: '#c62828', accent: '#c62828', bright: '#ff6b6b' },
+      20: { body: '#7a5c7c', stroke: '#9575b0', accent: '#9575b0', bright: '#d8a5d8' },
+      40: { body: '#6b7a8a', stroke: '#8a9aaa', accent: '#8a9aaa', bright: '#a0b0c0' },
+      60: { body: '#4a9b7f', stroke: '#7dbfb0', accent: '#5fdd9b', bright: '#7fffd4' },
+      80: { body: '#2ec573', stroke: '#5fdd9b', accent: '#2ec573', bright: '#7fffd4' },
+      95: { body: '#00ff88', stroke: '#7fffd4', accent: '#00ff88', bright: '#ffff00' },
+    };
+
+    function getState(score) {
+      if (score < 20) return 0;
+      if (score < 40) return 20;
+      if (score < 60) return 40;
+      if (score < 80) return 60;
+      if (score < 95) return 80;
+      return 95;
+    }
+
+    function interpolate(value, min, max, outMin, outMax) {
+      return outMin + ((value - min) / (max - min)) * (outMax - outMin);
+    }
+
+    function updateMascot(score) {
+      score = parseInt(score);
+      const state = getState(score);
+      const stateInfo = emotionalStates.find(s => s.score === state);
+
+      document.getElementById('scoreDisplay').textContent = score + '%';
+      document.getElementById('emotionalText').textContent = stateInfo.label + ' - ' + stateInfo.text;
+
+      const container = document.getElementById('mascotContainer');
+      const svg = document.getElementById('interactiveMascot');
+
+      // Remove animations for mid-transitions
+      container.style.animation = 'none';
+      svg.style.filter = 'none';
+
+      const colors = colorPalettes[state];
+
+      // Update body color
+      document.getElementById('body').setAttribute('fill', colors.body);
+      document.getElementById('body').setAttribute('stroke', colors.stroke);
+      document.getElementById('auraBack').setAttribute('fill', colors.stroke);
+      document.getElementById('auraFront').setAttribute('fill', colors.accent);
+      document.getElementById('highlight').setAttribute('fill', colors.bright);
+
+      // Antenna
+      document.getElementById('antennaStem').setAttribute('stroke', colors.stroke);
+      document.getElementById('antennaCore').setAttribute('fill', colors.body);
+      document.getElementById('antennaCore').setAttribute('stroke', colors.stroke);
+
+      // Feet
+      document.getElementById('leftFoot').setAttribute('fill', colors.stroke);
+      document.getElementById('rightFoot').setAttribute('fill', colors.stroke);
+
+      if (score < 20) {
+        // EXHAUSTED
+        document.getElementById('body').setAttribute('cy', '130');
+        document.getElementById('antennaStem').setAttribute('y2', '50');
+        document.getElementById('antennaCore').setAttribute('cy', '42');
+        document.getElementById('antennaCore').setAttribute('r', '6');
+        document.getElementById('leftBrow').setAttribute('x1', '88');
+        document.getElementById('leftBrow').setAttribute('y1', '110');
+        document.getElementById('rightBrow').setAttribute('x2', '152');
+        document.getElementById('rightBrow').setAttribute('y2', '110');
+        // Closed eyes (X)
+        document.getElementById('leftEye').setAttribute('ry', '1');
+        document.getElementById('rightEye').setAttribute('ry', '1');
+        // Mouth small closed
+        document.getElementById('mouth').setAttribute('d', 'M 110 155 Q 120 155 130 155');
+        document.getElementById('leftCheek').setAttribute('opacity', '0');
+        document.getElementById('rightCheek').setAttribute('opacity', '0');
+        document.getElementById('leftTear').setAttribute('stroke-width', '0');
+        document.getElementById('rightTear').setAttribute('stroke-width', '0');
+        document.getElementById('sparkLeft').setAttribute('opacity', '0');
+        document.getElementById('sparkTop').setAttribute('opacity', '0');
+        document.getElementById('sparkRight').setAttribute('opacity', '0');
+        document.getElementById('epicRing').setAttribute('opacity', '0');
+      } else if (score < 40) {
+        // SAD
+        document.getElementById('body').setAttribute('cy', '125');
+        document.getElementById('antennaStem').setAttribute('y2', '45');
+        document.getElementById('antennaCore').setAttribute('cy', '37');
+        document.getElementById('antennaCore').setAttribute('r', '7');
+        document.getElementById('leftBrow').setAttribute('x1', '88');
+        document.getElementById('leftBrow').setAttribute('y1', '115');
+        document.getElementById('rightBrow').setAttribute('x2', '152');
+        document.getElementById('rightBrow').setAttribute('y2', '115');
+        // Droopy sad eyes
+        document.getElementById('leftEye').setAttribute('ry', '8');
+        document.getElementById('rightEye').setAttribute('ry', '8');
+        document.getElementById('leftEye').setAttribute('cy', '118');
+        document.getElementById('rightEye').setAttribute('cy', '118');
+        // Sad mouth (inverted - upward)
+        document.getElementById('mouth').setAttribute('d', 'M 105 155 Q 120 135 135 155');
+        // Tears (doubled)
+        document.getElementById('leftTear').setAttribute('stroke-width', '6');
+        document.getElementById('rightTear').setAttribute('stroke-width', '6');
+        document.getElementById('leftCheek').setAttribute('opacity', '0.4');
+        document.getElementById('rightCheek').setAttribute('opacity', '0.4');
+        document.getElementById('sparkLeft').setAttribute('opacity', '0');
+        document.getElementById('sparkTop').setAttribute('opacity', '0');
+        document.getElementById('sparkRight').setAttribute('opacity', '0');
+        document.getElementById('epicRing').setAttribute('opacity', '0');
+      } else if (score < 60) {
+        // NEUTRAL
+        document.getElementById('body').setAttribute('cy', '120');
+        document.getElementById('antennaStem').setAttribute('y2', '35');
+        document.getElementById('antennaCore').setAttribute('cy', '28');
+        document.getElementById('antennaCore').setAttribute('r', '8');
+        document.getElementById('leftBrow').setAttribute('x1', '90');
+        document.getElementById('leftBrow').setAttribute('y1', '100');
+        document.getElementById('rightBrow').setAttribute('x2', '150');
+        document.getElementById('rightBrow').setAttribute('y2', '100');
+        // Half-open eyes
+        document.getElementById('leftEye').setAttribute('ry', '5');
+        document.getElementById('rightEye').setAttribute('ry', '5');
+        document.getElementById('leftEye').setAttribute('cy', '112');
+        document.getElementById('rightEye').setAttribute('cy', '112');
+        // Flat mouth
+        document.getElementById('mouth').setAttribute('d', 'M 105 155 Q 120 155 135 155');
+        document.getElementById('leftTear').setAttribute('stroke-width', '0');
+        document.getElementById('rightTear').setAttribute('stroke-width', '0');
+        document.getElementById('leftCheek').setAttribute('opacity', '0');
+        document.getElementById('rightCheek').setAttribute('opacity', '0');
+        document.getElementById('sparkLeft').setAttribute('opacity', '0');
+        document.getElementById('sparkTop').setAttribute('opacity', '0');
+        document.getElementById('sparkRight').setAttribute('opacity', '0');
+        document.getElementById('epicRing').setAttribute('opacity', '0');
+      } else if (score < 80) {
+        // CONTENT
+        document.getElementById('body').setAttribute('cy', '118');
+        document.getElementById('antennaStem').setAttribute('y2', '25');
+        document.getElementById('antennaCore').setAttribute('cy', '18');
+        document.getElementById('antennaCore').setAttribute('r', '9');
+        document.getElementById('leftBrow').setAttribute('x1', '88');
+        document.getElementById('leftBrow').setAttribute('y1', '95');
+        document.getElementById('rightBrow').setAttribute('x2', '152');
+        document.getElementById('rightBrow').setAttribute('y2', '95');
+        // Clear bright eyes
+        document.getElementById('leftEye').setAttribute('ry', '6');
+        document.getElementById('rightEye').setAttribute('ry', '6');
+        document.getElementById('leftEye').setAttribute('cy', '108');
+        document.getElementById('rightEye').setAttribute('cy', '108');
+        document.getElementById('leftShine').setAttribute('opacity', '0.8');
+        document.getElementById('rightShine').setAttribute('opacity', '0.8');
+        // Gentle smile (inverted)
+        document.getElementById('mouth').setAttribute('d', 'M 105 148 Q 120 158 135 148');
+        document.getElementById('leftTear').setAttribute('stroke-width', '0');
+        document.getElementById('rightTear').setAttribute('stroke-width', '0');
+        document.getElementById('leftCheek').setAttribute('opacity', '0.5');
+        document.getElementById('rightCheek').setAttribute('opacity', '0.5');
+        document.getElementById('sparkLeft').setAttribute('opacity', '0');
+        document.getElementById('sparkTop').setAttribute('opacity', '0');
+        document.getElementById('sparkRight').setAttribute('opacity', '0');
+        document.getElementById('epicRing').setAttribute('opacity', '0');
+      } else if (score < 95) {
+        // HAPPY
+        document.getElementById('body').setAttribute('cy', '115');
+        document.getElementById('antennaStem').setAttribute('y2', '10');
+        document.getElementById('antennaCore').setAttribute('cy', '5');
+        document.getElementById('antennaCore').setAttribute('r', '11');
+        document.getElementById('leftBrow').setAttribute('x1', '85');
+        document.getElementById('leftBrow').setAttribute('y1', '82');
+        document.getElementById('rightBrow').setAttribute('x2', '155');
+        document.getElementById('rightBrow').setAttribute('y2', '82');
+        // BIG wide open eyes
+        document.getElementById('leftEye').setAttribute('ry', '13');
+        document.getElementById('rightEye').setAttribute('ry', '13');
+        document.getElementById('leftEye').setAttribute('rx', '11');
+        document.getElementById('rightEye').setAttribute('rx', '11');
+        document.getElementById('leftEye').setAttribute('cy', '105');
+        document.getElementById('rightEye').setAttribute('cy', '105');
+        document.getElementById('leftShine').setAttribute('opacity', '0.9');
+        document.getElementById('rightShine').setAttribute('opacity', '0.9');
+        // BIG smile (inverted)
+        document.getElementById('mouth').setAttribute('d', 'M 102 145 Q 120 165 138 145');
+        document.getElementById('leftTear').setAttribute('stroke-width', '0');
+        document.getElementById('rightTear').setAttribute('stroke-width', '0');
+        document.getElementById('leftCheek').setAttribute('opacity', '0.6');
+        document.getElementById('rightCheek').setAttribute('opacity', '0.6');
+        // Light sparkles
+        document.getElementById('sparkLeft').setAttribute('opacity', '0.6');
+        document.getElementById('sparkTop').setAttribute('opacity', '0.6');
+        document.getElementById('sparkRight').setAttribute('opacity', '0.6');
+        document.getElementById('epicRing').setAttribute('opacity', '0');
+        // Bouncing animation
+        container.style.animation = 'bounce 0.8s ease-in-out infinite';
+      } else {
+        // EPIC
+        document.getElementById('body').setAttribute('cy', '112');
+        document.getElementById('antennaStem').setAttribute('y2', '-10');
+        document.getElementById('antennaCore').setAttribute('cy', '-15');
+        document.getElementById('antennaCore').setAttribute('r', '14');
+        document.getElementById('leftBrow').setAttribute('x1', '82');
+        document.getElementById('leftBrow').setAttribute('y1', '72');
+        document.getElementById('rightBrow').setAttribute('x2', '158');
+        document.getElementById('rightBrow').setAttribute('y2', '72');
+        // HUGE EYES
+        document.getElementById('leftEye').setAttribute('ry', '16');
+        document.getElementById('rightEye').setAttribute('ry', '16');
+        document.getElementById('leftEye').setAttribute('rx', '13');
+        document.getElementById('rightEye').setAttribute('rx', '13');
+        document.getElementById('leftEye').setAttribute('cy', '103');
+        document.getElementById('rightEye').setAttribute('cy', '103');
+        document.getElementById('leftShine').setAttribute('opacity', '1');
+        document.getElementById('rightShine').setAttribute('opacity', '1');
+        // HUGE GRIN (inverted)
+        document.getElementById('mouth').setAttribute('d', 'M 100 140 Q 120 165 140 140');
+        document.getElementById('leftTear').setAttribute('stroke-width', '0');
+        document.getElementById('rightTear').setAttribute('stroke-width', '0');
+        document.getElementById('leftCheek').setAttribute('opacity', '0.7');
+        document.getElementById('rightCheek').setAttribute('opacity', '0.7');
+        // INTENSE sparkles
+        document.getElementById('sparkLeft').setAttribute('opacity', '0.9');
+        document.getElementById('sparkTop').setAttribute('opacity', '0.95');
+        document.getElementById('sparkRight').setAttribute('opacity', '0.9');
+        document.getElementById('epicRing').setAttribute('opacity', '0.7');
+        svg.style.filter = 'drop-shadow(0 0 30px rgba(0, 255, 136, 0.8))';
+        // JUMPING animation
+        container.style.animation = 'bounce 0.6s ease-in-out infinite';
+      }
+    }
+
+    function showState(score) {
+      document.getElementById('scoreSlider').value = score;
+      updateMascot(score);
+      document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // Initialize
+    updateMascot(50);
+  </script>
+</body>
+
+</html>

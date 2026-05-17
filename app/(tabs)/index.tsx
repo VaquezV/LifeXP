@@ -1,12 +1,10 @@
 // lifexp/app/(tabs)/index.tsx
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
-  View,
   StyleSheet,
   FlatList,
   SafeAreaView,
   ActivityIndicator,
-  Text,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTranslation } from '@/hooks/use-translation';
@@ -16,7 +14,7 @@ import { WeekSummary } from '@/components/week-summary';
 import { CategorySection } from '@/components/category-section';
 import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
-import { calculateWeeklyScore } from '@/lib/scoring';
+import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
 import { SINGLE_USER_ID } from '@/lib/supabase';
 
@@ -27,6 +25,18 @@ function getCategories(t: any): { key: CategoryType; label: string }[] {
     { key: 'vie_familiale', label: t('familyLife') },
     { key: 'vie_pro', label: t('professional') },
   ];
+}
+
+function toDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getWeekDayAbbr(dateKey: string): string {
+  const date = new Date(`${dateKey}T12:00:00`);
+  return ['DI', 'LU', 'MA', 'ME', 'JE', 'VE', 'SA'][date.getDay()];
 }
 
 export default function HomeScreen() {
@@ -48,11 +58,29 @@ export default function HomeScreen() {
     const dates: string[] = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
+      date.setHours(12, 0, 0, 0);
       date.setDate(date.getDate() - i);
-      dates.push(date.toISOString().split('T')[0]);
+      dates.push(toDateKey(date));
     }
     return dates;
   }, []);
+
+  const todayKey = useMemo(() => toDateKey(new Date()), []);
+
+  const weekDays = useMemo(
+    () =>
+      weekDates.map(date => {
+        const completion = calculateDayCompletion(habits, dailyValues[date] ?? {});
+
+        return {
+          abbr: getWeekDayAbbr(date),
+          date: new Date(`${date}T12:00:00`).getDate().toString().padStart(2, '0'),
+          completion,
+          isToday: date === todayKey,
+        };
+      }),
+    [dailyValues, habits, todayKey, weekDates]
+  );
 
   // Load habits and logs
   useEffect(() => {
@@ -84,7 +112,14 @@ export default function HomeScreen() {
 
   const handleValueChange = async (habitId: string, date: string, value: number) => {
     try {
-      await logHabitValue(SINGLE_USER_ID, habitId, date, value);
+      const habit = habits.find((item) => item.id === habitId);
+      await logHabitValue(
+        SINGLE_USER_ID,
+        habitId,
+        date,
+        value,
+        habit?.preset_habit_id ?? null,
+      );
 
       // Update local state (score recalculation handled by useEffect)
       setDailyValues(prev => ({
@@ -144,12 +179,7 @@ export default function HomeScreen() {
           if (item === 'week-header') {
             return habits.length > 0 ? (
               <WeekSummary
-                weekDays={weekDates.map((date, idx) => ({
-                  abbr: ['LU', 'MA', 'ME', 'JE', 'VE', 'SA', 'DI'][new Date(date).getDay()],
-                  date: new Date(date).getDate().toString().padStart(2, '0'),
-                  isCompleted: Math.random() > 0.5, // Replace with actual completion logic
-                  isToday: date === new Date().toISOString().split('T')[0],
-                }))}
+                weekDays={weekDays}
                 weeklyCompletion={weeklyScore}
                 accentColor="#2a9d8f"
               />

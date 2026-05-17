@@ -84,8 +84,24 @@ export async function logHabitValue(
   habitId: string,
   date: string,
   value: number,
+  presetHabitId?: string | null,
 ): Promise<HabitLog> {
   const client = ensureSupabase();
+  let resolvedPresetHabitId = presetHabitId;
+
+  if (resolvedPresetHabitId === undefined) {
+    const { data: habitData, error: habitError } = await client
+      .from('habits')
+      .select('preset_habit_id')
+      .eq('id', habitId)
+      .single();
+
+    if (habitError) {
+      throw habitError;
+    }
+
+    resolvedPresetHabitId = habitData?.preset_habit_id ?? null;
+  }
 
   const { data, error } = await client
     .from('habit_logs')
@@ -93,6 +109,7 @@ export async function logHabitValue(
       {
         user_id: userId,
         habit_id: habitId,
+        preset_habit_id: resolvedPresetHabitId ?? null,
         date,
         value,
       },
