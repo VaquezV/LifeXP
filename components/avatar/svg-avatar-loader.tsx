@@ -43,8 +43,8 @@ function SVGAvatarLoaderComponent({
       <View style={styles.background}>
         {assetUri && (
           <SvgUri
-            width={194}
-            height={209}
+            width={140}
+            height={155}
             uri={assetUri}
           />
         )}
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   background: {
-    width: 210,
-    height: 225,
+    width: 160,
+    height: 175,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    padding: 6,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
