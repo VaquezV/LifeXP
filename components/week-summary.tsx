@@ -184,10 +184,10 @@ export function WeekSummary({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 22,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     marginBottom: 20,
-    gap: 18,
+    gap: 12,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 6,
     justifyContent: 'center',
   },
   dayItem: {
@@ -227,8 +227,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 3,
     borderWidth: 1,
   },
   dayAbbr: {
