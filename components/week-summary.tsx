@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { WeeklyMascot } from './weekly-mascot';
+import { Avatar } from './avatar';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -110,7 +110,7 @@ export function WeekSummary({
         </View>
 
         <View style={styles.mascotColumn}>
-          <WeeklyMascot score={weeklyCompletion} accentColor={accentColor} />
+          <Avatar score={weeklyCompletion} accentColor={accentColor} size="medium" />
         </View>
       </View>
 
