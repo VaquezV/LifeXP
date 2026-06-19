@@ -1,4 +1,6 @@
-import { supabase, SINGLE_USER_ID } from '@/lib/supabase';
+// NOTE: la table `categories` n'existe pas encore dans Supabase (code non utilisé).
+import { supabase } from '@/lib/supabase';
+import { requireUserId } from '@/lib/auth';
 
 export interface Category {
   id: string;
@@ -21,7 +23,7 @@ export async function fetchCategories(): Promise<Category[]> {
   const { data, error } = await client
     .from('categories')
     .select('*')
-    .eq('user_id', SINGLE_USER_ID);
+    .eq('user_id', await requireUserId());
 
   if (error) {
     console.error('Error fetching categories:', error);
@@ -38,7 +40,7 @@ export async function createCategory(name: string, color: string): Promise<Categ
     .insert({
       name,
       color,
-      user_id: SINGLE_USER_ID,
+      user_id: await requireUserId(),
     })
     .select()
     .single();
@@ -61,7 +63,7 @@ export async function updateCategory(
     .from('categories')
     .update({ name, color })
     .eq('id', id)
-    .eq('user_id', SINGLE_USER_ID)
+    .eq('user_id', await requireUserId())
     .select()
     .single();
 
@@ -79,7 +81,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
     .from('categories')
     .delete()
     .eq('id', id)
-    .eq('user_id', SINGLE_USER_ID);
+    .eq('user_id', await requireUserId());
 
   if (error) {
     console.error('Error deleting category:', error);

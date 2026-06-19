@@ -20,7 +20,8 @@ import {
   getStartOfWeek,
   toLocalDateString,
 } from '@/lib/date';
-import { SINGLE_USER_ID, SUPABASE_SETUP_MESSAGE, supabase } from '@/lib/supabase';
+import { SUPABASE_SETUP_MESSAGE, supabase } from '@/lib/supabase';
+import { requireUserId } from '@/lib/auth';
 
 type RawDomainScore = {
   domain: string;
@@ -196,7 +197,7 @@ async function fetchCheckinByDate(date: string) {
   const { data, error } = await client
     .from('checkins')
     .select('id, date, created_at, domain_scores(domain, score, value)')
-    .eq('user_id', SINGLE_USER_ID)
+    .eq('user_id', await requireUserId())
     .eq('date', date)
     .maybeSingle();
 
@@ -216,7 +217,7 @@ export async function fetchWeekCheckins(referenceDate: Date = new Date()) {
   const { data, error } = await client
     .from('checkins')
     .select('id, date, created_at, domain_scores(domain, score, value)')
-    .eq('user_id', SINGLE_USER_ID)
+    .eq('user_id', await requireUserId())
     .gte('date', startDate)
     .lte('date', endDate)
     .order('date', { ascending: true });
@@ -238,7 +239,7 @@ export async function saveCheckinForDate(date: string, values: DomainValueMap) {
       .from('checkins')
       .insert({
         date,
-        user_id: SINGLE_USER_ID,
+        user_id: await requireUserId(),
       })
       .select('id')
       .single();
@@ -286,7 +287,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   const { data, error } = await client
     .from('checkins')
     .select('id, date, created_at, domain_scores(domain, score, value)')
-    .eq('user_id', SINGLE_USER_ID)
+    .eq('user_id', await requireUserId())
     .order('date', { ascending: true });
 
   if (error) {

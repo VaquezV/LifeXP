@@ -1,4 +1,5 @@
-import { supabase, SUPABASE_SETUP_MESSAGE, SINGLE_USER_ID } from './supabase';
+import { supabase, SUPABASE_SETUP_MESSAGE } from './supabase';
+import { requireUserId } from './auth';
 import { Habit, CategoryType } from './types';
 
 function ensureSupabase() {
@@ -14,7 +15,7 @@ function ensureSupabase() {
  */
 export async function fetchHabits(userId?: string): Promise<Habit[]> {
   const client = ensureSupabase();
-  const filterUserId = userId || SINGLE_USER_ID;
+  const filterUserId = userId || (await requireUserId());
 
   const { data, error } = await client
     .from('habits')
@@ -42,11 +43,7 @@ export async function fetchHabitsByCategory(
     .select('*')
     .eq('category', category);
 
-  if (userId) {
-    query = query.eq('user_id', userId);
-  } else {
-    query = query.eq('user_id', SINGLE_USER_ID);
-  }
+  query = query.eq('user_id', userId ?? (await requireUserId()));
 
   const { data, error } = await query.order('created_at', { ascending: true });
 
@@ -66,7 +63,7 @@ export async function createHabit(habit: Omit<Habit, 'id' | 'created_at'>): Prom
     .from('habits')
     .insert({
       ...habit,
-      user_id: habit.user_id || SINGLE_USER_ID,
+      user_id: habit.user_id || (await requireUserId()),
     })
     .select()
     .single();

@@ -1,4 +1,5 @@
-import { supabase, SINGLE_USER_ID } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { requireUserId } from '@/lib/auth';
 import { Habit } from '@/lib/types';
 
 function ensureSupabase() {
@@ -18,7 +19,7 @@ export async function updateHabit(
     .from('habits')
     .update(updates)
     .eq('id', habitId)
-    .eq('user_id', SINGLE_USER_ID)
+    .eq('user_id', await requireUserId())
     .select()
     .single();
 
@@ -45,7 +46,7 @@ export async function deleteHabit(habitId: string): Promise<boolean> {
     .from('habits')
     .delete()
     .eq('id', habitId)
-    .eq('user_id', SINGLE_USER_ID);
+    .eq('user_id', await requireUserId());
 
   if (error) {
     console.error('Error deleting habit:', error);
