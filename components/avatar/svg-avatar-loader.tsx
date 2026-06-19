@@ -10,18 +10,20 @@ interface SVGAvatarLoaderProps {
   scale?: number;
 }
 
-const DOG_AVATAR_ASSETS = {
-  'dog.0-10.svg': require('@/assets/avatars/dog.0-10.svg'),
-  'dog.11-20.svg': require('@/assets/avatars/dog.11-20.svg'),
-  'dog.21-30.svg': require('@/assets/avatars/dog.21-30.svg'),
-  'dog.31-40.svg': require('@/assets/avatars/dog.31-40.svg'),
-  'dog.41-50.svg': require('@/assets/avatars/dog.41-50.svg'),
-  'dog.51-60.svg': require('@/assets/avatars/dog.51-60.svg'),
-  'dog.61-70.svg': require('@/assets/avatars/dog.61-70.svg'),
-  'dog.71-80.svg': require('@/assets/avatars/dog.71-80.svg'),
-  'dog.81-90.svg': require('@/assets/avatars/dog.81-90.svg'),
-  'dog.91-100.svg': require('@/assets/avatars/dog.91-100.svg'),
+const GOT_AVATAR_ASSETS = {
+  'got.0-10.svg': require('@/assets/avatars/got.0-10.svg'),
+  'got.11-20.svg': require('@/assets/avatars/got.11-20.svg'),
+  'got.21-30.svg': require('@/assets/avatars/got.21-30.svg'),
+  'got.31-40.svg': require('@/assets/avatars/got.31-40.svg'),
+  'got.41-50.svg': require('@/assets/avatars/got.41-50.svg'),
+  'got.51-60.svg': require('@/assets/avatars/got.51-60.svg'),
+  'got.61-70.svg': require('@/assets/avatars/got.61-70.svg'),
+  'got.71-80.svg': require('@/assets/avatars/got.71-80.svg'),
+  'got.81-90.svg': require('@/assets/avatars/got.81-90.svg'),
+  'got.91-100.svg': require('@/assets/avatars/got.91-100.svg'),
 } as const;
+
+const DOG_AVATAR_ASSETS = GOT_AVATAR_ASSETS;
 
 function SVGAvatarLoaderComponent({
   svgPath,

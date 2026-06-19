@@ -46,18 +46,20 @@ export const getEmotionalStateFromScore = (score: number): EmotionalState => {
   return 'epic';
 };
 
-export const DOG_AVATAR_RANGES = [
-  { min: 0, max: 10, svgFile: 'dog.0-10.svg', name: 'Scruffy Old Dog' },
-  { min: 11, max: 20, svgFile: 'dog.11-20.svg', name: 'Mongrel Street' },
-  { min: 21, max: 30, svgFile: 'dog.21-30.svg', name: 'Chubby Bulldog' },
-  { min: 31, max: 40, svgFile: 'dog.31-40.svg', name: 'Luffy Poodle' },
-  { min: 41, max: 50, svgFile: 'dog.41-50.svg', name: 'Chubby Labrador' },
-  { min: 51, max: 60, svgFile: 'dog.51-60.svg', name: 'Golden Retriever' },
-  { min: 61, max: 70, svgFile: 'dog.61-70.svg', name: 'Border Collie' },
-  { min: 71, max: 80, svgFile: 'dog.71-80.svg', name: 'Shiba Inu' },
-  { min: 81, max: 90, svgFile: 'dog.81-90.svg', name: 'Husky' },
-  { min: 91, max: 100, svgFile: 'dog.91-100.svg', name: 'Epic Direwolf' },
+export const GOT_AVATAR_RANGES = [
+  { min: 0, max: 10, svgFile: 'got.0-10.svg', name: 'Theon Greyjoy' },
+  { min: 11, max: 20, svgFile: 'got.11-20.svg', name: 'Sansa Stark' },
+  { min: 21, max: 30, svgFile: 'got.21-30.svg', name: 'Tyrion Lannister' },
+  { min: 31, max: 40, svgFile: 'got.31-40.svg', name: 'Arya Stark' },
+  { min: 41, max: 50, svgFile: 'got.41-50.svg', name: 'Jon Snow' },
+  { min: 51, max: 60, svgFile: 'got.51-60.svg', name: 'Brienne of Tarth' },
+  { min: 61, max: 70, svgFile: 'got.61-70.svg', name: 'Davos Seaworth' },
+  { min: 71, max: 80, svgFile: 'got.71-80.svg', name: 'Jaime Lannister' },
+  { min: 81, max: 90, svgFile: 'got.81-90.svg', name: 'Daenerys Targaryen' },
+  { min: 91, max: 100, svgFile: 'got.91-100.svg', name: 'Dragon of the North' },
 ] as const;
+
+export const DOG_AVATAR_RANGES = GOT_AVATAR_RANGES;
 
 export const getAvatarByScore = (score: number) => {
   const normalized = Math.min(100, Math.max(0, score));

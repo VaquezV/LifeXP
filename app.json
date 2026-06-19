@@ -1,4 +1,7 @@
 {
+  "cli": {
+    "appVersionSource": "local"
+  },
   "expo": {
     "name": "LifeXP",
     "slug": "lifexp",
@@ -12,6 +15,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.zbulon.lifexp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "132d75e0-e82a-416b-8b07-2754153b7db8"
+      }
+    },
+    "owner": "zbulon"
   }
 }
