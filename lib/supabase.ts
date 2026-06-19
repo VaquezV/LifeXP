@@ -3,11 +3,13 @@ import 'react-native-url-polyfill/auto';
 import { Platform, AppState } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 import { secureStorageAdapter } from './secure-storage';
+import { normalizeSupabaseUrl } from './supabase-url';
 
 // Conservé uniquement pour le script de migration des anciennes données.
 export const SINGLE_USER_ID = '00000000-0000-0000-0000-000000000000';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const rawSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseUrl = rawSupabaseUrl ? normalizeSupabaseUrl(rawSupabaseUrl) : undefined;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
