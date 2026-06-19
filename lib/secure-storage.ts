@@ -25,20 +25,31 @@ function chunkKey(key: string, index: number): string {
 }
 
 async function setNative(key: string, value: string): Promise<void> {
+  const previousCountRaw = await SecureStore.getItemAsync(countKey(key));
+  const previousCount = previousCountRaw == null ? 0 : Number(previousCountRaw);
+
   const chunks = chunkValue(value);
   await SecureStore.setItemAsync(countKey(key), String(chunks.length));
   await Promise.all(
     chunks.map((chunk, i) => SecureStore.setItemAsync(chunkKey(key, i), chunk)),
   );
+
+  // Supprime les chunks orphelins d'une valeur précédente plus longue.
+  for (let i = chunks.length; i < previousCount; i++) {
+    await SecureStore.deleteItemAsync(chunkKey(key, i));
+  }
 }
 
 async function getNative(key: string): Promise<string | null> {
   const countRaw = await SecureStore.getItemAsync(countKey(key));
   if (countRaw == null) return null;
   const count = Number(countRaw);
+  if (!Number.isInteger(count) || count < 0) return null;
   const chunks: string[] = [];
   for (let i = 0; i < count; i++) {
-    chunks.push((await SecureStore.getItemAsync(chunkKey(key, i))) ?? '');
+    const chunk = await SecureStore.getItemAsync(chunkKey(key, i));
+    if (chunk == null) return null; // chunk manquant → session traitée comme absente
+    chunks.push(chunk);
   }
   return reassembleChunks(chunks);
 }
