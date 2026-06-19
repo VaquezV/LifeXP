@@ -1,4 +1,5 @@
-import { supabase, SUPABASE_SETUP_MESSAGE, SINGLE_USER_ID } from './supabase';
+import { supabase, SUPABASE_SETUP_MESSAGE } from './supabase';
+import { requireUserId } from './auth';
 import { HabitLog } from './types';
 import { addDays, toLocalDateString } from './date';
 
@@ -27,7 +28,7 @@ export async function fetchHabitLogsForDate(
   userId?: string,
 ): Promise<HabitLog | null> {
   const client = ensureSupabase();
-  const uid = userId || SINGLE_USER_ID;
+  const uid = userId || (await requireUserId());
 
   const { data, error } = await client
     .from('habit_logs')
@@ -53,7 +54,7 @@ export async function fetchHabitLogsForWeek(
   userId?: string,
 ): Promise<HabitLog[]> {
   const client = ensureSupabase();
-  const uid = userId || SINGLE_USER_ID;
+  const uid = userId || (await requireUserId());
 
   // Calculate end date (7 days from start)
   const startDateObj = new Date(startDate + 'T00:00:00Z');
@@ -154,7 +155,7 @@ export async function fetchAllLogsForDate(
   userId?: string,
 ): Promise<Record<string, number>> {
   const client = ensureSupabase();
-  const uid = userId || SINGLE_USER_ID;
+  const uid = userId || (await requireUserId());
 
   const { data, error } = await client
     .from('habit_logs')
@@ -183,7 +184,7 @@ export async function fetchAllLogsForDateRange(
   userId?: string,
 ): Promise<Record<string, Record<string, number>>> {
   const client = ensureSupabase();
-  const uid = userId || SINGLE_USER_ID;
+  const uid = userId || (await requireUserId());
 
   const { data, error } = await client
     .from('habit_logs')

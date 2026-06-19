@@ -16,7 +16,7 @@ import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
 import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
 import { Habit, CategoryType } from '@/lib/types';
-import { SINGLE_USER_ID } from '@/lib/supabase';
+import { requireUserId } from '@/lib/auth';
 
 function getCategories(t: any): { key: CategoryType; label: string }[] {
   return [
@@ -114,7 +114,7 @@ export default function HomeScreen() {
     try {
       const habit = habits.find((item) => item.id === habitId);
       await logHabitValue(
-        SINGLE_USER_ID,
+        await requireUserId(),
         habitId,
         date,
         value,
