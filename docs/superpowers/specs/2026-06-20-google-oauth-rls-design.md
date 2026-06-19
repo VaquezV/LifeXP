@@ -56,7 +56,14 @@ Alternatives écartées :
 
 Reconfiguration du client :
 
-- `storage` : `@react-native-async-storage/async-storage` (à installer).
+- `storage` : adaptateur **chiffré et plateforme-conscient** (`lib/secure-storage.ts`,
+  nouveau) :
+  - **Natif** : `expo-secure-store` (chiffré au repos). SecureStore impose une
+    limite d'environ 2048 octets par valeur ; comme les sessions Supabase peuvent la
+    dépasser, l'adaptateur **découpe la valeur en chunks** (clé `_chunkCount` +
+    `_0`, `_1`, …) à l'écriture et la reconstitue à la lecture.
+  - **Web** : `localStorage` (SecureStore n'existe pas sur Web), sélection via
+    `Platform.OS`.
 - `persistSession: true`, `autoRefreshToken: true`, `flowType: 'pkce'`.
 - `detectSessionInUrl` : `true` sur Web, `false` sur natif.
 - Auto-refresh piloté par `AppState` (start/stop selon premier/arrière-plan).
@@ -150,8 +157,9 @@ Critique / Élevé / Moyen / Faible :
    recommandation de purge d'historique si secrets sensibles.
 2. **RLS** : vérifier que toutes les tables sont couvertes, aucune policy `anon`
    résiduelle, test croisé (un user ne lit pas les données d'un autre).
-3. **Stockage des tokens** : AsyncStorage n'est pas chiffré → évaluer
-   `expo-secure-store` pour la persistance de session (décision à confirmer).
+3. **Stockage des tokens** : tokens de session chiffrés au repos via
+   `expo-secure-store` sur natif (adaptateur à chunks), `localStorage` sur Web.
+   Décision actée (cf. §4.1).
 4. **Config Supabase** : allowlist stricte des redirect URLs (anti open-redirect),
    expiry JWT, détection des mots de passe leakés, vérif que le `service_role` n'est
    jamais exposé côté client.
@@ -171,8 +179,6 @@ Critique / Élevé / Moyen / Faible :
 
 ## 7. Risques & points ouverts
 
-- **expo-secure-store vs AsyncStorage** pour les tokens : à trancher (sécurité vs
-  simplicité). Défaut proposé : AsyncStorage, avec note d'audit.
 - **Ordre d'exécution** : la migration de données doit tourner après la 1ʳᵉ
   connexion réussie (l'UID n'existe pas avant). Documenté dans le plan.
 - **Build natif** : le flow PKCE navigateur nécessite que le scheme `lifexp` soit
