@@ -5,6 +5,8 @@ import {
   FlatList,
   SafeAreaView,
   ActivityIndicator,
+  Pressable,
+  Text,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTranslation } from '@/hooks/use-translation';
@@ -12,11 +14,14 @@ import { Colors } from '@/constants/Colors';
 import { AppHeader } from '@/components/app-header';
 import { WeekSummary } from '@/components/week-summary';
 import { CategorySection } from '@/components/category-section';
-import { fetchHabits } from '@/lib/habits';
+import { fetchHabits, createHabit } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
 import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
-import { Habit, CategoryType } from '@/lib/types';
+import { Habit, CategoryType, FrequencyType, PresetHabit } from '@/lib/types';
 import { requireUserId } from '@/lib/auth';
+import { AddHabitModal } from '@/components/add-habit-modal';
+import { fetchPresetHabits } from '@/lib/preset-habits';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 function getCategories(t: any): { key: CategoryType; label: string }[] {
   return [
@@ -52,6 +57,8 @@ export default function HomeScreen() {
   >({}); // date -> (habit_id -> value)
   const [weeklyScore, setWeeklyScore] = useState(0);
   const [categories, setCategories] = useState(initialCategories);
+  const [presets, setPresets] = useState<PresetHabit[]>([]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
 
   // Get last 7 days ending today
   const weekDates = useMemo(() => {
@@ -87,8 +94,12 @@ export default function HomeScreen() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const fetchedHabits = await fetchHabits();
+        const [fetchedHabits, fetchedPresets] = await Promise.all([
+          fetchHabits(),
+          fetchPresetHabits(),
+        ]);
         setHabits(fetchedHabits);
+        setPresets(fetchedPresets);
 
         // Load logs for this week
         const weekLogs: Record<string, Record<string, number>> = {};
@@ -144,6 +155,27 @@ export default function HomeScreen() {
     setHabits(prev => prev.filter(h => h.id !== habitId));
   };
 
+  const handleAddHabit = async (habitData: {
+    name: string;
+    emoji: string;
+    category: CategoryType;
+    frequency_type: FrequencyType;
+    target_value: number;
+    min_value: number;
+    preset_habit_id: string | null;
+  }) => {
+    const userId = await requireUserId();
+    const newHabit = await createHabit({
+      ...habitData,
+      frequency_type: habitData.frequency_type,
+      user_id: userId,
+      description: null,
+      max_value: null,
+      frequency_value: 1,
+    });
+    setHabits(prev => [...prev, newHabit]);
+  };
+
   // Recalculate weekly score whenever dailyValues or habits change
   useEffect(() => {
     const score = calculateWeeklyScore(habits, dailyValues);
@@ -169,7 +201,7 @@ export default function HomeScreen() {
       style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
     >
       <FlatList
-        data={['app-header', 'week-header', ...categories.map(cat => cat.key)]}
+        data={['app-header', 'week-header', ...categories.map(cat => cat.key), 'add-habit']}
         keyExtractor={item => item}
         renderItem={({ item }) => {
           if (item === 'app-header') {
@@ -184,6 +216,27 @@ export default function HomeScreen() {
                 accentColor="#2a9d8f"
               />
             ) : null;
+          }
+
+          if (item === 'add-habit') {
+            return (
+              <Pressable
+                style={[
+                  styles.addHabitButton,
+                  { backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5' },
+                ]}
+                onPress={() => setAddModalVisible(true)}
+              >
+                <MaterialIcons
+                  name="add-circle-outline"
+                  size={28}
+                  color={colorScheme === 'dark' ? '#666' : '#999'}
+                />
+                <Text style={[styles.addHabitText, { color: colorScheme === 'dark' ? '#888' : '#999' }]}>
+                  Ajouter une nouvelle habitude
+                </Text>
+              </Pressable>
+            );
           }
 
           const category = item as CategoryType;
@@ -217,6 +270,12 @@ export default function HomeScreen() {
         scrollEnabled={true}
         contentContainerStyle={[styles.scrollContent, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
       />
+      <AddHabitModal
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSave={handleAddHabit}
+        presets={presets}
+      />
     </SafeAreaView>
   );
 }
@@ -227,5 +286,19 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  addHabitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginHorizontal: 14,
+    marginVertical: 10,
+    paddingVertical: 16,
+    borderRadius: 8,
+  },
+  addHabitText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

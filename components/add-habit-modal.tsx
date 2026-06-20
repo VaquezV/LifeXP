@@ -8,7 +8,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { PresetHabit, CategoryType } from '@/lib/types';
+import { PresetHabit, CategoryType, FrequencyType } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -20,7 +20,7 @@ interface Props {
     name: string;
     emoji: string;
     category: CategoryType;
-    frequency_type: string;
+    frequency_type: FrequencyType;
     target_value: number;
     min_value: number;
     preset_habit_id: string | null;
@@ -54,10 +54,17 @@ const EXPERTISE_LABELS: Record<string, string> = {
   standard: 'Standard',
 };
 
-const INITIAL_FORM = {
+const INITIAL_FORM: {
+  name: string;
+  emoji: string;
+  category: CategoryType;
+  frequency_type: FrequencyType;
+  target_value: number;
+  min_value: number;
+} = {
   name: '',
   emoji: '⭐',
-  category: 'self_care' as CategoryType,
+  category: 'self_care',
   frequency_type: 'per_day',
   target_value: 60,
   min_value: 30,
@@ -228,7 +235,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
               <View style={styles.formGroup}>
                 <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Fréquence</Text>
                 <View style={styles.chipRow}>
-                  {(Object.keys(FREQ_LABELS) as string[]).map(freq => {
+                  {(Object.keys(FREQ_LABELS) as FrequencyType[]).map(freq => {
                     const locked = selectedPreset && !selectedPreset.editable_frequency_type;
                     return (
                       <Pressable
