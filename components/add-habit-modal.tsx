@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { PresetHabit, CategoryType } from '@/lib/types';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -28,6 +29,19 @@ interface Props {
 }
 
 type Step = 'picker' | 'level' | 'form';
+
+const CATEGORY_LABELS: Record<string, string> = {
+  self_care: 'Bien-être',
+  dev_perso: 'Dév. perso',
+  vie_familiale: 'Famille',
+  vie_pro: 'Pro',
+};
+
+const FREQ_LABELS: Record<string, string> = {
+  per_day: 'Durée/jour',
+  times_per_day: 'Fois/jour',
+  times_per_week: 'Fois/sem.',
+};
 
 const EXPERTISE_LABELS: Record<string, string> = {
   debutant: 'Débutant',
@@ -163,7 +177,127 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
             </View>
           )}
 
-          {step === 'form' && null}
+          {step === 'form' && (
+            <ScrollView style={styles.content}>
+              {/* Emoji */}
+              <View style={styles.formGroup}>
+                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Emoji</Text>
+                <TextInput
+                  style={[styles.emojiInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd' }]}
+                  value={form.emoji}
+                  onChangeText={t => setForm(f => ({ ...f, emoji: t }))}
+                  maxLength={2}
+                />
+              </View>
+
+              {/* Nom */}
+              <View style={styles.formGroup}>
+                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Nom</Text>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd' }]}
+                  value={form.name}
+                  onChangeText={t => setForm(f => ({ ...f, name: t }))}
+                  editable={!selectedPreset}
+                />
+              </View>
+
+              {/* Catégorie */}
+              <View style={styles.formGroup}>
+                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Catégorie</Text>
+                <View style={styles.chipRow}>
+                  {(Object.keys(CATEGORY_LABELS) as CategoryType[]).map(cat => (
+                    <Pressable
+                      key={cat}
+                      style={[
+                        styles.chip,
+                        form.category === cat
+                          ? { backgroundColor: CATEGORY_COLORS[cat].mid }
+                          : { borderWidth: 1, borderColor: isDark ? '#444' : '#ccc' },
+                      ]}
+                      onPress={() => !selectedPreset && setForm(f => ({ ...f, category: cat }))}
+                    >
+                      <Text style={[styles.chipText, { color: form.category === cat ? '#fff' : isDark ? '#aaa' : '#666' }]}>
+                        {CATEGORY_LABELS[cat]}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              {/* Fréquence */}
+              <View style={styles.formGroup}>
+                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Fréquence</Text>
+                <View style={styles.chipRow}>
+                  {(Object.keys(FREQ_LABELS) as string[]).map(freq => {
+                    const locked = selectedPreset && !selectedPreset.editable_frequency_type;
+                    return (
+                      <Pressable
+                        key={freq}
+                        style={[
+                          styles.chip,
+                          form.frequency_type === freq
+                            ? { backgroundColor: '#2a9d8f' }
+                            : { borderWidth: 1, borderColor: isDark ? '#444' : '#ccc' },
+                          locked ? { opacity: 0.5 } : {},
+                        ]}
+                        onPress={() => !locked && setForm(f => ({ ...f, frequency_type: freq }))}
+                      >
+                        <Text style={[styles.chipText, { color: form.frequency_type === freq ? '#fff' : isDark ? '#aaa' : '#666' }]}>
+                          {FREQ_LABELS[freq]}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Target value */}
+              <View style={styles.formGroup}>
+                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Objectif</Text>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd', opacity: (selectedPreset && !selectedPreset.editable_target_value) ? 0.5 : 1 }]}
+                  value={String(form.target_value)}
+                  onChangeText={t => setForm(f => ({ ...f, target_value: parseInt(t) || 0 }))}
+                  keyboardType="number-pad"
+                  editable={!selectedPreset || selectedPreset.editable_target_value}
+                />
+              </View>
+
+              {/* Min value — seulement si per_day */}
+              {form.frequency_type === 'per_day' && (
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Minimum</Text>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd', opacity: (selectedPreset && !selectedPreset.editable_min_value) ? 0.5 : 1 }]}
+                    value={String(form.min_value)}
+                    onChangeText={t => setForm(f => ({ ...f, min_value: parseInt(t) || 0 }))}
+                    keyboardType="number-pad"
+                    editable={!selectedPreset || selectedPreset.editable_min_value}
+                  />
+                </View>
+              )}
+
+              {/* Boutons */}
+              <View style={styles.actions}>
+                <Pressable
+                  style={[styles.btnSecondary, { borderColor: isDark ? '#444' : '#ccc' }]}
+                  onPress={() => selectedPreset ? setStep('level') : setStep('picker')}
+                >
+                  <Text style={[styles.btnText, { color: isDark ? '#aaa' : '#666' }]}>Retour</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.btnPrimary}
+                  onPress={async () => {
+                    if (!form.name.trim()) return;
+                    await onSave({ ...form, preset_habit_id: selectedPreset?.id ?? null });
+                    resetAndClose();
+                  }}
+                >
+                  <Text style={[styles.btnText, { color: '#fff' }]}>Sauvegarder</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
@@ -233,4 +367,35 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backButtonText: { fontSize: 14 },
+  formGroup: { marginBottom: 16 },
+  formLabel: { fontSize: 12, fontWeight: '600', marginBottom: 8 },
+  emojiInput: {
+    borderWidth: 1, borderRadius: 8,
+    paddingVertical: 10, fontSize: 24,
+    textAlign: 'center', width: 60,
+  },
+  textInput: {
+    borderWidth: 1, borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 10,
+    fontSize: 14,
+  },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: 8, alignItems: 'center',
+  },
+  chipText: { fontSize: 12, fontWeight: '600' },
+  actions: {
+    flexDirection: 'row', gap: 12,
+    marginTop: 8, marginBottom: 24,
+  },
+  btnSecondary: {
+    flex: 1, paddingVertical: 12, borderRadius: 8,
+    alignItems: 'center', borderWidth: 1,
+  },
+  btnPrimary: {
+    flex: 1, paddingVertical: 12, borderRadius: 8,
+    alignItems: 'center', backgroundColor: '#2a9d8f',
+  },
+  btnText: { fontSize: 14, fontWeight: '600' },
 });
