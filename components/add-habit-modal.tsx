@@ -54,6 +54,8 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
     onClose();
   };
 
+  const uniqueNames = [...new Set(presets.map(p => p.name))].sort();
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={resetAndClose}>
       <View style={styles.overlay}>
@@ -81,7 +83,36 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
             </Pressable>
           </View>
 
-          <View style={{ padding: 20 }} />
+          {step === 'picker' && (
+            <ScrollView style={styles.content}>
+              {uniqueNames.map(name => (
+                <Pressable
+                  key={name}
+                  style={[styles.presetRow, { borderBottomColor: isDark ? '#222' : '#eee' }]}
+                  onPress={() => {
+                    setSelectedName(name);
+                    setStep('level');
+                  }}
+                >
+                  <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>
+                    {name}
+                  </Text>
+                  <MaterialIcons name="chevron-right" size={20} color={isDark ? '#666' : '#999'} />
+                </Pressable>
+              ))}
+
+              <Pressable
+                style={[styles.manualButton, { borderColor: isDark ? '#444' : '#ccc' }]}
+                onPress={() => setStep('form')}
+              >
+                <Text style={[styles.manualButtonText, { color: isDark ? '#aaa' : '#666' }]}>
+                  + Créer manuellement
+                </Text>
+              </Pressable>
+            </ScrollView>
+          )}
+
+          {(step === 'level' || step === 'form') && null}
         </View>
       </View>
     </Modal>
@@ -115,4 +146,22 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  content: { padding: 16 },
+  presetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+  },
+  presetRowText: { fontSize: 16, fontWeight: '500' },
+  manualButton: {
+    marginTop: 20,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  manualButtonText: { fontSize: 14, fontWeight: '600' },
 });
