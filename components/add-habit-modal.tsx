@@ -29,6 +29,17 @@ interface Props {
 
 type Step = 'picker' | 'level' | 'form';
 
+const EXPERTISE_LABELS: Record<string, string> = {
+  debutant: 'Débutant',
+  intermediaire: 'Intermédiaire',
+  expert: 'Expert',
+  enfant: 'Enfant',
+  ado: 'Ado',
+  adulte_homme: 'Adulte (H)',
+  adulte_femme: 'Adulte (F)',
+  standard: 'Standard',
+};
+
 const INITIAL_FORM = {
   name: '',
   emoji: '⭐',
@@ -55,6 +66,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
   };
 
   const uniqueNames = [...new Set(presets.map(p => p.name))].sort();
+  const variants = presets.filter(p => p.name === selectedName);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={resetAndClose}>
@@ -112,7 +124,46 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
             </ScrollView>
           )}
 
-          {(step === 'level' || step === 'form') && null}
+          {step === 'level' && (
+            <View style={styles.content}>
+              <Text style={[styles.levelTitle, { color: isDark ? '#aaa' : '#666' }]}>
+                {selectedName}
+              </Text>
+              <View style={styles.levelGrid}>
+                {variants.map(variant => (
+                  <Pressable
+                    key={variant.id}
+                    style={[styles.levelChip, { backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0' }]}
+                    onPress={() => {
+                      setSelectedPreset(variant);
+                      setForm({
+                        name: variant.name,
+                        emoji: variant.emoji || '⭐',
+                        category: variant.category,
+                        frequency_type: variant.frequency_type,
+                        target_value: variant.target_value,
+                        min_value: variant.min_value,
+                      });
+                      setStep('form');
+                    }}
+                  >
+                    <Text style={[styles.levelChipText, { color: isDark ? '#fff' : '#000' }]}>
+                      {EXPERTISE_LABELS[variant.expertise] ?? variant.expertise}
+                    </Text>
+                    <Text style={[styles.levelChipSub, { color: isDark ? '#888' : '#999' }]}>
+                      {variant.target_value} min
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable style={styles.backButton} onPress={() => setStep('picker')}>
+                <MaterialIcons name="arrow-back" size={18} color={isDark ? '#aaa' : '#666'} />
+                <Text style={[styles.backButtonText, { color: isDark ? '#aaa' : '#666' }]}>Retour</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {step === 'form' && null}
         </View>
       </View>
     </Modal>
@@ -164,4 +215,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   manualButtonText: { fontSize: 14, fontWeight: '600' },
+  levelTitle: { fontSize: 20, fontWeight: '700', marginBottom: 16 },
+  levelGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  levelChip: {
+    borderRadius: 10,
+    padding: 16,
+    minWidth: '45%',
+    alignItems: 'center',
+  },
+  levelChipText: { fontSize: 15, fontWeight: '600' },
+  levelChipSub: { fontSize: 12, marginTop: 4 },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 20,
+    paddingVertical: 8,
+  },
+  backButtonText: { fontSize: 14 },
 });
