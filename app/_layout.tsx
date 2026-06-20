@@ -13,10 +13,10 @@ function RootNavigator() {
 
   useEffect(() => {
     if (loading) return;
-    const onLoginScreen = segments[0] === 'login';
-    if (!session && !onLoginScreen) {
+    const inAuthFlow = segments[0] === 'login' || segments[0] === 'auth';
+    if (!session && !inAuthFlow) {
       router.replace('/login');
-    } else if (session && onLoginScreen) {
+    } else if (session && segments[0] === 'login') {
       router.replace('/');
     }
   }, [session, loading, segments, router]);
@@ -33,6 +33,7 @@ function RootNavigator() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
     </Stack>
   );
 }
