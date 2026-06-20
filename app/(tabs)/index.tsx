@@ -167,7 +167,6 @@ export default function HomeScreen() {
     const userId = await requireUserId();
     const newHabit = await createHabit({
       ...habitData,
-      frequency_type: habitData.frequency_type,
       user_id: userId,
       description: null,
       max_value: null,
