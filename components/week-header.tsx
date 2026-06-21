@@ -2,7 +2,7 @@ import { StyleSheet, View, Pressable, Dimensions } from 'react-native';
 import { ThemedText } from './themed-text';
 import { getGradientColor } from '@/constants/theme';
 import { CategoryType } from '@/lib/types';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export interface DayData {
   date: string; // YYYY-MM-DD format
@@ -17,8 +17,7 @@ export interface WeekHeaderProps {
 }
 
 export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 380;
 
@@ -45,18 +44,16 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
         const dayNumber = getDayNumber(day.date);
 
         return (
-          <Pressable
+            <Pressable
             key={index}
             onPress={() => handleDayPress(day)}
             style={[styles.dayCard, isSmallScreen && styles.dayCardSmall]}
-            android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
+            android_ripple={{ color: colors.overlay }}
           >
             <View style={[styles.dayCardContent, { backgroundColor }]}>
               <ThemedText
                 type="defaultSemiBold"
                 style={styles.dayNumber}
-                lightColor="#000"
-                darkColor="#fff"
               >
                 {dayNumber}
               </ThemedText>
@@ -71,7 +68,8 @@ export function WeekHeader({ days, onDayPress }: WeekHeaderProps) {
     <View
       style={[
         styles.container,
-        { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
+        themeStyles.surface,
+        themeStyles.dividerBottom,
       ]}
     >
       {renderRow(firstRow)}
@@ -84,8 +82,6 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#222222',
   },
   row: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/lib/auth';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 /**
  * Cible de redirection du flow OAuth.
@@ -13,6 +14,7 @@ export default function AuthCallback() {
   const { session, loading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState(false);
+  const { colors } = useAppTheme();
 
   useEffect(() => {
     if (
@@ -31,13 +33,13 @@ export default function AuthCallback() {
   }, [session, loading, router]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.loginBackground }]}>
       {error ? (
-        <Text style={styles.text}>Connexion échouée. Retour à l&apos;accueil…</Text>
+        <Text style={[styles.text, { color: colors.loginHint }]}>Connexion échouée. Retour à l&apos;accueil…</Text>
       ) : (
         <>
-          <ActivityIndicator color="#fff" />
-          <Text style={styles.text}>Connexion en cours…</Text>
+          <ActivityIndicator color={colors.text} />
+          <Text style={[styles.text, { color: colors.loginHint }]}>Connexion en cours…</Text>
         </>
       )}
     </View>
@@ -45,6 +47,6 @@ export default function AuthCallback() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#05070a' },
-  text: { color: '#9aa4b2', marginTop: 16 },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  text: { marginTop: 16 },
 });

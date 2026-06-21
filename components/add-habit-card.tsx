@@ -1,10 +1,10 @@
 import { StyleSheet, View, Pressable, Modal, TextInput, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useState } from 'react';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { CategoryType } from '@/lib/types';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 type FrequencyType = 'per_day' | 'times_per_day' | 'times_per_week';
@@ -28,8 +28,7 @@ export interface AddHabitCardProps {
 }
 
 export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -68,16 +67,16 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
       <Pressable
         style={[
           styles.addButton,
-          { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
+          themeStyles.surfaceRaised,
         ]}
         onPress={() => setShowModal(true)}
       >
         <MaterialIcons
           name="add-circle-outline"
           size={32}
-          color={isDark ? '#666666' : '#cccccc'}
+          color={colors.icon}
         />
-        <ThemedText style={[styles.addButtonText, { color: isDark ? '#999999' : '#999999' }]}>
+        <ThemedText style={[styles.addButtonText, { color: colors.textMuted }]}>
           Add Habit
         </ThemedText>
       </Pressable>
@@ -89,10 +88,7 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
         onRequestClose={() => setShowModal(false)}
       >
         <ThemedView
-          style={[
-            styles.modalContainer,
-            { backgroundColor: isDark ? '#000000' : '#ffffff' },
-          ]}
+          style={[styles.modalContainer, themeStyles.screen]}
         >
           <View style={styles.modalHeader}>
             <ThemedText style={styles.modalTitle}>Add New Habit</ThemedText>
@@ -100,7 +96,7 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
               <MaterialIcons
                 name="close"
                 size={28}
-                color={isDark ? '#ffffff' : '#000000'}
+                color={colors.text}
               />
             </Pressable>
           </View>
@@ -108,44 +104,25 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
           <ScrollView style={styles.modalContent}>
             {/* Name */}
             <View style={styles.formGroup}>
-              <ThemedText style={styles.formLabel}>Habit Name</ThemedText>
+                <ThemedText style={styles.formLabel}>Habit Name</ThemedText>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    color: isDark ? '#ffffff' : '#000000',
-                    borderColor: isDark ? '#333333' : '#cccccc',
-                    backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                  },
-                ]}
+                style={themeStyles.input}
                 placeholder="Enter habit name..."
-                placeholderTextColor={isDark ? '#666666' : '#999999'}
+                placeholderTextColor={colors.placeholder}
                 value={formData.name}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, name: text })
-                }
-              />
+                  onChangeText={(text) => setFormData({ ...formData, name: text })}
+                />
             </View>
 
             {/* Emoji */}
             <View style={styles.formGroup}>
-              <ThemedText style={styles.formLabel}>Emoji</ThemedText>
+                <ThemedText style={styles.formLabel}>Emoji</ThemedText>
               <TextInput
-                style={[
-                  styles.input,
-                  styles.emojiInput,
-                  {
-                    color: isDark ? '#ffffff' : '#000000',
-                    borderColor: isDark ? '#333333' : '#cccccc',
-                    backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                  },
-                ]}
-                value={formData.emoji}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, emoji: text })
-                }
-                maxLength={2}
-              />
+                  style={[styles.emojiInput, themeStyles.input]}
+                  value={formData.emoji}
+                  onChangeText={(text) => setFormData({ ...formData, emoji: text })}
+                  maxLength={2}
+                />
             </View>
 
             {/* Category */}
@@ -159,11 +136,10 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
                       style={[
                         styles.categoryOption,
                         formData.category === cat && {
-                          backgroundColor:
-                            CATEGORY_COLORS[cat].mid,
+                          backgroundColor: CATEGORY_COLORS[cat].mid,
                         },
                         formData.category !== cat && {
-                          borderColor: isDark ? '#333333' : '#cccccc',
+                          borderColor: colors.border,
                           borderWidth: 1,
                         },
                       ]}
@@ -177,10 +153,8 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
                           {
                             color:
                               formData.category === cat
-                                ? '#ffffff'
-                                : isDark
-                                  ? '#aaaaaa'
-                                  : '#666666',
+                                ? colors.onPrimary
+                                : colors.textMuted,
                           },
                         ]}
                       >
@@ -203,10 +177,10 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
                       style={[
                         styles.frequencyOption,
                         formData.frequency_type === freq && {
-                          backgroundColor: '#4caf50',
+                          backgroundColor: colors.tint,
                         },
                         formData.frequency_type !== freq && {
-                          borderColor: isDark ? '#333333' : '#cccccc',
+                          borderColor: colors.border,
                           borderWidth: 1,
                         },
                       ]}
@@ -223,10 +197,8 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
                           {
                             color:
                               formData.frequency_type === freq
-                                ? '#ffffff'
-                                : isDark
-                                  ? '#aaaaaa'
-                                  : '#666666',
+                                ? colors.onPrimary
+                                : colors.textMuted,
                           },
                         ]}
                       >
@@ -246,16 +218,9 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
             <View style={styles.formGroup}>
               <ThemedText style={styles.formLabel}>Target Value</ThemedText>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    color: isDark ? '#ffffff' : '#000000',
-                    borderColor: isDark ? '#333333' : '#cccccc',
-                    backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                  },
-                ]}
+                style={themeStyles.input}
                 placeholder="60"
-                placeholderTextColor={isDark ? '#666666' : '#999999'}
+                placeholderTextColor={colors.placeholder}
                 keyboardType="number-pad"
                 value={String(formData.target_value)}
                 onChangeText={(text) =>
@@ -272,16 +237,9 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
               <View style={styles.formGroup}>
                 <ThemedText style={styles.formLabel}>Min Value</ThemedText>
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      color: isDark ? '#ffffff' : '#000000',
-                      borderColor: isDark ? '#333333' : '#cccccc',
-                      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                    },
-                  ]}
+                  style={themeStyles.input}
                   placeholder="30"
-                  placeholderTextColor={isDark ? '#666666' : '#999999'}
+                  placeholderTextColor={colors.placeholder}
                   keyboardType="number-pad"
                   value={String(formData.min_value)}
                   onChangeText={(text) =>
@@ -296,17 +254,11 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
 
             {/* Action Buttons */}
             <View style={styles.buttonGroup}>
-              <Pressable
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setShowModal(false)}
-              >
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+              <Pressable style={[styles.button, themeStyles.secondaryButton]} onPress={() => setShowModal(false)}>
+                <ThemedText style={[styles.buttonText, { color: colors.text }]}>Cancel</ThemedText>
               </Pressable>
-              <Pressable
-                style={[styles.button, styles.submitButton]}
-                onPress={handleAddHabit}
-              >
-                <ThemedText style={styles.submitButtonText}>Add Habit</ThemedText>
+              <Pressable style={[styles.button, themeStyles.primaryButton]} onPress={handleAddHabit}>
+                <ThemedText style={[styles.buttonText, { color: colors.onPrimary }]}>Add Habit</ThemedText>
               </Pressable>
             </View>
           </ScrollView>
@@ -323,7 +275,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     marginVertical: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#666666',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -342,8 +293,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#222222',
   },
   modalTitle: {
     fontSize: 20,
@@ -361,13 +310,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
   },
   emojiInput: {
     fontSize: 32,
@@ -421,21 +363,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
-  },
-  cancelButtonText: {
+  buttonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
-  },
-  submitButton: {
-    backgroundColor: '#4caf50',
-  },
-  submitButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
   },
 });

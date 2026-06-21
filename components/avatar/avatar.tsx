@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useAvatar, getAvatarByScore, getEmotionalStateFromScore } from '@/lib/avatars';
 import { SVGAvatarLoader } from './svg-avatar-loader';
+import { Colors } from '@/constants/Colors';
 
 interface AvatarProps {
   score: number;
@@ -15,7 +16,7 @@ const sizeConfig = {
   large: { width: 240, height: 270 },
 } as const;
 
-function AvatarComponent({ score, accentColor = '#2a9d8f', size = 'medium' }: AvatarProps) {
+function AvatarComponent({ score, accentColor = Colors.dark.tint, size = 'medium' }: AvatarProps) {
   const { avatarState, state, config } = useAvatar({ score, accentColor });
   const dimensions = sizeConfig[size];
   const avatarRange = getAvatarByScore(score);

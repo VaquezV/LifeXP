@@ -1,11 +1,12 @@
 import React, { useState, useMemo, memo } from 'react';
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { LineChart } from './line-chart';
 import { Habit } from '@/lib/types';
 import { aggregateChartData } from '@/lib/chart-data';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 
 type ViewMode = 'week' | 'month' | 'year';
 
@@ -15,8 +16,7 @@ export interface DashboardViewProps {
 }
 
 function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const chartData = useMemo(() => {
@@ -28,12 +28,12 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
       <ThemedView
         style={[
           styles.container,
-          { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
+          themeStyles.surface,
         ]}
       >
         <View style={styles.header}>
           <ThemedText
-            style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}
+            style={[styles.title, { color: colors.text }]}
           >
             Performance
           </ThemedText>
@@ -46,35 +46,19 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
               key={mode}
               style={[
                 styles.modeButton,
-                viewMode === mode && {
-                  backgroundColor: '#4caf50',
-                  borderColor: '#4caf50',
-                },
-                viewMode !== mode && {
-                  borderColor: isDark ? '#444444' : '#cccccc',
-                  borderWidth: 1,
-                },
+                viewMode === mode
+                  ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                  : { borderColor: colors.borderSoft, borderWidth: 1 },
               ]}
               onPress={() => setViewMode(mode)}
             >
               <ThemedText
                 style={[
                   styles.modeButtonText,
-                  {
-                    color:
-                      viewMode === mode
-                        ? '#ffffff'
-                        : isDark
-                          ? '#aaaaaa'
-                          : '#666666',
-                  },
+                  { color: viewMode === mode ? colors.onPrimary : colors.textMuted },
                 ]}
               >
-                {mode === 'week'
-                  ? 'Semaine'
-                  : mode === 'month'
-                    ? 'Mois'
-                    : 'Année'}
+                {mode === 'week' ? 'Semaine' : mode === 'month' ? 'Mois' : 'Année'}
               </ThemedText>
             </Pressable>
           ))}
@@ -85,62 +69,62 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
           <LineChart
             title="Overall Progress"
             data={chartData.global}
-            color={isDark ? '#aaaaaa' : '#666666'}
+            color={colors.textMuted}
           />
           <LineChart
             title="Self Care"
             data={chartData.self_care}
-            color="#2e7d32"
+            color={CATEGORY_COLORS.self_care.mid}
           />
           <LineChart
             title="Personal Dev"
             data={chartData.dev_perso}
-            color="#6a1b9a"
+            color={CATEGORY_COLORS.dev_perso.mid}
           />
           <LineChart
             title="Family Life"
             data={chartData.vie_familiale}
-            color="#c62828"
+            color={CATEGORY_COLORS.vie_familiale.mid}
           />
           <LineChart
             title="Professional"
             data={chartData.vie_pro}
-            color="#1565c0"
+            color={CATEGORY_COLORS.vie_pro.mid}
           />
         </View>
 
         {/* Legend */}
-        <View style={styles.legendSection}>
+        <View style={[styles.legendSection, themeStyles.dividerTop]}>
           <View style={styles.legendRow}>
             <View
               style={[
                 styles.legendDot,
-                { backgroundColor: isDark ? '#aaaaaa' : '#666666' },
+                { backgroundColor: colors.textMuted },
               ]}
             />
             <ThemedText style={styles.legendText}>Total</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
-              style={[styles.legendDot, { backgroundColor: '#2e7d32' }]}
+              style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.self_care.mid }]}
             />
             <ThemedText style={styles.legendText}>Self Care</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
-              style={[styles.legendDot, { backgroundColor: '#6a1b9a' }]}
+              style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.dev_perso.mid }]}
             />
             <ThemedText style={styles.legendText}>Personal Dev</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
-              style={[styles.legendDot, { backgroundColor: '#c62828' }]}
+              style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.vie_familiale.mid }]}
             />
             <ThemedText style={styles.legendText}>Family Life</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
-              style={[styles.legendDot, { backgroundColor: '#1565c0' }]}
+              style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.vie_pro.mid }]}
             />
             <ThemedText style={styles.legendText}>Professional</ThemedText>
           </View>
@@ -187,8 +171,6 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 16,
     paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#222222',
   },
   legendRow: {
     flexDirection: 'row',

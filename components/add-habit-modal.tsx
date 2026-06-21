@@ -11,7 +11,7 @@ import {
 import { PresetHabit, CategoryType, FrequencyType } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface Props {
   visible: boolean;
@@ -89,7 +89,7 @@ const INITIAL_FORM: {
 };
 
 export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
-  const isDark = useColorScheme() === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
 
   const [step, setStep] = useState<Step>('picker');
   const [selectedName, setSelectedName] = useState<string | null>(null);
@@ -114,27 +114,22 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={resetAndClose}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, themeStyles.modalOverlay]}>
         <View
           style={[
             styles.container,
-            { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' },
+            themeStyles.modalSheet,
           ]}
         >
           <View style={styles.header}>
-            <Text
-              style={[
-                styles.title,
-                { color: isDark ? '#ffffff' : '#000000' },
-              ]}
-            >
+            <Text style={[styles.title, { color: colors.text }]}>
               Nouvelle habitude
             </Text>
             <Pressable style={styles.closeButton} onPress={resetAndClose}>
               <MaterialIcons
                 name="close"
                 size={24}
-                color={isDark ? '#ffffff' : '#000000'}
+                color={colors.text}
               />
             </Pressable>
           </View>
@@ -154,14 +149,14 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                     {names.map(name => (
                       <Pressable
                         key={name}
-                        style={[styles.presetRow, { borderBottomColor: isDark ? '#222' : '#eee' }]}
+                        style={[styles.presetRow, { borderBottomColor: colors.borderStrong }]}
                         onPress={() => {
                           setSelectedName(name);
                           setStep('level');
                         }}
                       >
-                        <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>{name}</Text>
-                        <MaterialIcons name="chevron-right" size={20} color={isDark ? '#666' : '#999'} />
+                        <Text style={[styles.presetRowText, { color: colors.text }]}>{name}</Text>
+                        <MaterialIcons name="chevron-right" size={20} color={colors.textSubtle} />
                       </Pressable>
                     ))}
                   </View>
@@ -169,10 +164,10 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
               })}
 
               <Pressable
-                style={[styles.manualButton, { borderColor: isDark ? '#444' : '#ccc' }]}
+                style={[styles.manualButton, { borderColor: colors.borderSoft }]}
                 onPress={() => setStep('form')}
               >
-                <Text style={[styles.manualButtonText, { color: isDark ? '#aaa' : '#666' }]}>
+                <Text style={[styles.manualButtonText, { color: colors.textMuted }]}>
                   + Créer manuellement
                 </Text>
               </Pressable>
@@ -181,18 +176,19 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
           {step === 'level' && (
             <View style={styles.content}>
-              <Text style={[styles.levelTitle, { color: isDark ? '#aaa' : '#666' }]}>
+              <Text style={[styles.levelTitle, { color: colors.textMuted }]}>
                 {selectedName}
               </Text>
               <View style={styles.levelGrid}>
                 {variants.map(variant => (
                   <Pressable
                     key={variant.id}
-                    style={[styles.levelChip, { backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0' }]}
+                    style={[styles.levelChip, themeStyles.surfaceMuted]}
                     onPress={() => {
                       setSelectedPreset(variant);
+                      const expertiseLabel = EXPERTISE_LABELS[variant.expertise] ?? variant.expertise;
                       setForm({
-                        name: variant.name,
+                        name: `${variant.name} - ${expertiseLabel}`,
                         emoji: variant.emoji || '⭐',
                         category: variant.category,
                         frequency_type: variant.frequency_type,
@@ -202,18 +198,18 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                       setStep('form');
                     }}
                   >
-                    <Text style={[styles.levelChipText, { color: isDark ? '#fff' : '#000' }]}>
+                    <Text style={[styles.levelChipText, { color: colors.text }]}>
                       {EXPERTISE_LABELS[variant.expertise] ?? variant.expertise}
                     </Text>
-                    <Text style={[styles.levelChipSub, { color: isDark ? '#888' : '#999' }]}>
+                    <Text style={[styles.levelChipSub, { color: colors.textMuted }]}>
                       {formatTarget(variant)}
                     </Text>
                   </Pressable>
                 ))}
               </View>
               <Pressable style={styles.backButton} onPress={() => setStep('picker')}>
-                <MaterialIcons name="arrow-back" size={18} color={isDark ? '#aaa' : '#666'} />
-                <Text style={[styles.backButtonText, { color: isDark ? '#aaa' : '#666' }]}>Retour</Text>
+                <MaterialIcons name="arrow-back" size={18} color={colors.textMuted} />
+                <Text style={[styles.backButtonText, { color: colors.textMuted }]}>Retour</Text>
               </Pressable>
             </View>
           )}
@@ -222,9 +218,9 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
             <ScrollView style={styles.content}>
               {/* Emoji */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Emoji</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Emoji</Text>
                 <TextInput
-                  style={[styles.emojiInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd' }]}
+                  style={[styles.emojiInput, themeStyles.input, themeStyles.inputEmoji]}
                   value={form.emoji}
                   onChangeText={t => setForm(f => ({ ...f, emoji: t }))}
                   maxLength={2}
@@ -233,9 +229,9 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
               {/* Nom */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Nom</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Nom</Text>
                 <TextInput
-                  style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd' }]}
+                  style={[styles.textInput, themeStyles.input]}
                   value={form.name}
                   onChangeText={t => setForm(f => ({ ...f, name: t }))}
                   editable={!selectedPreset}
@@ -244,7 +240,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
               {/* Catégorie */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Catégorie</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Catégorie</Text>
                 <View style={styles.chipRow}>
                   {(Object.keys(CATEGORY_LABELS) as CategoryType[]).map(cat => (
                     <Pressable
@@ -253,11 +249,11 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                         styles.chip,
                         form.category === cat
                           ? { backgroundColor: CATEGORY_COLORS[cat].mid }
-                          : { borderWidth: 1, borderColor: isDark ? '#444' : '#ccc' },
+                          : { borderWidth: 1, borderColor: colors.borderSoft },
                       ]}
                       onPress={() => !selectedPreset && setForm(f => ({ ...f, category: cat }))}
                     >
-                      <Text style={[styles.chipText, { color: form.category === cat ? '#fff' : isDark ? '#aaa' : '#666' }]}>
+                      <Text style={[styles.chipText, { color: form.category === cat ? colors.onPrimary : colors.textMuted }]}>
                         {CATEGORY_LABELS[cat]}
                       </Text>
                     </Pressable>
@@ -267,7 +263,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
               {/* Fréquence */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Fréquence</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Fréquence</Text>
                 <View style={styles.chipRow}>
                   {(Object.keys(FREQ_LABELS) as FrequencyType[]).map(freq => {
                     const locked = selectedPreset && !selectedPreset.editable_frequency_type;
@@ -277,13 +273,13 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                         style={[
                           styles.chip,
                           form.frequency_type === freq
-                            ? { backgroundColor: '#2a9d8f' }
-                            : { borderWidth: 1, borderColor: isDark ? '#444' : '#ccc' },
+                            ? { backgroundColor: colors.tint }
+                            : { borderWidth: 1, borderColor: colors.borderSoft },
                           locked ? { opacity: 0.5 } : {},
                         ]}
                         onPress={() => !locked && setForm(f => ({ ...f, frequency_type: freq }))}
                       >
-                        <Text style={[styles.chipText, { color: form.frequency_type === freq ? '#fff' : isDark ? '#aaa' : '#666' }]}>
+                        <Text style={[styles.chipText, { color: form.frequency_type === freq ? colors.onPrimary : colors.textMuted }]}>
                           {FREQ_LABELS[freq]}
                         </Text>
                       </Pressable>
@@ -294,9 +290,9 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
               {/* Target value */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Objectif</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Objectif</Text>
                 <TextInput
-                  style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd', opacity: (selectedPreset && !selectedPreset.editable_target_value) ? 0.5 : 1 }]}
+                  style={[styles.textInput, themeStyles.input, { opacity: (selectedPreset && !selectedPreset.editable_target_value) ? 0.5 : 1 }]}
                   value={String(form.target_value)}
                   onChangeText={t => setForm(f => ({ ...f, target_value: parseInt(t) || 0 }))}
                   keyboardType="number-pad"
@@ -307,9 +303,9 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
               {/* Min value — seulement si per_day */}
               {form.frequency_type === 'per_day' && (
                 <View style={styles.formGroup}>
-                  <Text style={[styles.formLabel, { color: isDark ? '#aaa' : '#666' }]}>Minimum</Text>
+                  <Text style={[styles.formLabel, { color: colors.textMuted }]}>Minimum</Text>
                   <TextInput
-                    style={[styles.textInput, { backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5', color: isDark ? '#fff' : '#000', borderColor: isDark ? '#333' : '#ddd', opacity: (selectedPreset && !selectedPreset.editable_min_value) ? 0.5 : 1 }]}
+                    style={[styles.textInput, themeStyles.input, { opacity: (selectedPreset && !selectedPreset.editable_min_value) ? 0.5 : 1 }]}
                     value={String(form.min_value)}
                     onChangeText={t => setForm(f => ({ ...f, min_value: parseInt(t) || 0 }))}
                     keyboardType="number-pad"
@@ -319,22 +315,26 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
               )}
 
               {/* Boutons */}
-              <View style={styles.actions}>
+              <View style={[styles.actions, themeStyles.dividerTop]}>
                 <Pressable
-                  style={[styles.btnSecondary, { borderColor: isDark ? '#444' : '#ccc' }]}
+                  style={[styles.btnSecondary, themeStyles.secondaryButton]}
                   onPress={() => selectedPreset ? setStep('level') : setStep('picker')}
                 >
-                  <Text style={[styles.btnText, { color: isDark ? '#aaa' : '#666' }]}>Retour</Text>
+                  <Text style={[styles.btnText, { color: colors.textMuted }]}>Retour</Text>
                 </Pressable>
                 <Pressable
-                  style={styles.btnPrimary}
+                  style={[styles.btnPrimary, themeStyles.primaryButton]}
                   onPress={async () => {
                     if (!form.name.trim()) return;
-                    await onSave({ ...form, preset_habit_id: selectedPreset?.id ?? null });
-                    resetAndClose();
+                    try {
+                      await onSave({ ...form, preset_habit_id: selectedPreset?.id ?? null });
+                      resetAndClose();
+                    } catch (e) {
+                      console.error('Erreur lors de la sauvegarde :', e);
+                    }
                   }}
                 >
-                  <Text style={[styles.btnText, { color: '#fff' }]}>Sauvegarder</Text>
+                  <Text style={[styles.btnText, { color: colors.onPrimary }]}>Sauvegarder</Text>
                 </Pressable>
               </View>
             </ScrollView>
@@ -349,7 +349,6 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   container: {
     borderTopLeftRadius: 20,
@@ -362,8 +361,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
   },
   title: {
     fontSize: 20,
@@ -411,14 +408,9 @@ const styles = StyleSheet.create({
   formGroup: { marginBottom: 16 },
   formLabel: { fontSize: 12, fontWeight: '600', marginBottom: 8 },
   emojiInput: {
-    borderWidth: 1, borderRadius: 8,
-    paddingVertical: 10, fontSize: 24,
-    textAlign: 'center', width: 60,
+    width: 60,
   },
   textInput: {
-    borderWidth: 1, borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14,
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
@@ -436,7 +428,7 @@ const styles = StyleSheet.create({
   },
   btnPrimary: {
     flex: 1, paddingVertical: 12, borderRadius: 8,
-    alignItems: 'center', backgroundColor: '#2a9d8f',
+    alignItems: 'center',
   },
   btnText: { fontSize: 14, fontWeight: '600' },
   categoryHeader:     { borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8, marginTop: 12, marginBottom: 4 },

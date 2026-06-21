@@ -1,6 +1,6 @@
 import { View, StyleSheet, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface SliderInputProps {
   value: number; // in minutes
@@ -19,8 +19,7 @@ export function SliderInput({
   accentColor,
   onValueChange,
 }: SliderInputProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors } = useAppTheme();
 
   // Smart rounding for display: round to nearest sensible value
   const smartRound = (val: number): number => {
@@ -60,7 +59,7 @@ export function SliderInput({
         value={displayValue}
         onValueChange={handleSliderChange}
         minimumTrackTintColor={accentColor}
-        maximumTrackTintColor={isDark ? '#333333' : '#cccccc'}
+        maximumTrackTintColor={colors.border}
         thumbTintColor={accentColor}
       />
       <Text style={[
@@ -70,10 +69,10 @@ export function SliderInput({
         {formatTime(displayValue)}
       </Text>
       <View style={styles.labels}>
-        <Text style={styles.label}>
+        <Text style={[styles.label, { color: colors.textSubtle }]}>
           {formatTime(min)}
         </Text>
-        <Text style={styles.label}>
+        <Text style={[styles.label, { color: colors.textSubtle }]}>
           {formatTime(max)}
         </Text>
       </View>
@@ -103,6 +102,5 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#999999',
   },
 });

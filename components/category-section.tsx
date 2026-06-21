@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useTranslation } from '@/hooks/use-translation';
-import { Colors, CATEGORY_COLORS } from '@/constants/Colors';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { HabitCard } from './habit-card';
@@ -10,6 +8,7 @@ import { AddHabitCard } from './add-habit-card';
 import { CategoryModal } from './category-modal';
 import { Habit, CategoryType } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export interface CategorySectionProps {
   category: CategoryType;
@@ -36,9 +35,7 @@ export function CategorySection({
   onAddHabit,
   onUpdateCategory,
 }: CategorySectionProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const { t } = useTranslation();
+  const { colors, styles: themeStyles } = useAppTheme();
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   // Get category color for accent
@@ -62,9 +59,7 @@ export function CategorySection({
     <ThemedView
       style={[
         styles.section,
-        {
-          backgroundColor: isDark ? '#0a0a0a' : '#ffffff',
-        },
+        themeStyles.surface,
       ]}
     >
       <CategoryModal
@@ -78,12 +73,7 @@ export function CategorySection({
       <View style={[styles.titleContainer, { borderBottomColor: accentColor }]}>
         <ThemedText
           type="subtitle"
-          style={[
-            styles.categoryTitle,
-            {
-              color: isDark ? '#ffffff' : '#000000',
-            },
-          ]}
+          style={[styles.categoryTitle, { color: colors.text }]}
         >
           {categoryLabel}
         </ThemedText>
@@ -113,10 +103,8 @@ export function CategorySection({
           <Pressable
             style={[
               styles.addHabitButton,
-              {
-                backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                borderColor: accentColor,
-              },
+              themeStyles.surfaceRaised,
+              { borderColor: accentColor },
             ]}
             onPress={() => {
               // Open add habit modal with pre-selected category

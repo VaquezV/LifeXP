@@ -1,3 +1,4 @@
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuth } from '@/lib/auth';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -6,6 +7,7 @@ export default function LoginScreen() {
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { colors } = useAppTheme();
 
   async function handlePress() {
     setError(null);
@@ -20,31 +22,31 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>LifeXP</Text>
-      <Text style={styles.subtitle}>Un pas chaque jour</Text>
-      <Text style={styles.subtitle}> L'élan vient du reste </Text>
-      <Text style={styles.hint}> L'application pour mettre en place tes bonnes habitudes </Text>
-      <Pressable style={styles.button} onPress={handlePress} disabled={loading}>
+    <View style={[styles.container, { backgroundColor: colors.loginBackground }]}>
+      <Text style={[styles.title, { color: colors.loginText }]}>LifeXP</Text>
+      <Text style={[styles.subtitle, { color: colors.loginHint }]}>Un pas chaque jour</Text>
+      <Text style={[styles.subtitle, { color: colors.loginHint }]}> L'élan vient du reste </Text>
+      <Text style={[styles.hint, { color: colors.loginHint }]}> L'application pour mettre en place tes bonnes habitudes </Text>
+      <Pressable style={[styles.button, { backgroundColor: colors.loginButtonBackground }]} onPress={handlePress} disabled={loading}>
         {loading ? (
-          <ActivityIndicator color="#05070a" />
+          <ActivityIndicator color={colors.loginBackground} />
         ) : (
-          <Text style={styles.buttonText}>Continuer avec Google</Text>
+          <Text style={[styles.buttonText, { color: colors.loginBackground }]}>Continuer avec Google</Text>
         )}
       </Pressable>
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#061121', padding: 24 },
-  title: { color: '#e1e9fc', fontSize: 72, fontWeight: '700', marginBottom: 32 },
-  subtitle: { color: '#9aa4b2', fontSize: 36, marginBottom: 10, textAlign: 'center' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  title: { fontSize: 72, fontWeight: '700', marginBottom: 32 },
+  subtitle: { fontSize: 36, marginBottom: 20, textAlign: 'center' },
 
 
-  hint: { color: '#9aa4b2', fontSize: 18, marginBottom: 18, marginTop: 18, textAlign: 'center' },
-  button: { backgroundColor: '#fff', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 12, minWidth: 240, marginTop: 18, alignItems: 'center' },
-  buttonText: { color: '#05070a', fontSize: 16, fontWeight: '600' },
-  error: { color: '#ff6b6b', marginTop: 16, textAlign: 'center' },
+  hint: { fontSize: 18, marginBottom: 18, marginTop: 100, textAlign: 'center' },
+  button: { paddingVertical: 18, paddingHorizontal: 28, borderRadius: 12, minWidth: 240, marginTop: 20, alignItems: 'center' },
+  buttonText: { fontSize: 16, fontWeight: '600' },
+  error: { marginTop: 16, textAlign: 'center' },
 });

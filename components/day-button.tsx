@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { ThemedText } from './themed-text';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface DayButtonProps {
   date: string; // formatted date string (e.g., "01", "15")
@@ -16,6 +17,8 @@ export function DayButton({
   accentColor,
   onPress,
 }: DayButtonProps) {
+  const { colors } = useAppTheme();
+
   return (
     <Pressable
       style={[
@@ -25,11 +28,11 @@ export function DayButton({
       ]}
       onPress={onPress}
     >
-      <ThemedText
+        <ThemedText
         style={[
           styles.dateText,
           {
-            color: isCompleted ? '#ffffff' : accentColor,
+            color: isCompleted ? colors.onPrimary : accentColor,
             fontWeight: isToday ? '700' : '600',
           },
         ]}

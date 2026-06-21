@@ -8,9 +8,7 @@ import {
   Pressable,
   Text,
 } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTranslation } from '@/hooks/use-translation';
-import { Colors } from '@/constants/Colors';
 import { AppHeader } from '@/components/app-header';
 import { WeekSummary } from '@/components/week-summary';
 import { CategorySection } from '@/components/category-section';
@@ -22,6 +20,7 @@ import { requireUserId } from '@/lib/auth';
 import { AddHabitModal } from '@/components/add-habit-modal';
 import { fetchPresetHabits } from '@/lib/preset-habits';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 function getCategories(t: any): { key: CategoryType; label: string }[] {
   return [
@@ -45,9 +44,8 @@ function getWeekDayAbbr(dateKey: string): string {
 }
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { colors, styles: themeStyles } = useAppTheme();
   const { t } = useTranslation();
-  const colors = Colors[colorScheme];
   const initialCategories = getCategories(t);
 
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -168,7 +166,6 @@ export default function HomeScreen() {
     const newHabit = await createHabit({
       ...habitData,
       user_id: userId,
-      description: null,
       max_value: null,
       frequency_value: 1,
     });
@@ -184,7 +181,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[styles.container, themeStyles.screen]}
       >
         <ActivityIndicator
           size="large"
@@ -197,7 +194,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff', paddingTop: 8 }]}
+      style={[styles.container, themeStyles.screen, { paddingTop: 8 }]}
     >
       <FlatList
         data={['app-header', 'week-header', ...categories.map(cat => cat.key), 'add-habit']}
@@ -212,7 +209,7 @@ export default function HomeScreen() {
               <WeekSummary
                 weekDays={weekDays}
                 weeklyCompletion={weeklyScore}
-                accentColor="#2a9d8f"
+                accentColor={colors.tint}
               />
             ) : null;
           }
@@ -222,16 +219,16 @@ export default function HomeScreen() {
               <Pressable
                 style={[
                   styles.addHabitButton,
-                  { backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5' },
+                  themeStyles.surfaceRaised,
                 ]}
                 onPress={() => setAddModalVisible(true)}
               >
                 <MaterialIcons
                   name="add-circle-outline"
                   size={28}
-                  color={colorScheme === 'dark' ? '#666' : '#999'}
+                  color={colors.icon}
                 />
-                <Text style={[styles.addHabitText, { color: colorScheme === 'dark' ? '#888' : '#999' }]}>
+                <Text style={[styles.addHabitText, { color: colors.textMuted }]}>
                   Ajouter une nouvelle habitude
                 </Text>
               </Pressable>
@@ -267,7 +264,7 @@ export default function HomeScreen() {
           );
         }}
         scrollEnabled={true}
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: colorScheme === 'dark' ? '#000000' : '#ffffff' }]}
+        contentContainerStyle={[styles.scrollContent, themeStyles.screen]}
       />
       <AddHabitModal
         visible={addModalVisible}

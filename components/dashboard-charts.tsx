@@ -1,10 +1,10 @@
 import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useState } from 'react';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { CategoryType } from '@/lib/types';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 type ViewMode = 'week' | 'month' | 'quarter' | 'year';
 
@@ -24,8 +24,7 @@ export function DashboardCharts({
   globalWeeklyScores,
   categoryScores,
 }: DashboardChartsProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const getDataPoints = (scores: number[]) => {
@@ -61,7 +60,7 @@ export function DashboardCharts({
                     styles.gridLine,
                     {
                       top: yPos,
-                      borderTopColor: isDark ? '#222222' : '#eeeeee',
+                      borderTopColor: colors.chartGrid,
                     },
                   ]}
                 />
@@ -70,7 +69,7 @@ export function DashboardCharts({
                     styles.axisLabel,
                     {
                       top: yPos - 8,
-                      color: isDark ? '#666666' : '#aaaaaa',
+                      color: colors.chartMuted,
                     },
                   ]}
                 >
@@ -115,6 +114,8 @@ export function DashboardCharts({
                   left: point.x - 5,
                   top: point.y - 5,
                   backgroundColor: color,
+                  borderColor: colors.background,
+                  shadowColor: colors.shadow,
                 },
               ]}
             />
@@ -128,12 +129,12 @@ export function DashboardCharts({
     <ThemedView
       style={[
         styles.container,
-        { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
+        themeStyles.surface,
       ]}
     >
       <View style={styles.header}>
         <ThemedText
-          style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}
+          style={[styles.title, { color: colors.text }]}
         >
           Performance
         </ThemedText>
@@ -147,11 +148,11 @@ export function DashboardCharts({
             style={[
               styles.modeButton,
               viewMode === mode && {
-                backgroundColor: '#4caf50',
-                borderColor: '#4caf50',
+                backgroundColor: colors.tint,
+                borderColor: colors.tint,
               },
               viewMode !== mode && {
-                borderColor: isDark ? '#444444' : '#cccccc',
+                borderColor: colors.borderSoft,
                 borderWidth: 1,
               },
             ]}
@@ -163,10 +164,8 @@ export function DashboardCharts({
                 {
                   color:
                     viewMode === mode
-                      ? '#ffffff'
-                      : isDark
-                        ? '#aaaaaa'
-                        : '#666666',
+                      ? colors.onPrimary
+                      : colors.textMuted,
                 },
               ]}
             >
@@ -181,12 +180,12 @@ export function DashboardCharts({
         <ThemedText
           style={[
             styles.chartTitle,
-            { color: isDark ? '#ffffff' : '#000000' },
+            { color: colors.text },
           ]}
         >
           Overall Progress
         </ThemedText>
-        {renderLineChart(globalWeeklyScores, '#4caf50')}
+        {renderLineChart(globalWeeklyScores, colors.tint)}
       </View>
 
       {/* Category Charts */}
@@ -197,7 +196,7 @@ export function DashboardCharts({
             <ThemedText
               style={[
                 styles.chartTitle,
-                { color: isDark ? '#ffffff' : '#000000' },
+                { color: colors.text },
               ]}
             >
               {CATEGORY_LABELS[category]}
@@ -258,7 +257,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     borderTopWidth: 1,
-    borderTopColor: '#eeeeee',
   },
   axisLabel: {
     position: 'absolute',
@@ -282,8 +280,6 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#ffffff',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

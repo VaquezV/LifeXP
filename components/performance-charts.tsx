@@ -2,11 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTranslation } from '@/hooks/use-translation';
 import { LineChart } from './line-chart';
-import { aggregateChartData, ChartData } from '@/lib/chart-data';
+import { aggregateChartData } from '@/lib/chart-data';
 import { Habit, CategoryType } from '@/lib/types';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 
 type ViewMode = 'week' | 'month' | 'year';
 
@@ -28,8 +29,7 @@ export function PerformanceCharts({
   habits,
   dailyValues,
 }: PerformanceChartsProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const categoryLabels = getCategoryLabels(t);
@@ -38,13 +38,6 @@ export function PerformanceCharts({
   const chartData = useMemo(() => {
     return aggregateChartData(habits, dailyValues, viewMode);
   }, [habits, dailyValues, viewMode]);
-
-  // Calculate overall score from global data
-  const overallScore = useMemo(() => {
-    if (chartData.global.length === 0) return 0;
-    const sum = chartData.global.reduce((acc, point) => acc + point.value, 0);
-    return Math.round(sum / chartData.global.length);
-  }, [chartData.global]);
 
   // Get category data
   const getCategoryData = (category: CategoryType) => {
@@ -62,8 +55,15 @@ export function PerformanceCharts({
     year: t('annee'),
   };
 
+  const categoryChartColors: Record<CategoryType, string> = {
+    self_care: CATEGORY_COLORS.self_care.mid,
+    dev_perso: CATEGORY_COLORS.dev_perso.mid,
+    vie_familiale: CATEGORY_COLORS.vie_familiale.mid,
+    vie_pro: CATEGORY_COLORS.vie_pro.mid,
+  };
+
   return (
-    <ThemedView style={[styles.container, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }]}>
+    <ThemedView style={[styles.container, themeStyles.surface]}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>{t('performance')}</ThemedText>
       </View>
@@ -75,15 +75,16 @@ export function PerformanceCharts({
             key={mode}
             style={[
               styles.modeButton,
-              viewMode === mode && styles.modeButtonActive,
-              viewMode !== mode && styles.modeButtonInactive,
+              viewMode === mode
+                ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                : { backgroundColor: 'transparent', borderColor: colors.borderSoft, borderWidth: 1 },
             ]}
             onPress={() => setViewMode(mode)}
           >
             <ThemedText
               style={[
                 styles.modeButtonText,
-                viewMode === mode && styles.modeButtonTextActive,
+                { color: viewMode === mode ? colors.onPrimary : colors.textMuted },
               ]}
             >
               {modeLabels[mode]}
@@ -97,26 +98,19 @@ export function PerformanceCharts({
         <LineChart
           title={t('overallProgress')}
           data={chartData.global}
-          color="#999999"
+          color={colors.textMuted}
         />
 
         {/* Category Charts */}
         {(['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const).map((category) => {
           const label = categoryLabels[category];
           const categoryData = getCategoryData(category);
-          const colors: Record<CategoryType, string> = {
-            self_care: '#2a9d8f',
-            dev_perso: '#aa96da',
-            vie_familiale: '#f38181',
-            vie_pro: '#5dade2',
-          };
-
           return (
             <LineChart
               key={category}
               title={label}
               data={categoryData}
-              color={colors[category]}
+              color={categoryChartColors[category]}
             />
           );
         })}
@@ -151,22 +145,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modeButtonActive: {
-    backgroundColor: '#2a9d8f',
-    borderColor: '#2a9d8f',
-  },
-  modeButtonInactive: {
-    backgroundColor: 'transparent',
-    borderColor: '#333333',
-    borderWidth: 1,
-  },
   modeButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#999999',
-  },
-  modeButtonTextActive: {
-    color: '#ffffff',
   },
   scrollContent: {
     paddingBottom: 40,

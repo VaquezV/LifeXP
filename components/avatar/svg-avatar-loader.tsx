@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { EmotionalState } from '@/lib/avatars';
 
 interface SVGAvatarLoaderProps {
@@ -34,8 +35,7 @@ function SVGAvatarLoaderComponent({
   const assetUri = useMemo(() => {
     const asset = DOG_AVATAR_ASSETS[svgPath as keyof typeof DOG_AVATAR_ASSETS];
     if (asset) {
-      const resolved = Image.resolveAssetSource(asset);
-      return resolved.uri;
+      return Asset.fromModule(asset).uri;
     }
     return null;
   }, [svgPath]);

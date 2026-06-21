@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { EMOTIONAL_STATE_CONFIG, COLOR_PALETTES, getEmotionalStateFromScore } from './config';
 import { EmotionalState, AvatarState } from './types';
+import { Colors } from '@/constants/Colors';
 
 interface UseAvatarProps {
   score: number;
   accentColor?: string;
 }
 
-export const useAvatar = ({ score, accentColor = '#2a9d8f' }: UseAvatarProps) => {
+export const useAvatar = ({ score, accentColor = Colors.dark.tint }: UseAvatarProps) => {
   const state = getEmotionalStateFromScore(score);
   const config = EMOTIONAL_STATE_CONFIG[state];
   const colors = COLOR_PALETTES[state];

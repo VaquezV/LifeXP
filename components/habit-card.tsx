@@ -1,5 +1,4 @@
 import { StyleSheet, View, Pressable } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useState, useMemo, useRef } from 'react';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ThemedText } from './themed-text';
@@ -11,6 +10,7 @@ import { DayButton } from './day-button';
 import { SliderInput } from './slider-input';
 import { updateHabit, deleteHabit } from '@/lib/habit-operations';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export interface HabitCardProps {
   habit: Habit;
@@ -29,8 +29,7 @@ export function HabitCard({
   onHabitUpdate,
   onHabitDelete,
 }: HabitCardProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const categoryColor = CATEGORY_COLORS[habit.category];
   const accentColor = categoryColor.mid;
 
@@ -143,7 +142,7 @@ export function HabitCard({
                 style={[
                   styles.countButtonText,
                   {
-                    color: selectedValue === num ? '#ffffff' : accentColor,
+                    color: selectedValue === num ? colors.onPrimary : accentColor,
                   },
                 ]}
               >
@@ -171,14 +170,14 @@ export function HabitCard({
             ]}
             onPress={() => onValueChange(habit.id, selectedDate, 0)}
           >
-            <ThemedText
-              style={[
-                styles.yesnoButtonText,
-                {
-                  color: selectedValue === 0 ? '#ffffff' : accentColor,
-                },
-              ]}
-            >
+              <ThemedText
+                style={[
+                  styles.yesnoButtonText,
+                  {
+                    color: selectedValue === 0 ? colors.onPrimary : accentColor,
+                  },
+                ]}
+              >
               Non
             </ThemedText>
           </Pressable>
@@ -195,14 +194,14 @@ export function HabitCard({
             ]}
             onPress={() => onValueChange(habit.id, selectedDate, 1)}
           >
-            <ThemedText
-              style={[
-                styles.yesnoButtonText,
-                {
-                  color: selectedValue === 1 ? '#ffffff' : accentColor,
-                },
-              ]}
-            >
+              <ThemedText
+                style={[
+                  styles.yesnoButtonText,
+                  {
+                    color: selectedValue === 1 ? colors.onPrimary : accentColor,
+                  },
+                ]}
+              >
               Oui
             </ThemedText>
           </Pressable>
@@ -239,10 +238,8 @@ export function HabitCard({
       <ThemedView
         style={[
           styles.card,
-          {
-            backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-            borderLeftColor: accentColor,
-          },
+          themeStyles.surfaceRaised,
+          { borderLeftColor: accentColor },
         ]}
       >
         <View style={styles.header}>
@@ -250,17 +247,14 @@ export function HabitCard({
         <View style={styles.titleSection}>
           <ThemedText
             type="defaultSemiBold"
-            style={[
-              styles.habitName,
-              { color: isDark ? '#ffffff' : '#000000' },
-            ]}
+            style={[styles.habitName, { color: colors.text }]}
           >
             {habit.name}
           </ThemedText>
           <ThemedText
             style={[
               styles.frequencyLabel,
-              { color: isDark ? '#999999' : '#666666' },
+              { color: colors.textMuted },
             ]}
           >
             {habit.frequency_type === 'times_per_day'
@@ -299,11 +293,6 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   header: {
     flexDirection: 'row',

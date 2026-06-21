@@ -10,6 +10,8 @@ web-build/
 expo-env.d.ts
 .agents
 .claude
+docs/superpowers/
+
 .codex
 # Native
 .kotlin/
@@ -48,3 +50,4 @@ app-example
 # build artefacts
 *.apk
 *.aab
+

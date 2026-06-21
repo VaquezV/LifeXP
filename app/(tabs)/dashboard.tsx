@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { PerformanceCharts } from '@/components/performance-charts';
 import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDateRange } from '@/lib/habit-logs';
 import { Habit } from '@/lib/types';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 const styles = {
   container: { flex: 1 },
@@ -12,8 +12,7 @@ const styles = {
 };
 
 export default function DashboardScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
 
   const [habits, setHabits] = useState<Habit[]>([]);
   const [dailyValues, setDailyValues] = useState<Record<string, Record<string, number>>>({});
@@ -50,12 +49,12 @@ export default function DashboardScreen() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: isDark ? '#000000' : '#ffffff' },
+          themeStyles.screen,
         ]}
       >
         <ActivityIndicator
           size="large"
-          color={isDark ? '#ffffff' : '#000000'}
+          color={colors.text}
           style={{ marginTop: 40 }}
         />
       </SafeAreaView>
@@ -63,18 +62,18 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: isDark ? '#000000' : '#ffffff' },
-      ]}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { backgroundColor: isDark ? '#000000' : '#ffffff' },
+      <SafeAreaView
+        style={[
+          styles.container,
+          themeStyles.screen,
         ]}
       >
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            themeStyles.screen,
+          ]}
+        >
         <PerformanceCharts
           habits={habits}
           dailyValues={dailyValues}

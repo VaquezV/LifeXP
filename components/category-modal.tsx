@@ -8,8 +8,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useTranslation } from '@/hooks/use-translation';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface CategoryModalProps {
   visible: boolean;
@@ -32,9 +31,7 @@ export function CategoryModal({
   initialName = '',
   initialColor = '#2a9d8f',
 }: CategoryModalProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const { t } = useTranslation();
+  const { colors, styles: themeStyles } = useAppTheme();
 
   const [name, setName] = useState(initialName);
   const [selectedColor, setSelectedColor] = useState(initialColor);
@@ -58,18 +55,15 @@ export function CategoryModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
+      <View style={[styles.overlay, themeStyles.modalOverlay]}>
         <View
           style={[
             styles.container,
-            { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' },
+            themeStyles.surfaceRaised,
           ]}
         >
           <Text
-            style={[
-              styles.title,
-              { color: isDark ? '#ffffff' : '#000000' },
-            ]}
+            style={[styles.title, { color: colors.text }]}
           >
             {initialName ? 'Edit Category' : 'New Category'}
           </Text>
@@ -77,23 +71,16 @@ export function CategoryModal({
           <TextInput
             style={[
               styles.input,
-              {
-                backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                color: isDark ? '#ffffff' : '#000000',
-                borderColor: isDark ? '#333333' : '#ddd',
-              },
+              themeStyles.input,
             ]}
             placeholder="Category name"
-            placeholderTextColor={isDark ? '#666666' : '#999999'}
+            placeholderTextColor={colors.placeholder}
             value={name}
             onChangeText={setName}
           />
 
           <Text
-            style={[
-              styles.label,
-              { color: isDark ? '#aaaaaa' : '#666666' },
-            ]}
+            style={[styles.label, { color: colors.textMuted }]}
           >
             Choose Color
           </Text>
@@ -110,7 +97,7 @@ export function CategoryModal({
                   {
                     backgroundColor: color,
                     borderWidth: selectedColor === color ? 3 : 0,
-                    borderColor: selectedColor === color ? '#ffffff' : 'transparent',
+                    borderColor: selectedColor === color ? colors.onPrimary : 'transparent',
                   },
                 ]}
                 onPress={() => setSelectedColor(color)}
@@ -120,27 +107,21 @@ export function CategoryModal({
 
           <View style={styles.actions}>
             <Pressable
-              style={[styles.button, styles.cancelButton]}
+              style={[styles.button, themeStyles.secondaryButton]}
               onPress={onClose}
             >
-              <Text
-                style={[
-                  styles.buttonText,
-                  { color: isDark ? '#ffffff' : '#000000' },
-                ]}
-              >
+              <Text style={[styles.buttonText, { color: colors.text }]}>
                 Cancel
               </Text>
             </Pressable>
             <Pressable
               style={[
                 styles.button,
-                styles.saveButton,
                 { backgroundColor: selectedColor },
               ]}
               onPress={handleSave}
             >
-              <Text style={[styles.buttonText, { color: '#ffffff' }]}>
+              <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
                 Save
               </Text>
             </Pressable>
@@ -199,12 +180,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#333333',
-  },
-  saveButton: {
-    backgroundColor: '#2a9d8f',
   },
   buttonText: {
     fontSize: 14,

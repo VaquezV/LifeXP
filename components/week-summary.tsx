@@ -8,8 +8,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Avatar } from './avatar';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { WEEK_SUMMARY_SCORE_STOPS } from '@/constants/Colors';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -31,8 +32,7 @@ export function WeekSummary({
   weeklyCompletion,
   accentColor,
 }: WeekSummaryProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { mode, colors } = useAppTheme();
   const animatedCompletion = useSharedValue(weeklyCompletion);
 
   const donutSize = 120;
@@ -51,24 +51,24 @@ export function WeekSummary({
       circumference - (animatedCompletion.value / 100) * circumference,
   }));
 
-  const cardBackground = getCardBackgroundColor(weeklyCompletion, isDark);
+  const cardBackground = getCardBackgroundColor(weeklyCompletion, mode);
 
   return (
     <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: cardBackground,
-          borderColor: isDark ? '#1d262b' : '#dce8e4',
-        },
-      ]}
-    >
+        style={[
+          styles.container,
+          {
+            backgroundColor: cardBackground,
+            borderColor: colors.cardBorder,
+          },
+        ]}
+      >
       <View style={styles.heroRow}>
         <View style={styles.scoreColumn}>
           <ThemedText
             style={[
               styles.scoreLabel,
-              { color: isDark ? '#95a9ad' : '#587275' },
+              { color: colors.textMuted },
             ]}
           >
             SCORE SEMAINE
@@ -79,7 +79,7 @@ export function WeekSummary({
                 cx={donutSize / 2}
                 cy={donutSize / 2}
                 r={radius}
-                stroke={isDark ? '#223038' : '#d8e5e2'}
+                stroke={colors.chartGrid}
                 strokeWidth={14}
                 fill="none"
               />
@@ -126,44 +126,38 @@ export function WeekSummary({
                 backgroundColor: getCompletionBackground(
                   accentColor,
                   day.completion ?? 0,
-                  isDark
+                  mode === 'dark'
                 ),
                 borderColor: day.isToday ? accentColor : 'transparent',
               },
             ]}
           >
             <ThemedText
-              style={[
-                styles.dayAbbr,
-                {
-                  color:
-                    day.isToday || (day.completion ?? 0) > 0
-                      ? accentColor
-                      : isDark
-                        ? '#74828a'
-                        : '#8b9b9f',
-                },
-              ]}
-            >
+                style={[
+                  styles.dayAbbr,
+                  {
+                    color:
+                      day.isToday || (day.completion ?? 0) > 0
+                        ? accentColor
+                        : colors.textSubtle,
+                  },
+                ]}
+              >
               {day.abbr}
             </ThemedText>
             <ThemedText
-              style={[
-                styles.dayDate,
-                {
-                  color:
-                    day.isToday
-                      ? isDark
-                        ? '#ffffff'
-                        : '#081217'
-                      : (day.completion ?? 0) >= 70
-                        ? accentColor
-                        : isDark
-                          ? '#d7dfe2'
-                          : '#304548',
-                },
-              ]}
-            >
+                style={[
+                  styles.dayDate,
+                  {
+                    color:
+                      day.isToday
+                        ? colors.text
+                        : (day.completion ?? 0) >= 70
+                          ? accentColor
+                          : colors.textMuted,
+                  },
+                ]}
+              >
               {day.date}
             </ThemedText>
             <View
@@ -250,25 +244,16 @@ const styles = StyleSheet.create({
   },
 });
 
-function getCardBackgroundColor(score: number, isDark: boolean): string {
-  // Color palette matching avatar emotional states
-  const colorStops = [
-    { score: 0, light: '#fef2f2', dark: '#1a0f0f' },    // exhausted - dark red
-    { score: 20, light: '#fce7e6', dark: '#2a1515' },
-    { score: 40, light: '#f5e6f0', dark: '#251820' },   // sad - dark purple
-    { score: 60, light: '#e8f0f5', dark: '#1a2530' },   // neutral - dark blue-gray
-    { score: 80, light: '#e6f5ed', dark: '#1a2f24' },   // content - green
-    { score: 100, light: '#e6fff5', dark: '#0d2d1f' },  // epic - bright green
-  ];
-
+function getCardBackgroundColor(score: number, mode: 'dark' | 'light'): string {
   // Find the two closest color stops
-  let start = colorStops[0];
-  let end = colorStops[colorStops.length - 1];
+  type ScoreStop = (typeof WEEK_SUMMARY_SCORE_STOPS)[number];
+  let start: ScoreStop = WEEK_SUMMARY_SCORE_STOPS[0];
+  let end: ScoreStop = WEEK_SUMMARY_SCORE_STOPS[WEEK_SUMMARY_SCORE_STOPS.length - 1];
 
-  for (let i = 0; i < colorStops.length - 1; i++) {
-    if (score >= colorStops[i].score && score <= colorStops[i + 1].score) {
-      start = colorStops[i];
-      end = colorStops[i + 1];
+  for (let i = 0; i < WEEK_SUMMARY_SCORE_STOPS.length - 1; i++) {
+    if (score >= WEEK_SUMMARY_SCORE_STOPS[i].score && score <= WEEK_SUMMARY_SCORE_STOPS[i + 1].score) {
+      start = WEEK_SUMMARY_SCORE_STOPS[i];
+      end = WEEK_SUMMARY_SCORE_STOPS[i + 1];
       break;
     }
   }
@@ -277,8 +262,8 @@ function getCardBackgroundColor(score: number, isDark: boolean): string {
   const range = end.score - start.score;
   const progress = (score - start.score) / range;
 
-  const startColor = isDark ? start.dark : start.light;
-  const endColor = isDark ? end.dark : end.light;
+  const startColor = mode === 'dark' ? start.dark : start.light;
+  const endColor = mode === 'dark' ? end.dark : end.light;
 
   return interpolateColor(startColor, endColor, progress);
 }

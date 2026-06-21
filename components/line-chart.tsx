@@ -1,5 +1,5 @@
 import { StyleSheet, View, Dimensions, Text } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import Svg, { Path, Defs, LinearGradient, Stop, TSpan, Line } from 'react-native-svg';
 import { DataPoint } from '@/lib/chart-data';
 
@@ -10,8 +10,7 @@ interface LineChartProps {
 }
 
 export function LineChart({ title, data, color }: LineChartProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors } = useAppTheme();
   const screenWidth = Dimensions.get('window').width;
 
   // Chart dimensions - more width, less height
@@ -26,10 +25,10 @@ export function LineChart({ title, data, color }: LineChartProps) {
   if (data.length === 0) {
     return (
       <View style={styles.chartSection}>
-        <Text style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}>
+        <Text style={[styles.title, { color: colors.text }]}>
           {title}
         </Text>
-        <View style={[styles.emptyChart, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]} />
+        <View style={[styles.emptyChart, { backgroundColor: colors.surfaceRaised }]} />
       </View>
     );
   }
@@ -71,11 +70,11 @@ export function LineChart({ title, data, color }: LineChartProps) {
     ? [0, Math.floor(data.length / 4), Math.floor(data.length / 2), Math.floor((3 * data.length) / 4), data.length - 1]
     : data.map((_, i) => i);
 
-  const gradientAlpha = isDark ? '0.25' : '0.2';
+  const gradientAlpha = '0.25';
 
   return (
     <View style={styles.chartSection}>
-      <Text style={[styles.title, { color: isDark ? '#ffffff' : '#000000' }]}>
+      <Text style={[styles.title, { color: colors.text }]}>
         {title}
       </Text>
       <View>
@@ -93,7 +92,7 @@ export function LineChart({ title, data, color }: LineChartProps) {
             y1={padding.top}
             x2={padding.left + innerWidth}
             y2={padding.top}
-            stroke={isDark ? '#444444' : '#cccccc'}
+            stroke={colors.chartAxis}
             strokeWidth="0.5"
           />
 
@@ -134,7 +133,7 @@ export function LineChart({ title, data, color }: LineChartProps) {
                 style={[
                   styles.label,
                   {
-                    color: isDark ? '#aaaaaa' : '#666666',
+                    color: colors.chartMuted,
                     left: `${xPercent}%`,
                     marginLeft,
                   },

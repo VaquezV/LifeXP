@@ -8,7 +8,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -27,12 +27,10 @@ export function HabitModal({
   onDelete,
   habit,
 }: HabitModalProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
 
   const [name, setName] = useState(habit?.name || '');
   const [emoji, setEmoji] = useState(habit?.emoji || '');
-  const [description, setDescription] = useState(habit?.description || '');
   const [targetValue, setTargetValue] = useState(
     habit?.target_value?.toString() || '1'
   );
@@ -45,7 +43,6 @@ export function HabitModal({
     if (habit) {
       setName(habit.name);
       setEmoji(habit.emoji || '');
-      setDescription(habit.description || '');
       setTargetValue(habit.target_value?.toString() || '1');
       setMinValue(habit.min_value?.toString() || '0');
     }
@@ -56,7 +53,6 @@ export function HabitModal({
       onSave({
         name,
         emoji,
-        description,
         target_value: parseFloat(targetValue) || 1,
         min_value: parseFloat(minValue) || 0,
       });
@@ -71,21 +67,18 @@ export function HabitModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
+      <View style={[styles.overlay, themeStyles.modalOverlay]}>
         <View
           style={[
             styles.container,
-            { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' },
+            themeStyles.modalSheet,
           ]}
         >
           {!showDeleteConfirm ? (
             <>
               <View style={styles.header}>
                 <Text
-                  style={[
-                    styles.title,
-                    { color: isDark ? '#ffffff' : '#000000' },
-                  ]}
+                  style={[styles.title, { color: colors.text }]}
                 >
                   {habit ? 'Edit Item' : 'New Item'}
                 </Text>
@@ -93,7 +86,7 @@ export function HabitModal({
                   <MaterialIcons
                     name="close"
                     size={24}
-                    color={isDark ? '#ffffff' : '#000000'}
+                    color={colors.text}
                   />
                 </Pressable>
               </View>
@@ -101,10 +94,7 @@ export function HabitModal({
               <ScrollView style={styles.content}>
                 <View style={styles.inputGroup}>
                   <Text
-                    style={[
-                      styles.label,
-                      { color: isDark ? '#aaaaaa' : '#666666' },
-                    ]}
+                    style={[styles.label, { color: colors.textMuted }]}
                   >
                     Emoji
                   </Text>
@@ -112,14 +102,11 @@ export function HabitModal({
                     style={[
                       styles.input,
                       styles.emojiInput,
-                      {
-                        backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                        color: isDark ? '#ffffff' : '#000000',
-                        borderColor: isDark ? '#333333' : '#ddd',
-                      },
+                      themeStyles.input,
+                      themeStyles.inputEmoji,
                     ]}
                     placeholder="🐕"
-                    placeholderTextColor={isDark ? '#666666' : '#999999'}
+                    placeholderTextColor={colors.placeholder}
                     value={emoji}
                     onChangeText={setEmoji}
                     maxLength={2}
@@ -128,77 +115,36 @@ export function HabitModal({
 
                 <View style={styles.inputGroup}>
                   <Text
-                    style={[
-                      styles.label,
-                      { color: isDark ? '#aaaaaa' : '#666666' },
-                    ]}
+                    style={[styles.label, { color: colors.textMuted }]}
                   >
                     Name
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
-                      {
-                        backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                        color: isDark ? '#ffffff' : '#000000',
-                        borderColor: isDark ? '#333333' : '#ddd',
-                      },
+                      themeStyles.input,
                     ]}
                     placeholder="Item name"
-                    placeholderTextColor={isDark ? '#666666' : '#999999'}
+                    placeholderTextColor={colors.placeholder}
                     value={name}
                     onChangeText={setName}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text
-                    style={[
-                      styles.label,
-                      { color: isDark ? '#aaaaaa' : '#666666' },
-                    ]}
-                  >
-                    Description (optional)
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      styles.descriptionInput,
-                      {
-                        backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                        color: isDark ? '#ffffff' : '#000000',
-                        borderColor: isDark ? '#333333' : '#ddd',
-                      },
-                    ]}
-                    placeholder="Add notes..."
-                    placeholderTextColor={isDark ? '#666666' : '#999999'}
-                    value={description}
-                    onChangeText={setDescription}
-                    multiline
                   />
                 </View>
 
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                     <Text
-                      style={[
-                        styles.label,
-                        { color: isDark ? '#aaaaaa' : '#666666' },
-                      ]}
+                      style={[styles.label, { color: colors.textMuted }]}
                     >
                       Target
                     </Text>
                     <TextInput
                       style={[
                         styles.input,
-                        {
-                          backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                          color: isDark ? '#ffffff' : '#000000',
-                          borderColor: isDark ? '#333333' : '#ddd',
-                        },
+                        themeStyles.input,
                       ]}
                       placeholder="1"
-                      placeholderTextColor={isDark ? '#666666' : '#999999'}
+                      placeholderTextColor={colors.placeholder}
                       value={targetValue}
                       onChangeText={setTargetValue}
                       keyboardType="decimal-pad"
@@ -207,24 +153,17 @@ export function HabitModal({
 
                   <View style={[styles.inputGroup, { flex: 1 }]}>
                     <Text
-                      style={[
-                        styles.label,
-                        { color: isDark ? '#aaaaaa' : '#666666' },
-                      ]}
+                      style={[styles.label, { color: colors.textMuted }]}
                     >
                       Minimum
                     </Text>
                     <TextInput
                       style={[
                         styles.input,
-                        {
-                          backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-                          color: isDark ? '#ffffff' : '#000000',
-                          borderColor: isDark ? '#333333' : '#ddd',
-                        },
+                        themeStyles.input,
                       ]}
                       placeholder="0"
-                      placeholderTextColor={isDark ? '#666666' : '#999999'}
+                      placeholderTextColor={colors.placeholder}
                       value={minValue}
                       onChangeText={setMinValue}
                       keyboardType="decimal-pad"
@@ -233,35 +172,30 @@ export function HabitModal({
                 </View>
               </ScrollView>
 
-              <View style={styles.actions}>
+              <View style={[styles.actions, themeStyles.dividerTop]}>
                 {habit && onDelete && (
                   <Pressable
-                    style={[styles.button, styles.deleteButton]}
+                    style={[styles.button, themeStyles.dangerButton]}
                     onPress={() => setShowDeleteConfirm(true)}
                   >
-                    <MaterialIcons name="delete" size={20} color="#f44336" />
-                    <Text style={styles.deleteButtonText}>Delete</Text>
+                    <MaterialIcons name="delete" size={20} color={colors.danger} />
+                    <Text style={[styles.deleteButtonText, { color: colors.danger }]}>Delete</Text>
                   </Pressable>
                 )}
                 <View style={styles.mainActions}>
                   <Pressable
-                    style={[styles.button, styles.cancelButton]}
+                    style={[styles.button, themeStyles.secondaryButton]}
                     onPress={onClose}
                   >
-                    <Text
-                      style={[
-                        styles.buttonText,
-                        { color: isDark ? '#ffffff' : '#000000' },
-                      ]}
-                    >
+                    <Text style={[styles.buttonText, { color: colors.text }]}>
                       Cancel
                     </Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.button, styles.saveButton]}
+                    style={[styles.button, themeStyles.primaryButton]}
                     onPress={handleSave}
                   >
-                    <Text style={[styles.buttonText, { color: '#ffffff' }]}>
+                    <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
                       Save
                     </Text>
                   </Pressable>
@@ -270,46 +204,35 @@ export function HabitModal({
             </>
           ) : (
             <View style={styles.confirmContainer}>
-              <MaterialIcons name="warning" size={48} color="#f44336" />
+              <MaterialIcons name="warning" size={48} color={colors.danger} />
               <Text
-                style={[
-                  styles.confirmTitle,
-                  { color: isDark ? '#ffffff' : '#000000' },
-                ]}
+                style={[styles.confirmTitle, { color: colors.text }]}
               >
                 Delete &quot;{name}&quot;?
               </Text>
               <Text
-                style={[
-                  styles.confirmText,
-                  { color: isDark ? '#aaaaaa' : '#666666' },
-                ]}
+                style={[styles.confirmText, { color: colors.textMuted }]}
               >
                 This will delete the item and all its history.
               </Text>
 
               <View style={styles.confirmActions}>
                 <Pressable
-                  style={[styles.button, styles.cancelButton]}
+                  style={[styles.button, themeStyles.secondaryButton]}
                   onPress={() => setShowDeleteConfirm(false)}
                 >
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      { color: isDark ? '#ffffff' : '#000000' },
-                    ]}
-                  >
+                  <Text style={[styles.buttonText, { color: colors.text }]}>
                     Keep
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.button, styles.deleteButton]}
+                  style={[styles.button, themeStyles.dangerButton]}
                   onPress={() => {
                     onDelete?.();
                     onClose();
                   }}
                 >
-                  <Text style={[styles.buttonText, { color: '#ffffff' }]}>
+                  <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
                     Delete
                   </Text>
                 </Pressable>
@@ -338,8 +261,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
   },
   title: {
     fontSize: 20,
@@ -377,8 +298,6 @@ const styles = StyleSheet.create({
   actions: {
     padding: 16,
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#333333',
   },
   mainActions: {
     flexDirection: 'row',
@@ -394,20 +313,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   deleteButton: {
-    backgroundColor: '#ffebee',
-    borderWidth: 1,
-    borderColor: '#f44336',
   },
   deleteButtonText: {
-    color: '#f44336',
     fontSize: 14,
     fontWeight: '600',
   },
   cancelButton: {
-    backgroundColor: '#333333',
   },
   saveButton: {
-    backgroundColor: '#2a9d8f',
   },
   buttonText: {
     fontSize: 14,

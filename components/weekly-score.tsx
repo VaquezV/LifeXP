@@ -1,6 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { ThemedText } from './themed-text';
 
 export interface WeeklyScoreProps {
@@ -8,9 +7,7 @@ export interface WeeklyScoreProps {
 }
 
 export function WeeklyScore({ percentage }: WeeklyScoreProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const themeColors = isDark ? Colors.dark : Colors.light;
+  const { colors } = useAppTheme();
 
   // Clamp percentage between 0 and 100
   const clampedPercentage = Math.max(0, Math.min(100, percentage));
@@ -20,7 +17,7 @@ export function WeeklyScore({ percentage }: WeeklyScoreProps) {
       <ThemedText style={styles.label}>This week</ThemedText>
       <ThemedText
         type="defaultSemiBold"
-        style={[styles.percentage, { color: themeColors.text }]}
+        style={[styles.percentage, { color: colors.text }]}
       >
         {Math.round(clampedPercentage)}%
       </ThemedText>
