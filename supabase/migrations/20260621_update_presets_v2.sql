@@ -54,7 +54,7 @@ INSERT INTO public.preset_habits
   (name, category, expertise, emoji, frequency_type, frequency_value, min_value, target_value, max_value,
    editable_min_value, editable_target_value, editable_max_value, editable_frequency_type, editable_frequency_value)
 VALUES
-  ('Activité', 'dev_perso', 'Marche',  '🚶', 'times_per_day',  1, 0, 1,  1,  false, false, false, false, false),
+  ('Activité', 'dev_perso', 'Marche',  '🚶', 'per_day',        1, 8000, 10000, 12000, true, true, true, false, false),
   ('Activité', 'dev_perso', 'Courses', '🏃', 'times_per_week', 1, 1, 3,  5,  true,  true,  true,  false, false),
   ('Activité', 'dev_perso', 'Sport',   '⚽', 'per_day',        1, 15, 30, 60, true,  true,  true,  false, false);
 

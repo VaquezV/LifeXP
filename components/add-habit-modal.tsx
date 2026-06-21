@@ -64,6 +64,7 @@ const CATEGORY_SHORT: Record<string, string> = {
 function formatTarget(preset: PresetHabit): string {
   const v = preset.target_value;
   if (preset.frequency_type === 'per_day') {
+    if (v >= 1000) return `${v.toLocaleString('fr-FR')} pas`;
     if (v >= 60) {
       const h = Math.floor(v / 60);
       const m = v % 60;
