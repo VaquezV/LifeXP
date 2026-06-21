@@ -1,6 +1,8 @@
-import { StyleSheet, View } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeContext } from '@/lib/theme-context';
 import { ThemedText } from './themed-text';
 
 export interface AppHeaderProps {
@@ -8,29 +10,29 @@ export interface AppHeaderProps {
 }
 
 export function AppHeader({ weeklyScore }: AppHeaderProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, styles: themeStyles } = useAppTheme();
   const { t } = useTranslation();
+  const { mode, toggleTheme } = useThemeContext();
 
   return (
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: isDark ? '#0a0a0a' : '#ffffff',
-          borderBottomColor: isDark ? '#222222' : '#eeeeee',
-        },
+        themeStyles.surface,
+        themeStyles.dividerBottom,
       ]}
     >
       <View style={styles.content}>
-        <ThemedText
-          style={[
-            styles.title,
-            { color: isDark ? '#ffffff' : '#000000' },
-          ]}
-        >
+        <ThemedText style={[styles.title, { color: colors.text }]}>
           {t('lifeXP')}
         </ThemedText>
+        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton} hitSlop={8}>
+          <MaterialIcons
+            name={mode === 'dark' ? 'wb-sunny' : 'brightness-3'}
+            size={22}
+            color={colors.textMuted}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -45,11 +47,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 36,
     fontWeight: '700',
+  },
+  toggleButton: {
+    padding: 4,
   },
 });
