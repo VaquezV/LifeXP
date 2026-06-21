@@ -10,9 +10,9 @@ export interface AppHeaderProps {
 }
 
 export function AppHeader({ weeklyScore }: AppHeaderProps) {
-  const { colors, styles: themeStyles } = useAppTheme();
+  const { colors, styles: themeStyles, isDark } = useAppTheme();
   const { t } = useTranslation();
-  const { mode, toggleTheme } = useThemeContext();
+  const { toggleTheme } = useThemeContext();
 
   return (
     <View
@@ -26,9 +26,15 @@ export function AppHeader({ weeklyScore }: AppHeaderProps) {
         <ThemedText style={[styles.title, { color: colors.text }]}>
           {t('lifeXP')}
         </ThemedText>
-        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton} hitSlop={8}>
+        <TouchableOpacity
+          onPress={toggleTheme}
+          style={styles.toggleButton}
+          hitSlop={8}
+          accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          accessibilityRole="button"
+        >
           <MaterialIcons
-            name={mode === 'dark' ? 'wb-sunny' : 'brightness-3'}
+            name={isDark ? 'wb-sunny' : 'brightness-3'}
             size={22}
             color={colors.textMuted}
           />
