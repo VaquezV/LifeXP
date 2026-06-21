@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/lib/auth';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function LoginScreen() {
   const { signInWithGoogle } = useAuth();
@@ -22,7 +22,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>LifeXP</Text>
-      <Text style={styles.subtitle}>Connecte-toi pour accéder à tes données.</Text>
+      <Text style={styles.subtitle}>Un pas chaque jour</Text>
+      <Text style={styles.subtitle}> L'élan vient du reste </Text>
+      <Text style={styles.hint}> L'application pour mettre en place tes bonnes habitudes </Text>
       <Pressable style={styles.button} onPress={handlePress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#05070a" />
@@ -36,10 +38,13 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#05070a', padding: 24 },
-  title: { color: '#fff', fontSize: 36, fontWeight: '700', marginBottom: 8 },
-  subtitle: { color: '#9aa4b2', fontSize: 15, marginBottom: 32, textAlign: 'center' },
-  button: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 12, minWidth: 240, alignItems: 'center' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#061121', padding: 24 },
+  title: { color: '#e1e9fc', fontSize: 72, fontWeight: '700', marginBottom: 32 },
+  subtitle: { color: '#9aa4b2', fontSize: 36, marginBottom: 10, textAlign: 'center' },
+
+
+  hint: { color: '#9aa4b2', fontSize: 18, marginBottom: 18, marginTop: 18, textAlign: 'center' },
+  button: { backgroundColor: '#fff', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 12, minWidth: 240, marginTop: 18, alignItems: 'center' },
   buttonText: { color: '#05070a', fontSize: 16, fontWeight: '600' },
   error: { color: '#ff6b6b', marginTop: 16, textAlign: 'center' },
 });

@@ -72,10 +72,14 @@ SELECT id, 1,  1,  'Premier brossage',    '🐕' FROM public.preset_habits WHERE
 UNION ALL
 SELECT id, 7,  7,  'Une semaine',         '📅' FROM public.preset_habits WHERE name = 'Chien' AND expertise IN ('Brossage quotidien', 'Brossage hebdo')
 UNION ALL
+SELECT id, 30, 30, 'Un mois',             '🎉' FROM public.preset_habits WHERE name = 'Chien' AND expertise IN ('Brossage quotidien', 'Brossage hebdo')
+UNION ALL
 -- Soin (nouveaux items)
 SELECT id, 1,  1,  'Premier jour',        '🪒' FROM public.preset_habits WHERE name = 'Soin' AND expertise IN ('Rasage quotidien', 'Rasage bi-hebdo')
 UNION ALL
 SELECT id, 7,  7,  'Une semaine',         '📅' FROM public.preset_habits WHERE name = 'Soin' AND expertise IN ('Rasage quotidien', 'Rasage bi-hebdo')
+UNION ALL
+SELECT id, 30, 30, 'Un mois',             '🎉' FROM public.preset_habits WHERE name = 'Soin' AND expertise IN ('Rasage quotidien', 'Rasage bi-hebdo')
 UNION ALL
 -- Traitement
 SELECT id, 1,  1,  'Premier jour',        '💊' FROM public.preset_habits WHERE name = 'Traitement'
@@ -89,4 +93,5 @@ SELECT id, 1,  1,  'Premier effort',      '⚡' FROM public.preset_habits WHERE 
 UNION ALL
 SELECT id, 7,  7,  'Une semaine active',  '📅' FROM public.preset_habits WHERE name = 'Activité'
 UNION ALL
-SELECT id, 30, 30, 'Un mois actif',       '🎉' FROM public.preset_habits WHERE name = 'Activité';
+SELECT id, 30, 30, 'Un mois actif',       '🎉' FROM public.preset_habits WHERE name = 'Activité'
+ON CONFLICT (preset_habit_id, badge_level) DO NOTHING;
