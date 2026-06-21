@@ -54,12 +54,7 @@ const EXPERTISE_LABELS: Record<string, string> = {
   standard: 'Standard',
 };
 
-const CATEGORY_SHORT: Record<string, string> = {
-  self_care:     'Bien-être',
-  dev_perso:     'Dev. perso',
-  vie_familiale: 'Famille',
-  vie_pro:       'Pro',
-};
+const CATEGORY_ORDER: CategoryType[] = ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'];
 
 function formatTarget(preset: PresetHabit): string {
   const v = preset.target_value;
@@ -109,9 +104,12 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
     onClose();
   };
 
-  const uniqueNames = [...new Set(presets.map(p => p.name))].sort();
-  const presetByName: Record<string, PresetHabit> = {};
-  presets.forEach(p => { if (!presetByName[p.name]) presetByName[p.name] = p; });
+  const namesByCategory = Object.fromEntries(
+    CATEGORY_ORDER.map(cat => [
+      cat,
+      [...new Set(presets.filter(p => p.category === cat).map(p => p.name))].sort(),
+    ])
+  );
   const variants = presets.filter(p => p.name === selectedName);
 
   return (
@@ -143,26 +141,32 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
           {step === 'picker' && (
             <ScrollView style={styles.content}>
-              {uniqueNames.map(name => (
-                <Pressable
-                  key={name}
-                  style={[styles.presetRow, { borderBottomColor: isDark ? '#222' : '#eee' }]}
-                  onPress={() => {
-                    setSelectedName(name);
-                    setStep('level');
-                  }}
-                >
-                  <View style={styles.pickerRowInner}>
-                    <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>{name}</Text>
-                    <View style={[styles.categoryBadge, { backgroundColor: CATEGORY_COLORS[presetByName[name]?.category as keyof typeof CATEGORY_COLORS]?.mid ?? '#888' }]}>
-                      <Text style={styles.categoryBadgeText}>
-                        {CATEGORY_SHORT[presetByName[name]?.category ?? ''] ?? ''}
+              {CATEGORY_ORDER.map(cat => {
+                const names = namesByCategory[cat];
+                if (!names || names.length === 0) return null;
+                return (
+                  <View key={cat}>
+                    <View style={[styles.categoryHeader, { borderLeftColor: CATEGORY_COLORS[cat].mid }]}>
+                      <Text style={[styles.categoryHeaderText, { color: CATEGORY_COLORS[cat].mid }]}>
+                        {CATEGORY_LABELS[cat]}
                       </Text>
                     </View>
+                    {names.map(name => (
+                      <Pressable
+                        key={name}
+                        style={[styles.presetRow, { borderBottomColor: isDark ? '#222' : '#eee' }]}
+                        onPress={() => {
+                          setSelectedName(name);
+                          setStep('level');
+                        }}
+                      >
+                        <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>{name}</Text>
+                        <MaterialIcons name="chevron-right" size={20} color={isDark ? '#666' : '#999'} />
+                      </Pressable>
+                    ))}
                   </View>
-                  <MaterialIcons name="chevron-right" size={20} color={isDark ? '#666' : '#999'} />
-                </Pressable>
-              ))}
+                );
+              })}
 
               <Pressable
                 style={[styles.manualButton, { borderColor: isDark ? '#444' : '#ccc' }]}
@@ -435,7 +439,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', backgroundColor: '#2a9d8f',
   },
   btnText: { fontSize: 14, fontWeight: '600' },
-  pickerRowInner:    { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  categoryBadge:     { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  categoryBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  categoryHeader:     { borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8, marginTop: 12, marginBottom: 4 },
+  categoryHeaderText: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 });
