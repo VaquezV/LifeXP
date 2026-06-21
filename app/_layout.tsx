@@ -1,15 +1,19 @@
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { ThemeContextProvider, useThemeContext } from '@/lib/theme-context';
 
 function RootNavigator() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { colors, styles: themeStyles } = useAppTheme();
+  const { mode } = useThemeContext();
 
   useEffect(() => {
     if (loading) return;
@@ -23,28 +27,30 @@ function RootNavigator() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#05070a' }}>
-        <ActivityIndicator color="#fff" />
+      <View style={[themeStyles.screen, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
-    </Stack>
+    <ThemeProvider value={mode === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+      </Stack>
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+    </ThemeProvider>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ThemeProvider value={DarkTheme}>
+    <ThemeContextProvider>
+      <AuthProvider>
         <RootNavigator />
-        <StatusBar style="light" />
-      </ThemeProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeContextProvider>
   );
 }
