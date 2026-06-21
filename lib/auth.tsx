@@ -14,7 +14,11 @@ export async function requireUserId(): Promise<string> {
 }
 
 export function getRedirectUri(): string {
-  // Web : origin courant ; natif : deep-link scheme lifexp://
+  // Sur web (browser desktop ou mobile) : toujours l'URL HTTPS courante.
+  // Sur natif (iOS/Android app) : deep-link lifexp://
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}/auth/callback`;
+  }
   return makeRedirectUri({ scheme: 'lifexp', path: 'auth/callback' });
 }
 
