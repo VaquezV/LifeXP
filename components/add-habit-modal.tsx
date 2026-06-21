@@ -54,6 +54,28 @@ const EXPERTISE_LABELS: Record<string, string> = {
   standard: 'Standard',
 };
 
+const CATEGORY_SHORT: Record<string, string> = {
+  self_care:     'Bien-être',
+  dev_perso:     'Dev. perso',
+  vie_familiale: 'Famille',
+  vie_pro:       'Pro',
+};
+
+function formatTarget(preset: PresetHabit): string {
+  const v = preset.target_value;
+  if (preset.frequency_type === 'per_day') {
+    if (v >= 60) {
+      const h = Math.floor(v / 60);
+      const m = v % 60;
+      return m > 0 ? `${h}h ${m}min` : `${h}h`;
+    }
+    return `${v} min`;
+  }
+  if (preset.frequency_type === 'times_per_day') return v === 1 ? '1x/jour' : `${v}x/jour`;
+  if (preset.frequency_type === 'times_per_week') return `${v}x/sem.`;
+  return String(v);
+}
+
 const INITIAL_FORM: {
   name: string;
   emoji: string;
@@ -87,6 +109,8 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
   };
 
   const uniqueNames = [...new Set(presets.map(p => p.name))].sort();
+  const presetByName: Record<string, PresetHabit> = {};
+  presets.forEach(p => { if (!presetByName[p.name]) presetByName[p.name] = p; });
   const variants = presets.filter(p => p.name === selectedName);
 
   return (
@@ -127,9 +151,14 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                     setStep('level');
                   }}
                 >
-                  <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>
-                    {name}
-                  </Text>
+                  <View style={styles.pickerRowInner}>
+                    <Text style={[styles.presetRowText, { color: isDark ? '#fff' : '#000' }]}>{name}</Text>
+                    <View style={[styles.categoryBadge, { backgroundColor: CATEGORY_COLORS[presetByName[name]?.category as keyof typeof CATEGORY_COLORS]?.mid ?? '#888' }]}>
+                      <Text style={styles.categoryBadgeText}>
+                        {CATEGORY_SHORT[presetByName[name]?.category ?? ''] ?? ''}
+                      </Text>
+                    </View>
+                  </View>
                   <MaterialIcons name="chevron-right" size={20} color={isDark ? '#666' : '#999'} />
                 </Pressable>
               ))}
@@ -172,7 +201,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                       {EXPERTISE_LABELS[variant.expertise] ?? variant.expertise}
                     </Text>
                     <Text style={[styles.levelChipSub, { color: isDark ? '#888' : '#999' }]}>
-                      {variant.target_value} min
+                      {formatTarget(variant)}
                     </Text>
                   </Pressable>
                 ))}
@@ -405,4 +434,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', backgroundColor: '#2a9d8f',
   },
   btnText: { fontSize: 14, fontWeight: '600' },
+  pickerRowInner:    { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  categoryBadge:     { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  categoryBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
 });
