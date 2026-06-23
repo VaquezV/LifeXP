@@ -58,7 +58,7 @@ export function CategorySection({
     return null;
   }
 
-  const tierLabel = getAccessoryTierLabel(completionPct);
+  const tierLabel = getAccessoryTierLabel(momentum);
   const accessoryLabel = ACCESSORY_LABELS[category];
 
   return (
