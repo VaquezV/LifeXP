@@ -9,26 +9,27 @@ import {
   Text,
 } from 'react-native';
 import { useTranslation } from '@/hooks/use-translation';
-import { AppHeader } from '@/components/app-header';
-import { WeekSummary } from '@/components/week-summary';
+import { HeroBanner } from '@/components/hero-banner';
 import { CategorySection } from '@/components/category-section';
 import { fetchHabits, createHabit } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
-import { calculateDayCompletion, calculateWeeklyScore } from '@/lib/scoring';
-import { Habit, CategoryType, FrequencyType, PresetHabit } from '@/lib/types';
+import {
+  calculateDayCompletion,
+  calculateWeeklyScore,
+  calculateCategoryCompletion,
+} from '@/lib/scoring';
+import { Habit, CategoryType, FrequencyType, PresetHabit, CATEGORY_KEYS } from '@/lib/types';
+import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { requireUserId } from '@/lib/auth';
 import { AddHabitModal } from '@/components/add-habit-modal';
 import { fetchPresetHabits } from '@/lib/preset-habits';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { fetchMomentum, defaultMomentumRecord, MomentumRecord } from '@/lib/momentum-db';
+import { getAccessoryDisplayState, MomentumTrend } from '@/lib/momentum';
 
-function getCategories(t: any): { key: CategoryType; label: string }[] {
-  return [
-    { key: 'self_care', label: t('selfCare') },
-    { key: 'dev_perso', label: t('personalDev') },
-    { key: 'vie_familiale', label: t('familyLife') },
-    { key: 'vie_pro', label: t('professional') },
-  ];
+function getCategories(t: (key: any) => string): { key: CategoryType; label: string }[] {
+  return CATEGORY_KEYS.map(key => ({ key, label: t(CATEGORY_TRANSLATION_KEY[key]) }));
 }
 
 function toDateKey(date: Date): string {
@@ -52,13 +53,13 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [dailyValues, setDailyValues] = useState<
     Record<string, Record<string, number>>
-  >({}); // date -> (habit_id -> value)
+  >({});
   const [weeklyScore, setWeeklyScore] = useState(0);
   const [categories, setCategories] = useState(initialCategories);
   const [presets, setPresets] = useState<PresetHabit[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [momentumRecord, setMomentumRecord] = useState<MomentumRecord | null>(null);
 
-  // Get last 7 days ending today
   const weekDates = useMemo(() => {
     const dates: string[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -74,20 +75,50 @@ export default function HomeScreen() {
 
   const weekDays = useMemo(
     () =>
-      weekDates.map(date => {
-        const completion = calculateDayCompletion(habits, dailyValues[date] ?? {});
-
-        return {
-          abbr: getWeekDayAbbr(date),
-          date: new Date(`${date}T12:00:00`).getDate().toString().padStart(2, '0'),
-          completion,
-          isToday: date === todayKey,
-        };
-      }),
+      weekDates.map(date => ({
+        abbr: getWeekDayAbbr(date),
+        date: new Date(`${date}T12:00:00`).getDate().toString().padStart(2, '0'),
+        completion: calculateDayCompletion(habits, dailyValues[date] ?? {}),
+        isToday: date === todayKey,
+      })),
     [dailyValues, habits, todayKey, weekDates]
   );
 
-  // Load habits and logs
+  const categoryCompletions = useMemo(
+    () =>
+      Object.fromEntries(
+        CATEGORY_KEYS.map(cat => [
+          cat,
+          calculateCategoryCompletion(habits, dailyValues, cat),
+        ])
+      ) as Record<CategoryType, number>,
+    [habits, dailyValues]
+  );
+
+  const MOMENTUM_COL: Record<CategoryType, keyof MomentumRecord> = {
+    self_care:     'momentum_selfcare',
+    dev_perso:     'momentum_devperso',
+    vie_familiale: 'momentum_famille',
+    vie_pro:       'momentum_pro',
+  };
+  const TREND_COL: Record<CategoryType, keyof MomentumRecord> = {
+    self_care:     'trend_selfcare',
+    dev_perso:     'trend_devperso',
+    vie_familiale: 'trend_famille',
+    vie_pro:       'trend_pro',
+  };
+
+  const categoryDisplayState = useMemo(() => {
+    const rec = momentumRecord ?? defaultMomentumRecord('');
+    return Object.fromEntries(
+      CATEGORY_KEYS.map(cat => {
+        const m = rec[MOMENTUM_COL[cat]] as number;
+        const t = rec[TREND_COL[cat]] as MomentumTrend;
+        return [cat, getAccessoryDisplayState(cat, m, t)];
+      })
+    ) as Record<CategoryType, ReturnType<typeof getAccessoryDisplayState>>;
+  }, [momentumRecord]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -99,14 +130,15 @@ export default function HomeScreen() {
         setHabits(fetchedHabits);
         setPresets(fetchedPresets);
 
-        // Load logs for this week
         const weekLogs: Record<string, Record<string, number>> = {};
         for (const date of weekDates) {
           weekLogs[date] = await fetchAllLogsForDate(date);
         }
         setDailyValues(weekLogs);
 
-        // Calculate weekly score
+        const record = await fetchMomentum().catch(() => null);
+        setMomentumRecord(record);
+
         const score = calculateWeeklyScore(fetchedHabits, weekLogs);
         setWeeklyScore(score);
       } catch (error) {
@@ -129,14 +161,9 @@ export default function HomeScreen() {
         value,
         habit?.preset_habit_id ?? null,
       );
-
-      // Update local state (score recalculation handled by useEffect)
       setDailyValues(prev => ({
         ...prev,
-        [date]: {
-          ...(prev[date] ?? {}),
-          [habitId]: value,
-        },
+        [date]: { ...(prev[date] ?? {}), [habitId]: value },
       }));
     } catch (error) {
       console.error('Error saving habit value:', error);
@@ -144,9 +171,7 @@ export default function HomeScreen() {
   };
 
   const handleHabitUpdate = (updatedHabit: Habit) => {
-    setHabits(prev =>
-      prev.map(h => h.id === updatedHabit.id ? updatedHabit : h)
-    );
+    setHabits(prev => prev.map(h => h.id === updatedHabit.id ? updatedHabit : h));
   };
 
   const handleHabitDelete = (habitId: string) => {
@@ -172,7 +197,6 @@ export default function HomeScreen() {
     setHabits(prev => [...prev, newHabit]);
   };
 
-  // Recalculate weekly score whenever dailyValues or habits change
   useEffect(() => {
     const score = calculateWeeklyScore(habits, dailyValues);
     setWeeklyScore(score);
@@ -180,54 +204,34 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView
-        style={[styles.container, themeStyles.screen]}
-      >
-        <ActivityIndicator
-          size="large"
-          color={colors.tint}
-          style={{ marginTop: 40 }}
-        />
+      <SafeAreaView style={[styles.container, themeStyles.screen]}>
+        <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, themeStyles.screen, { paddingTop: 8 }]}
-    >
+    <SafeAreaView style={[styles.container, themeStyles.screen, { paddingTop: 8 }]}>
       <FlatList
-        data={['app-header', 'week-header', ...categories.map(cat => cat.key), 'add-habit']}
+        data={['hero-banner', ...categories.map(cat => cat.key), 'add-habit']}
         keyExtractor={item => item}
         renderItem={({ item }) => {
-          if (item === 'app-header') {
-            return <AppHeader />;
-          }
-
-          if (item === 'week-header') {
-            return habits.length > 0 ? (
-              <WeekSummary
+          if (item === 'hero-banner') {
+            return (
+              <HeroBanner
+                weeklyScore={weeklyScore}
                 weekDays={weekDays}
-                weeklyCompletion={weeklyScore}
-                accentColor={colors.tint}
               />
-            ) : null;
+            );
           }
 
           if (item === 'add-habit') {
             return (
               <Pressable
-                style={[
-                  styles.addHabitButton,
-                  themeStyles.surfaceRaised,
-                ]}
+                style={[styles.addHabitButton, themeStyles.surfaceRaised]}
                 onPress={() => setAddModalVisible(true)}
               >
-                <MaterialIcons
-                  name="add-circle-outline"
-                  size={28}
-                  color={colors.icon}
-                />
+                <MaterialIcons name="add-circle-outline" size={28} color={colors.icon} />
                 <Text style={[styles.addHabitText, { color: colors.textMuted }]}>
                   Ajouter une nouvelle habitude
                 </Text>
@@ -236,30 +240,36 @@ export default function HomeScreen() {
           }
 
           const category = item as CategoryType;
-          const categoryHabits = habits.filter(h => h.category === category);
           const catData = categories.find(c => c.key === category);
-          const categoryLabel = catData?.label || category;
+          const categoryLabel = catData?.label ?? category;
 
           const handleUpdateCategory = (newLabel: string, newColor: string) => {
             setCategories(prev =>
-              prev.map(c =>
-                c.key === category ? { ...c, label: newLabel } : c
-              )
+              prev.map(c => c.key === category ? { ...c, label: newLabel } : c)
             );
           };
+
+          const rec = momentumRecord ?? defaultMomentumRecord('');
+          const catMomentum = rec[MOMENTUM_COL[category]] as number;
+          const { overlayHeight, overlayColor } = categoryDisplayState[category];
 
           return (
             <CategorySection
               key={category}
               category={category}
               categoryLabel={categoryLabel}
-              habits={categoryHabits}
+              completionPct={categoryCompletions[category]}
+              habits={habits}
               weekDates={weekDates}
               weekValues={dailyValues}
               onHabitValueChange={handleValueChange}
               onHabitUpdate={handleHabitUpdate}
               onHabitDelete={handleHabitDelete}
+              onAddHabit={handleAddHabit}
               onUpdateCategory={handleUpdateCategory}
+              momentum={catMomentum}
+              overlayHeight={overlayHeight}
+              overlayColor={overlayColor}
             />
           );
         }}
