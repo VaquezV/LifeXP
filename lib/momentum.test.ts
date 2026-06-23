@@ -80,6 +80,13 @@ describe('computeUpdatedMomentum', () => {
     expect(computeUpdatedMomentum(0, 0, 100).momentum).toBeGreaterThanOrEqual(0);
     expect(computeUpdatedMomentum(100, 100, 0).momentum).toBeLessThanOrEqual(100);
   });
+  it('>3 jours sans activité et score=0 → décroissance accélérée (plus rapide que decay normal)', () => {
+    // 5 jours absent avec score=0: 3 jours normal + 2 jours accélérés
+    const { momentum: accelerated } = computeUpdatedMomentum(60, 0, 5);
+    const { momentum: normal }      = computeUpdatedMomentum(60, 0, 3);
+    // La décroissance accélérée doit être plus forte
+    expect(accelerated).toBeLessThan(normal);
+  });
 });
 
 describe('getAccessoryDisplayState', () => {
