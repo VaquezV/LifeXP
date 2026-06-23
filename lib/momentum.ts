@@ -60,14 +60,6 @@ export function getAccessoryDisplayState(
  * Compute the updated momentum value and its trend direction.
  *
  * 1. If daysAbsent > 0, apply decay to previous to get base.
- * 2. Apply EMA(base, todayScore) to get updated.
- * 3. Round to 1 decimal, clamp to [0, 100].
- * 4. Determine trend compared to previous.
- */
-/**
- * Compute the updated momentum value and its trend direction.
- *
- * 1. If daysAbsent > 0, apply decay to previous to get base.
  *    Special case: score=0 AND daysAbsent>3 → normal decay for first 3 days,
  *    then accelerated decay (2× rate) for each day beyond day 3.
  * 2. Apply EMA(base, todayScore) to get updated.
