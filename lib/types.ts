@@ -1,4 +1,6 @@
 export type CategoryType = 'self_care' | 'dev_perso' | 'vie_familiale' | 'vie_pro';
+
+export const CATEGORY_KEYS = ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const satisfies CategoryType[];
 export type FrequencyType = 'per_day' | 'times_per_day' | 'times_per_week';
 
 export interface Habit {

@@ -7,6 +7,8 @@ import { Habit } from '@/lib/types';
 import { aggregateChartData } from '@/lib/chart-data';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { CATEGORY_COLORS } from '@/constants/Colors';
+import { useTranslation } from '@/hooks/use-translation';
+import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 
 type ViewMode = 'week' | 'month' | 'year';
 
@@ -17,6 +19,7 @@ export interface DashboardViewProps {
 
 function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
   const { colors, styles: themeStyles } = useAppTheme();
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const chartData = useMemo(() => {
@@ -72,22 +75,22 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
             color={colors.textMuted}
           />
           <LineChart
-            title="Self Care"
+            title={t(CATEGORY_TRANSLATION_KEY['self_care'])}
             data={chartData.self_care}
             color={CATEGORY_COLORS.self_care.mid}
           />
           <LineChart
-            title="Personal Dev"
+            title={t(CATEGORY_TRANSLATION_KEY['dev_perso'])}
             data={chartData.dev_perso}
             color={CATEGORY_COLORS.dev_perso.mid}
           />
           <LineChart
-            title="Family Life"
+            title={t(CATEGORY_TRANSLATION_KEY['vie_familiale'])}
             data={chartData.vie_familiale}
             color={CATEGORY_COLORS.vie_familiale.mid}
           />
           <LineChart
-            title="Professional"
+            title={t(CATEGORY_TRANSLATION_KEY['vie_pro'])}
             data={chartData.vie_pro}
             color={CATEGORY_COLORS.vie_pro.mid}
           />
@@ -108,25 +111,25 @@ function DashboardViewComponent({ habits, dailyValues }: DashboardViewProps) {
             <View
               style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.self_care.mid }]}
             />
-            <ThemedText style={styles.legendText}>Self Care</ThemedText>
+            <ThemedText style={styles.legendText}>{t(CATEGORY_TRANSLATION_KEY['self_care'])}</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
               style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.dev_perso.mid }]}
             />
-            <ThemedText style={styles.legendText}>Personal Dev</ThemedText>
+            <ThemedText style={styles.legendText}>{t(CATEGORY_TRANSLATION_KEY['dev_perso'])}</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
               style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.vie_familiale.mid }]}
             />
-            <ThemedText style={styles.legendText}>Family Life</ThemedText>
+            <ThemedText style={styles.legendText}>{t(CATEGORY_TRANSLATION_KEY['vie_familiale'])}</ThemedText>
           </View>
           <View style={styles.legendRow}>
             <View
               style={[styles.legendDot, { backgroundColor: CATEGORY_COLORS.vie_pro.mid }]}
             />
-            <ThemedText style={styles.legendText}>Professional</ThemedText>
+            <ThemedText style={styles.legendText}>{t(CATEGORY_TRANSLATION_KEY['vie_pro'])}</ThemedText>
           </View>
         </View>
       </ThemedView>

@@ -15,7 +15,7 @@ export interface CategorySectionProps {
   category: CategoryType;
   categoryLabel: string;
   completionPct?: number;
-  momentum?:      number;
+  score?:      number;
   overlayHeight?: number;
   overlayColor?:  string;
   habits: Habit[];
@@ -33,7 +33,7 @@ export function CategorySection({
   category,
   categoryLabel,
   completionPct = 0,
-  momentum = 0,
+  score = 0,
   overlayHeight = 0,
   overlayColor = 'rgba(128, 128, 128, 0.6)',
   habits,
@@ -58,7 +58,7 @@ export function CategorySection({
     return null;
   }
 
-  const tierLabel = getAccessoryTierLabel(momentum);
+  const tierLabel = getAccessoryTierLabel(score);
   const accessoryLabel = ACCESSORY_LABELS[category];
 
   return (
@@ -82,7 +82,7 @@ export function CategorySection({
         >
           <AccessoryIcon
             category={category}
-            momentum={momentum}
+            score={score}
             size={48}
             overlayHeight={overlayHeight}
             overlayColor={overlayColor}

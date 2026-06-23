@@ -1,3 +1,12 @@
+import { CategoryType } from './types';
+
+export const CATEGORY_TRANSLATION_KEY: Record<CategoryType, 'selfCare' | 'personalDev' | 'familyLife' | 'professional'> = {
+  self_care: 'selfCare',
+  dev_perso: 'personalDev',
+  vie_familiale: 'familyLife',
+  vie_pro: 'professional',
+};
+
 export const translations = {
   fr: {
     // Headers
@@ -16,10 +25,10 @@ export const translations = {
     overallProgress: 'Progression globale',
 
     // Categories
-    selfCare: 'Auto-Soin',
-    personalDev: 'Dev Personnel',
+    selfCare: 'Bien être',
+    personalDev: 'Developpement Personnel',
     familyLife: 'Vie Familiale',
-    professional: 'Professionnel',
+    professional: 'Vie Professionnelle/Scolaire',
 
     // Common
     today: "Aujourd'hui",
@@ -62,8 +71,8 @@ export function getSystemLanguage(): LanguageKey {
   try {
     // Get device locale
     const deviceLocale = require('react-native').NativeModules.SettingsManager?.settings?.AppleLocale ||
-                        require('react-native').NativeModules.SettingsManager?.settings?.locale ||
-                        'en_US';
+      require('react-native').NativeModules.SettingsManager?.settings?.locale ||
+      'en_US';
 
     const langCode = typeof deviceLocale === 'string' ? deviceLocale.split('_')[0] : 'en';
     return langCode === 'fr' ? 'fr' : 'en';

@@ -3,18 +3,13 @@ import { useState } from 'react';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { CATEGORY_COLORS } from '@/constants/Colors';
-import { CategoryType } from '@/lib/types';
+import { CategoryType, CATEGORY_KEYS } from '@/lib/types';
+import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
+import { useTranslation } from '@/hooks/use-translation';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 type FrequencyType = 'per_day' | 'times_per_day' | 'times_per_week';
-
-const CATEGORY_LABELS: Record<CategoryType, string> = {
-  self_care: 'Self Care',
-  dev_perso: 'Personal Dev',
-  vie_familiale: 'Family Life',
-  vie_pro: 'Professional',
-};
 
 export interface AddHabitCardProps {
   onAddHabit: (habit: {
@@ -29,6 +24,7 @@ export interface AddHabitCardProps {
 
 export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
   const { colors, styles: themeStyles } = useAppTheme();
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -129,8 +125,7 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
             <View style={styles.formGroup}>
               <ThemedText style={styles.formLabel}>Category</ThemedText>
               <View style={styles.categoryGrid}>
-                {(Object.keys(CATEGORY_LABELS) as CategoryType[]).map(
-                  (cat) => (
+                {CATEGORY_KEYS.map((cat) => (
                     <Pressable
                       key={cat}
                       style={[
@@ -158,11 +153,10 @@ export function AddHabitCard({ onAddHabit }: AddHabitCardProps) {
                           },
                         ]}
                       >
-                        {CATEGORY_LABELS[cat]}
+                        {t(CATEGORY_TRANSLATION_KEY[cat])}
                       </ThemedText>
                     </Pressable>
-                  )
-                )}
+                ))}
               </View>
             </View>
 

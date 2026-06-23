@@ -1,5 +1,5 @@
 import { CategoryType } from './types';
-import { getAccessoryFileName, getAccessoryTierIndex } from './accessoires';
+import { getNextTierFileName, getAccessoryTierIndex } from './accessoires';
 
 export const MOMENTUM_ALPHA = 0.3;
 
@@ -32,27 +32,23 @@ export function getOverlayHeight(momentum: number): number {
   return Math.round(100 * (1 - momentum / 100));
 }
 
-/**
- * Overlay color: red when trend is 'down' AND momentum % 20 < 10, otherwise grey.
- */
-export function getOverlayColor(momentum: number, trend: MomentumTrend): string {
-  if (trend === 'down' && momentum % 20 < 10) {
-    return 'rgba(255, 0, 0, 0.6)';
-  }
+// Red when declining and score is critically low (< 25%).
+export function getOverlayColor(score: number, trend: MomentumTrend): string {
+  if (trend === 'down' && score < 25) return 'rgba(255, 0, 0, 0.6)';
   return 'rgba(128, 128, 128, 0.6)';
 }
 
 export function getAccessoryDisplayState(
   category: CategoryType,
-  momentum: number,
+  score: number,   // completionPct (weekly score), 0-100
   trend: MomentumTrend,
 ): AccessoryDisplayState {
-  const m = Math.min(100, Math.max(0, momentum));
+  const s = Math.min(100, Math.max(0, score));
   return {
-    tier: determineTier(m),
-    svgFileName: getAccessoryFileName(category, m),
-    overlayHeight: getOverlayHeight(m),
-    overlayColor: getOverlayColor(m, trend),
+    tier:          determineTier(s),
+    svgFileName:   getNextTierFileName(category, s),
+    overlayHeight: getOverlayHeight(s),
+    overlayColor:  getOverlayColor(s, trend),
   };
 }
 

@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { CategoryType } from '@/lib/types';
-import { getAccessoryFileName } from '@/lib/accessoires';
+import { getNextTierFileName } from '@/lib/accessoires';
 
 const ACCESSORY_ASSETS = {
   'antre.0-20.svg':   require('@/assets/accessoires/antre.0-20.svg'),
@@ -30,24 +30,24 @@ const ACCESSORY_ASSETS = {
 
 interface AccessoryIconProps {
   category:       CategoryType;
-  momentum:       number;        // 0-100, drives SVG tier selection (was: completionPct)
+  score:          number;        // 0-100, completionPct — affiche le palier suivant avec overlay
   size?:          number;
-  overlayHeight?: number;        // 0-100: percentage of icon height to cover from the top. 0 = no overlay.
+  overlayHeight?: number;        // 0-100: % de la hauteur à couvrir depuis le haut. 0 = pas d'overlay.
   overlayColor?:  string;        // defaults to 'rgba(128, 128, 128, 0.6)'
 }
 
 function AccessoryIconComponent({
   category,
-  momentum,
+  score,
   size = 40,
   overlayHeight = 0,
   overlayColor = 'rgba(128, 128, 128, 0.6)',
 }: AccessoryIconProps) {
   const uri = useMemo(() => {
-    const fileName = getAccessoryFileName(category, momentum);
+    const fileName = getNextTierFileName(category, score);
     const asset = ACCESSORY_ASSETS[fileName as keyof typeof ACCESSORY_ASSETS];
     return asset ? Asset.fromModule(asset).uri : null;
-  }, [category, momentum]);
+  }, [category, score]);
 
   const coverPixels = Math.round((overlayHeight / 100) * size);
 

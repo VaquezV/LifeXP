@@ -1,5 +1,5 @@
 // lifexp/lib/scoring.ts
-import { Habit } from './types';
+import { Habit, CategoryType } from './types';
 
 /**
  * Calculate daily completion % for a per_day habit
@@ -158,4 +158,14 @@ export function calculateWeeklyScore(
 
   const average = completionPercentages.reduce((sum, pct) => sum + pct, 0) / completionPercentages.length;
   return Math.round(average);
+}
+
+export function calculateCategoryCompletion(
+  habits: Habit[],
+  weekLogs: Record<string, Record<string, number>>,
+  category: CategoryType,
+): number {
+  const catHabits = habits.filter(h => h.category === category);
+  if (catHabits.length === 0) return 0;
+  return calculateWeeklyScore(catHabits, weekLogs);
 }

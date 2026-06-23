@@ -95,12 +95,6 @@ export default function HomeScreen() {
     [habits, dailyValues]
   );
 
-  const MOMENTUM_COL: Record<CategoryType, keyof MomentumRecord> = {
-    self_care:     'momentum_selfcare',
-    dev_perso:     'momentum_devperso',
-    vie_familiale: 'momentum_famille',
-    vie_pro:       'momentum_pro',
-  };
   const TREND_COL: Record<CategoryType, keyof MomentumRecord> = {
     self_care:     'trend_selfcare',
     dev_perso:     'trend_devperso',
@@ -112,12 +106,12 @@ export default function HomeScreen() {
     const rec = momentumRecord ?? defaultMomentumRecord('');
     return Object.fromEntries(
       CATEGORY_KEYS.map(cat => {
-        const m = rec[MOMENTUM_COL[cat]] as number;
+        const score = categoryCompletions[cat];
         const t = rec[TREND_COL[cat]] as MomentumTrend;
-        return [cat, getAccessoryDisplayState(cat, m, t)];
+        return [cat, getAccessoryDisplayState(cat, score, t)];
       })
     ) as Record<CategoryType, ReturnType<typeof getAccessoryDisplayState>>;
-  }, [momentumRecord]);
+  }, [momentumRecord, categoryCompletions]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -249,8 +243,6 @@ export default function HomeScreen() {
             );
           };
 
-          const rec = momentumRecord ?? defaultMomentumRecord('');
-          const catMomentum = rec[MOMENTUM_COL[category]] as number;
           const { overlayHeight, overlayColor } = categoryDisplayState[category];
 
           return (
@@ -267,7 +259,7 @@ export default function HomeScreen() {
               onHabitDelete={handleHabitDelete}
               onAddHabit={handleAddHabit}
               onUpdateCategory={handleUpdateCategory}
-              momentum={catMomentum}
+              score={categoryCompletions[category]}
               overlayHeight={overlayHeight}
               overlayColor={overlayColor}
             />

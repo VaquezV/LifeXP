@@ -1,13 +1,13 @@
+import { useAppTheme } from '@/hooks/use-app-theme';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function TabLayout() {
   const { colors } = useAppTheme();
 
   return (
-      <Tabs
+    <Tabs
       screenOptions={{
         headerShown: false,
         sceneStyle: {
@@ -35,9 +35,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: 'Performances',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons color={color} name="bar-chart" size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons color={color} name="person" size={size} />
           ),
         }}
       />

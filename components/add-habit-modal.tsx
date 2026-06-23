@@ -8,7 +8,9 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { PresetHabit, CategoryType, FrequencyType } from '@/lib/types';
+import { PresetHabit, CategoryType, FrequencyType, CATEGORY_KEYS } from '@/lib/types';
+import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
+import { useTranslation } from '@/hooks/use-translation';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -30,12 +32,6 @@ interface Props {
 
 type Step = 'picker' | 'level' | 'form';
 
-const CATEGORY_LABELS: Record<string, string> = {
-  self_care: 'Bien-être',
-  dev_perso: 'Dév. perso',
-  vie_familiale: 'Famille',
-  vie_pro: 'Pro',
-};
 
 const FREQ_LABELS: Record<string, string> = {
   per_day: 'Durée/jour',
@@ -54,7 +50,6 @@ const EXPERTISE_LABELS: Record<string, string> = {
   standard: 'Standard',
 };
 
-const CATEGORY_ORDER: CategoryType[] = ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'];
 
 function formatTarget(preset: PresetHabit): string {
   const v = preset.target_value;
@@ -90,6 +85,7 @@ const INITIAL_FORM: {
 
 export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
   const { colors, styles: themeStyles } = useAppTheme();
+  const { t } = useTranslation();
 
   const [step, setStep] = useState<Step>('picker');
   const [selectedName, setSelectedName] = useState<string | null>(null);
@@ -105,7 +101,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
   };
 
   const namesByCategory = Object.fromEntries(
-    CATEGORY_ORDER.map(cat => [
+    CATEGORY_KEYS.map(cat => [
       cat,
       [...new Set(presets.filter(p => p.category === cat).map(p => p.name))].sort(),
     ])
@@ -136,14 +132,14 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
 
           {step === 'picker' && (
             <ScrollView style={styles.content}>
-              {CATEGORY_ORDER.map(cat => {
+              {CATEGORY_KEYS.map(cat => {
                 const names = namesByCategory[cat];
                 if (!names || names.length === 0) return null;
                 return (
                   <View key={cat}>
                     <View style={[styles.categoryHeader, { borderLeftColor: CATEGORY_COLORS[cat].mid }]}>
                       <Text style={[styles.categoryHeaderText, { color: CATEGORY_COLORS[cat].mid }]}>
-                        {CATEGORY_LABELS[cat]}
+                        {t(CATEGORY_TRANSLATION_KEY[cat])}
                       </Text>
                     </View>
                     {names.map(name => (
@@ -242,7 +238,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
               <View style={styles.formGroup}>
                 <Text style={[styles.formLabel, { color: colors.textMuted }]}>Catégorie</Text>
                 <View style={styles.chipRow}>
-                  {(Object.keys(CATEGORY_LABELS) as CategoryType[]).map(cat => (
+                  {CATEGORY_KEYS.map(cat => (
                     <Pressable
                       key={cat}
                       style={[
@@ -254,7 +250,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
                       onPress={() => !selectedPreset && setForm(f => ({ ...f, category: cat }))}
                     >
                       <Text style={[styles.chipText, { color: form.category === cat ? colors.onPrimary : colors.textMuted }]}>
-                        {CATEGORY_LABELS[cat]}
+                        {t(CATEGORY_TRANSLATION_KEY[cat])}
                       </Text>
                     </Pressable>
                   ))}

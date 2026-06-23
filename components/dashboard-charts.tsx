@@ -1,10 +1,12 @@
-import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
+import { CATEGORY_COLORS } from '@/constants/Colors';
+import { useTranslation } from '@/hooks/use-translation';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
+import { CategoryType } from '@/lib/types';
 import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
-import { CATEGORY_COLORS } from '@/constants/Colors';
-import { CategoryType } from '@/lib/types';
-import { useAppTheme } from '@/hooks/use-app-theme';
 
 type ViewMode = 'week' | 'month' | 'quarter' | 'year';
 
@@ -13,18 +15,12 @@ export interface DashboardChartsProps {
   categoryScores: Record<CategoryType, number[]>;
 }
 
-const CATEGORY_LABELS: Record<CategoryType, string> = {
-  self_care: 'Self Care',
-  dev_perso: 'Personal Dev',
-  vie_familiale: 'Family Life',
-  vie_pro: 'Professional',
-};
-
 export function DashboardCharts({
   globalWeeklyScores,
   categoryScores,
 }: DashboardChartsProps) {
   const { colors, styles: themeStyles } = useAppTheme();
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const getDataPoints = (scores: number[]) => {
@@ -199,7 +195,7 @@ export function DashboardCharts({
                 { color: colors.text },
               ]}
             >
-              {CATEGORY_LABELS[category]}
+              {t(CATEGORY_TRANSLATION_KEY[category])}
             </ThemedText>
             {renderLineChart(categoryScores[category], color, 140)}
           </View>

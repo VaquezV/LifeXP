@@ -46,12 +46,13 @@ describe('getOverlayHeight', () => {
 describe('getOverlayColor', () => {
   const GREY = 'rgba(128, 128, 128, 0.6)';
   const RED  = 'rgba(255, 0, 0, 0.6)';
-  it('stable → grey',                                 () => expect(getOverlayColor(50, 'stable')).toBe(GREY));
-  it('up → grey',                                     () => expect(getOverlayColor(50, 'up')).toBe(GREY));
-  it('down + distance=2 (<10) → red (momentum=22)',   () => expect(getOverlayColor(22, 'down')).toBe(RED));
-  it('down + distance=15 (≥10) → grey (momentum=55)', () => expect(getOverlayColor(55, 'down')).toBe(GREY));
-  it('down + distance=10 (==10) → grey (momentum=30)',() => expect(getOverlayColor(30, 'down')).toBe(GREY));
-  it('down + distance=9 (<10) → red (momentum=29)',   () => expect(getOverlayColor(29, 'down')).toBe(RED));
+  it('stable → grey',                              () => expect(getOverlayColor(50, 'stable')).toBe(GREY));
+  it('up → grey',                                  () => expect(getOverlayColor(50, 'up')).toBe(GREY));
+  it('down + score=22 (<25) → red',                () => expect(getOverlayColor(22, 'down')).toBe(RED));
+  it('down + score=24 (<25) → red',                () => expect(getOverlayColor(24, 'down')).toBe(RED));
+  it('down + score=25 (==25) → grey',              () => expect(getOverlayColor(25, 'down')).toBe(GREY));
+  it('down + score=55 (≥25) → grey',               () => expect(getOverlayColor(55, 'down')).toBe(GREY));
+  it('down + score=0 → red',                       () => expect(getOverlayColor(0, 'down')).toBe(RED));
 });
 
 describe('computeUpdatedMomentum', () => {
@@ -90,34 +91,44 @@ describe('computeUpdatedMomentum', () => {
 });
 
 describe('getAccessoryDisplayState', () => {
-  it('self_care momentum=10, stable → tier=0, svg=antre.0-20.svg, overlay=90, grey', () => {
+  it('self_care score=10, stable → tier=0, montre tier suivant antre.21-40.svg, overlay=90, grey', () => {
     const s = getAccessoryDisplayState('self_care', 10, 'stable');
     expect(s.tier).toBe(0);
-    expect(s.svgFileName).toBe('antre.0-20.svg');
+    expect(s.svgFileName).toBe('antre.21-40.svg');
     expect(s.overlayHeight).toBe(90);
     expect(s.overlayColor).toBe('rgba(128, 128, 128, 0.6)');
   });
-  it('dev_perso momentum=100, up → tier=4, svg=cri.81-100.svg, overlay=0', () => {
+  it('self_care score=25, stable → tier=1, montre tier suivant antre.41-60.svg (exemple utilisateur)', () => {
+    const s = getAccessoryDisplayState('self_care', 25, 'stable');
+    expect(s.tier).toBe(1);
+    expect(s.svgFileName).toBe('antre.41-60.svg');
+    expect(s.overlayHeight).toBe(75);
+  });
+  it('dev_perso score=100, up → tier=4, reste sur cri.81-100.svg (palier max), overlay=0', () => {
     const s = getAccessoryDisplayState('dev_perso', 100, 'up');
     expect(s.tier).toBe(4);
     expect(s.svgFileName).toBe('cri.81-100.svg');
     expect(s.overlayHeight).toBe(0);
   });
-  it('vie_familiale momentum=50, stable → tier=2, svg=meute.41-60.svg', () => {
+  it('vie_familiale score=50, stable → tier=2, montre tier suivant meute.61-80.svg', () => {
     const s = getAccessoryDisplayState('vie_familiale', 50, 'stable');
     expect(s.tier).toBe(2);
-    expect(s.svgFileName).toBe('meute.41-60.svg');
+    expect(s.svgFileName).toBe('meute.61-80.svg');
   });
-  it('vie_pro momentum=29, down → red overlay', () => {
-    const s = getAccessoryDisplayState('vie_pro', 29, 'down');
+  it('vie_pro score=20, down → red overlay (20 < 25)', () => {
+    const s = getAccessoryDisplayState('vie_pro', 20, 'down');
     expect(s.overlayColor).toBe('rgba(255, 0, 0, 0.6)');
   });
-  it('clamps momentum > 100', () => {
+  it('vie_pro score=30, down → grey overlay (30 ≥ 25)', () => {
+    const s = getAccessoryDisplayState('vie_pro', 30, 'down');
+    expect(s.overlayColor).toBe('rgba(128, 128, 128, 0.6)');
+  });
+  it('clamps score > 100', () => {
     const s = getAccessoryDisplayState('self_care', 150, 'stable');
     expect(s.tier).toBe(4);
     expect(s.overlayHeight).toBe(0);
   });
-  it('clamps momentum < 0', () => {
+  it('clamps score < 0', () => {
     const s = getAccessoryDisplayState('self_care', -10, 'stable');
     expect(s.tier).toBe(0);
     expect(s.overlayHeight).toBe(100);

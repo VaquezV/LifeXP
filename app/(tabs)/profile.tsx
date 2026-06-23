@@ -9,7 +9,6 @@ import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDate } from '@/lib/habit-logs';
 import { calculateWeeklyScore, calculateCategoryCompletion } from '@/lib/scoring';
 import { CategoryType, Habit, CATEGORY_KEYS } from '@/lib/types';
-import { fetchMomentum, defaultMomentumRecord, MomentumRecord } from '@/lib/momentum-db';
 
 
 const CATEGORY_ACCENT: Record<CategoryType, string> = {
@@ -31,8 +30,6 @@ export default function ProfileScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [weekLogs, setWeekLogs] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
-  const [momentumRecord, setMomentumRecord] = useState<MomentumRecord | null>(null);
-
   const weekDates = useMemo(() => {
     const dates: string[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -54,8 +51,6 @@ export default function ProfileScreen() {
           logs[date] = await fetchAllLogsForDate(date);
         }
         setWeekLogs(logs);
-        const record = await fetchMomentum().catch(() => null);
-        setMomentumRecord(record);
       } catch (e) {
         console.error('Profile load error', e);
       } finally {
@@ -85,13 +80,6 @@ export default function ProfileScreen() {
       </SafeAreaView>
     );
   }
-
-  const MOMENTUM_COL: Record<CategoryType, keyof MomentumRecord> = {
-    self_care:     'momentum_selfcare',
-    dev_perso:     'momentum_devperso',
-    vie_familiale: 'momentum_famille',
-    vie_pro:       'momentum_pro',
-  };
 
   return (
     <SafeAreaView style={[styles.screen, themeStyles.screen]}>
@@ -127,10 +115,8 @@ export default function ProfileScreen() {
         <View style={styles.grid}>
           {CATEGORY_KEYS.map((cat, idx) => {
             const pct = categoryCompletions[cat];
-            const rec = momentumRecord ?? defaultMomentumRecord('');
-            const momentum = rec[MOMENTUM_COL[cat]] as number;
             const accent = CATEGORY_ACCENT[cat];
-            const tierLabel = getAccessoryTierLabel(momentum);
+            const tierLabel = getAccessoryTierLabel(pct);
             const accLabel = ACCESSORY_LABELS[cat];
 
             return (
@@ -148,7 +134,7 @@ export default function ProfileScreen() {
               >
                 {/* Accessory icon */}
                 <View style={styles.cellIconWrapper}>
-                  <AccessoryIcon category={cat} momentum={momentum} size={80} />
+                  <AccessoryIcon category={cat} score={pct} size={80} />
                 </View>
 
                 {/* Name + progress */}
