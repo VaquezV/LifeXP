@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+// components/hero-banner.tsx
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeContext } from '@/lib/theme-context';
 import { ThemedText } from './themed-text';
 import { Avatar } from './avatar';
 import { getWolfQuote } from '@/lib/accessoires';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { TouchableOpacity } from 'react-native';
 
 interface WeekDay {
   abbr: string;
@@ -15,7 +15,7 @@ interface WeekDay {
 }
 
 interface HeroBannerProps {
-  weeklyScore: number;
+  avatarScore: number;
   weekDays: WeekDay[];
 }
 
@@ -28,15 +28,14 @@ function computeStreak(days: WeekDay[]): number {
   return streak;
 }
 
-export function HeroBanner({ weeklyScore, weekDays }: HeroBannerProps) {
+export function HeroBanner({ avatarScore, weekDays }: HeroBannerProps) {
   const { colors, isDark } = useAppTheme();
   const { toggleTheme } = useThemeContext();
   const streak = computeStreak(weekDays);
-  const quote = getWolfQuote(weeklyScore);
+  const quote = getWolfQuote(avatarScore);
 
   return (
     <View style={styles.container}>
-      {/* Top row: title + theme toggle */}
       <View style={styles.topRow}>
         <ThemedText style={styles.appTitle}>LifeXP</ThemedText>
         <TouchableOpacity onPress={toggleTheme} hitSlop={8} accessibilityRole="button">
@@ -48,18 +47,11 @@ export function HeroBanner({ weeklyScore, weekDays }: HeroBannerProps) {
         </TouchableOpacity>
       </View>
 
-      {/* Wolf + score row */}
       <View style={styles.wolfRow}>
         <View style={styles.avatarCircle}>
-          <Avatar score={weeklyScore} size="small" />
+          <Avatar score={avatarScore} size="small" />
         </View>
         <View style={styles.scoreBlock}>
-          <ThemedText style={[styles.scoreLabel, { color: colors.textMuted }]}>
-            cette semaine
-          </ThemedText>
-          <ThemedText style={[styles.scoreValue, { color: colors.text }]}>
-            {weeklyScore}%
-          </ThemedText>
           {streak > 0 && (
             <ThemedText style={[styles.streakText, { color: colors.tint }]}>
               🔥 {streak} jour{streak > 1 ? 's' : ''} d'affilée
@@ -68,14 +60,12 @@ export function HeroBanner({ weeklyScore, weekDays }: HeroBannerProps) {
         </View>
       </View>
 
-      {/* Wolf quote */}
       <View style={[styles.quoteBox, { borderLeftColor: colors.tint + '55', backgroundColor: colors.tint + '0a' }]}>
         <ThemedText style={[styles.quoteText, { color: colors.textMuted }]}>
           "{quote}"
         </ThemedText>
       </View>
 
-      {/* Week strip */}
       <View style={styles.weekStrip}>
         {weekDays.map((day, idx) => {
           const done = (day.completion ?? 0) > 0;
@@ -113,11 +103,7 @@ export function HeroBanner({ weeklyScore, weekDays }: HeroBannerProps) {
                 style={[
                   styles.dayPip,
                   {
-                    backgroundColor: day.isToday
-                      ? colors.tint
-                      : done
-                        ? colors.tint
-                        : colors.border,
+                    backgroundColor: day.isToday ? colors.tint : done ? colors.tint : colors.border,
                     opacity: done || day.isToday ? 1 : 0.3,
                   },
                 ]}
@@ -131,84 +117,17 @@ export function HeroBanner({ weeklyScore, weekDays }: HeroBannerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    gap: 12,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  appTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  wolfRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  avatarCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreBlock: {
-    flex: 1,
-    gap: 2,
-  },
-  scoreLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  scoreValue: {
-    fontSize: 36,
-    fontWeight: '900',
-    lineHeight: 40,
-  },
-  streakText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  quoteBox: {
-    borderLeftWidth: 2,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  quoteText: {
-    fontSize: 11,
-    fontStyle: 'italic',
-    lineHeight: 16,
-  },
-  weekStrip: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dayChip: {
-    flex: 1,
-    borderRadius: 6,
-    paddingVertical: 5,
-    alignItems: 'center',
-    gap: 4,
-  },
-  dayLabel: {
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  dayPip: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-  },
+  container: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, gap: 12 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  appTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  wolfRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  avatarCircle: { width: 72, height: 72, borderRadius: 36, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  scoreBlock: { flex: 1, gap: 2 },
+  streakText: { fontSize: 12, fontWeight: '600' },
+  quoteBox: { borderLeftWidth: 2, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
+  quoteText: { fontSize: 11, fontStyle: 'italic', lineHeight: 16 },
+  weekStrip: { flexDirection: 'row', gap: 4 },
+  dayChip: { flex: 1, borderRadius: 6, paddingVertical: 5, alignItems: 'center', gap: 4 },
+  dayLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.3 },
+  dayPip: { width: 5, height: 5, borderRadius: 3 },
 });

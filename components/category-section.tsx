@@ -1,30 +1,44 @@
+// components/category-section.tsx
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { ACCESSORY_LABELS, getAccessoryTierLabel } from '@/lib/accessoires';
+import {
+  ACCESSORY_LABELS,
+  CATEGORY_CURRENCY_NAMES,
+  getAccessoryTierLabel,
+  getAccessoryDisplayState,
+} from '@/lib/accessoires';
 import { CategoryType, Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, ToastAndroid, View, Alert } from 'react-native';
 import { AccessoryIcon } from './accessory-icon';
 import { CategoryModal } from './category-modal';
 import { HabitCard } from './habit-card';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
+function showToast(message: string) {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  } else {
+    Alert.alert('', message);
+  }
+}
+
 export interface CategorySectionProps {
   category: CategoryType;
   categoryLabel: string;
-  completionPct?: number;
-  score?:      number;
-  overlayHeight?: number;
-  overlayColor?:  string;
+  categoryLevel: number;
+  pointsInLevel: number;
+  pointsToNextLevel: number;
+  maxHabits: number;
   habits: Habit[];
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>;
   onHabitValueChange: (habitId: string, date: string, newValue: number) => void;
   onHabitUpdate?: (updatedHabit: Habit) => void;
   onHabitDelete?: (habitId: string) => void;
-  onAddHabit?: (habit: any) => Promise<void>;
+  onAddHabit?: () => void;
   onUpdateCategory?: (label: string, color: string) => void;
   onAccessoryPress?: () => void;
 }
@@ -32,10 +46,10 @@ export interface CategorySectionProps {
 export function CategorySection({
   category,
   categoryLabel,
-  completionPct = 0,
-  score = 0,
-  overlayHeight = 0,
-  overlayColor = 'rgba(128, 128, 128, 0.6)',
+  categoryLevel,
+  pointsInLevel,
+  pointsToNextLevel,
+  maxHabits,
   habits,
   weekDates,
   weekValues,
@@ -48,18 +62,51 @@ export function CategorySection({
 }: CategorySectionProps) {
   const { colors, styles: themeStyles } = useAppTheme();
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const categoryColor = CATEGORY_COLORS[category];
   const accentColor = categoryColor.mid;
-
   const categoryHabits = habits.filter(h => h.category === category);
+  const habitCount = categoryHabits.length;
+  const hasSlot = habitCount < maxHabits;
 
-  if (categoryHabits.length === 0 && !onAddHabit) {
-    return null;
+  const { overlayHeight, overlayColor } = getAccessoryDisplayState(
+    categoryLevel,
+    pointsInLevel,
+    pointsToNextLevel,
+  );
+
+  const currencyName = CATEGORY_CURRENCY_NAMES[category];
+  const tierLabel = getAccessoryTierLabel(categoryLevel);
+  const accessoryLabel = ACCESSORY_LABELS[category];
+  const pointsDisplay = `${Math.floor(pointsInLevel)} pts de ${currencyName}`;
+  const levelDisplay = `N${categoryLevel} · ${tierLabel}`;
+
+  useEffect(() => {
+    if (!hasSlot) { pulseAnim.setValue(1); return; }
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [hasSlot]);
+
+  function handleAddPress() {
+    if (!onAddHabit) return;
+    if (hasSlot) {
+      onAddHabit();
+    } else {
+      const msg = categoryLevel < 5
+        ? `Niveau N${categoryLevel + 1} requis pour ajouter une habitude ici`
+        : 'Niveau maximum atteint pour cette catégorie';
+      showToast(msg);
+    }
   }
 
-  const tierLabel = getAccessoryTierLabel(score);
-  const accessoryLabel = ACCESSORY_LABELS[category];
+  if (categoryHabits.length === 0 && !onAddHabit) return null;
 
   return (
     <ThemedView style={[styles.section, themeStyles.surface]}>
@@ -71,9 +118,8 @@ export function CategorySection({
         initialColor={accentColor}
       />
 
-      {/* Header: accessory icon + title/progress + edit button */}
+      {/* Header */}
       <View style={styles.header}>
-        {/* Tappable accessory icon */}
         <Pressable
           onPress={onAccessoryPress}
           style={[styles.accessoryWrapper, { borderColor: accentColor + '44' }]}
@@ -82,43 +128,44 @@ export function CategorySection({
         >
           <AccessoryIcon
             category={category}
-            score={score}
+            level={categoryLevel}
             size={48}
             overlayHeight={overlayHeight}
             overlayColor={overlayColor}
           />
         </Pressable>
 
-        {/* Category info */}
         <View style={styles.categoryInfo}>
           <View style={styles.titleRow}>
             <ThemedText type="subtitle" style={[styles.categoryTitle, { color: colors.text }]}>
               {categoryLabel}
             </ThemedText>
-            {onUpdateCategory && (
-              <Pressable onPress={() => setEditModalVisible(true)} style={styles.editButton}>
-                <MaterialIcons name="edit" size={16} color={accentColor} />
-              </Pressable>
-            )}
+            <View style={styles.titleActions}>
+              {onUpdateCategory && (
+                <Pressable onPress={() => setEditModalVisible(true)} style={styles.iconButton}>
+                  <MaterialIcons name="edit" size={16} color={accentColor} />
+                </Pressable>
+              )}
+              {onAddHabit && (
+                <Pressable onPress={handleAddPress} style={styles.iconButton} accessibilityRole="button">
+                  <Animated.View style={{ transform: [{ scale: hasSlot ? pulseAnim : 1 }] }}>
+                    <MaterialIcons
+                      name={hasSlot ? 'add-circle' : 'lock'}
+                      size={20}
+                      color={hasSlot ? accentColor : colors.textSubtle}
+                    />
+                  </Animated.View>
+                </Pressable>
+              )}
+            </View>
           </View>
 
-          {/* Progress bar */}
-          <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${completionPct}%`, backgroundColor: accentColor },
-              ]}
-            />
-          </View>
-
-          {/* % + tier label */}
-          <View style={styles.progressMeta}>
-            <ThemedText style={[styles.progressPct, { color: accentColor }]}>
-              {completionPct}%
+          <View style={styles.metaRow}>
+            <ThemedText style={[styles.pointsText, { color: accentColor }]}>
+              {pointsDisplay}
             </ThemedText>
-            <ThemedText style={[styles.tierLabel, { color: colors.textSubtle }]}>
-              {accessoryLabel} · {tierLabel}
+            <ThemedText style={[styles.levelText, { color: colors.textSubtle }]}>
+              {levelDisplay}
             </ThemedText>
           </View>
         </View>
@@ -137,17 +184,6 @@ export function CategorySection({
             onHabitDelete={onHabitDelete}
           />
         ))}
-        {/* {onAddHabit && (
-          <Pressable
-            style={[styles.addHabitButton, themeStyles.surfaceRaised, { borderColor: accentColor }]}
-            onPress={() => onAddHabit({ category }).catch(() => {})}
-          >
-            <MaterialIcons name="add" size={24} color={accentColor} />
-            <ThemedText style={[styles.addHabitText, { color: accentColor }]}>
-              Add
-            </ThemedText>
-          </Pressable>
-        )} */}
       </View>
     </ThemedView>
   );
@@ -191,46 +227,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flexShrink: 1,
   },
-  editButton: {
-    padding: 4,
-  },
-  progressTrack: {
-    height: 3,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3,
-    borderRadius: 2,
-  },
-  progressMeta: {
+  titleActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
-  progressPct: {
+  iconButton: {
+    padding: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  pointsText: {
     fontSize: 11,
     fontWeight: '700',
   },
-  tierLabel: {
+  levelText: {
     fontSize: 10,
   },
   habitsContainer: {
-    paddingHorizontal: 0,
     paddingBottom: 12,
-  },
-  addHabitButton: {
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  addHabitText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

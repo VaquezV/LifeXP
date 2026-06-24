@@ -76,3 +76,26 @@ export interface PresetBadge {
 export interface PresetHabitWithBadges extends PresetHabit {
   badges: PresetBadge[];
 }
+
+export interface PtsScaleEntry {
+  pct: number;
+  pts: number;
+}
+
+export interface ScoringConfig {
+  level: number;
+  max_habits: number;
+  min_completion_pct: number;
+  pts_scale: PtsScaleEntry[];
+  daily_maintenance: number;
+  points_to_next_level: number;
+}
+
+export interface CategoryProgress {
+  user_id: string;
+  category: CategoryType;
+  current_level: number;
+  points_in_level: number;
+  last_maintenance_date: string | null;
+  updated_at: string;
+}

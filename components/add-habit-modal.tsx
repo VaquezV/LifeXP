@@ -28,6 +28,7 @@ interface Props {
     preset_habit_id: string | null;
   }) => Promise<void>;
   presets: PresetHabit[];
+  defaultCategory?: CategoryType;
 }
 
 type Step = 'picker' | 'level' | 'form';
@@ -83,20 +84,20 @@ const INITIAL_FORM: {
   min_value: 30,
 };
 
-export function AddHabitModal({ visible, onClose, onSave, presets }: Props) {
+export function AddHabitModal({ visible, onClose, onSave, presets, defaultCategory }: Props) {
   const { colors, styles: themeStyles } = useAppTheme();
   const { t } = useTranslation();
 
   const [step, setStep] = useState<Step>('picker');
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<PresetHabit | null>(null);
-  const [form, setForm] = useState({ ...INITIAL_FORM });
+  const [form, setForm] = useState({ ...INITIAL_FORM, category: defaultCategory ?? 'self_care' as CategoryType });
 
   const resetAndClose = () => {
     setStep('picker');
     setSelectedName(null);
     setSelectedPreset(null);
-    setForm({ ...INITIAL_FORM });
+    setForm({ ...INITIAL_FORM, category: defaultCategory ?? 'self_care' });
     onClose();
   };
 
