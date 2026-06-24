@@ -1,3 +1,4 @@
+// components/accessory-icon.tsx
 import { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
@@ -30,24 +31,24 @@ const ACCESSORY_ASSETS = {
 
 interface AccessoryIconProps {
   category:       CategoryType;
-  score:          number;        // 0-100, completionPct — affiche le palier suivant avec overlay
+  level:          number;        // 1-5, niveau de la catégorie
   size?:          number;
-  overlayHeight?: number;        // 0-100: % de la hauteur à couvrir depuis le haut. 0 = pas d'overlay.
-  overlayColor?:  string;        // defaults to 'rgba(128, 128, 128, 0.6)'
+  overlayHeight?: number;        // 0-100: % hauteur couverte depuis le haut
+  overlayColor?:  string;
 }
 
 function AccessoryIconComponent({
   category,
-  score,
+  level,
   size = 40,
   overlayHeight = 0,
   overlayColor = 'rgba(128, 128, 128, 0.6)',
 }: AccessoryIconProps) {
   const uri = useMemo(() => {
-    const fileName = getNextTierFileName(category, score);
+    const fileName = getNextTierFileName(category, level);
     const asset = ACCESSORY_ASSETS[fileName as keyof typeof ACCESSORY_ASSETS];
     return asset ? Asset.fromModule(asset).uri : null;
-  }, [category, score]);
+  }, [category, level]);
 
   const coverPixels = Math.round((overlayHeight / 100) * size);
 
@@ -59,13 +60,7 @@ function AccessoryIconComponent({
       {coverPixels > 0 && (
         <View
           pointerEvents="none"
-          style={[
-            styles.overlay,
-            {
-              height:          coverPixels,
-              backgroundColor: overlayColor,
-            },
-          ]}
+          style={[styles.overlay, { height: coverPixels, backgroundColor: overlayColor }]}
         />
       )}
     </View>
@@ -75,15 +70,6 @@ function AccessoryIconComponent({
 export const AccessoryIcon = memo(AccessoryIconComponent);
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  overlay: {
-    position: 'absolute',
-    top:      0,
-    left:     0,
-    right:    0,
-  },
+  container: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0 },
 });

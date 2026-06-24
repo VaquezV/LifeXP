@@ -1,5 +1,24 @@
 import { CategoryType } from './types';
-import { getNextTierFileName, getAccessoryTierIndex } from './accessoires';
+import { getAccessoryFileName } from './accessoires';
+
+/** Map a 0-100 momentum score to a tier index (0-4). */
+function getAccessoryTierIndex(pct: number): 0 | 1 | 2 | 3 | 4 {
+  if (pct <= 20) return 0;
+  if (pct <= 40) return 1;
+  if (pct <= 60) return 2;
+  if (pct <= 80) return 3;
+  return 4;
+}
+
+/** Return the filename for the next tier above the current score (clamped at tier 4). */
+function getNextTierFileName(category: CategoryType, score: number): string {
+  const currentTier = getAccessoryTierIndex(score);
+  // Convert to 1-5 level for getAccessoryFileName: tier 0 → level 1 … tier 4 → level 5
+  // Next tier: min(currentTier + 1, 4), then level = nextTier + 1
+  const nextTier = Math.min(currentTier + 1, 4);
+  const level = nextTier + 1;
+  return getAccessoryFileName(category, level);
+}
 
 export const MOMENTUM_ALPHA = 0.3;
 
