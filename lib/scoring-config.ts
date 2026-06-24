@@ -24,7 +24,7 @@ export function applyPtsScale(scale: PtsScaleEntry[], completionPct: number): nu
 }
 
 export function getScoringConfigForLevel(configs: ScoringConfig[], level: number): ScoringConfig {
-  return configs.find(c => c.level === level) ?? SCORING_CONFIG_FALLBACK[0];
+  return configs.find(c => c.level === level) ?? configs[0] ?? SCORING_CONFIG_FALLBACK[0];
 }
 
 export async function fetchScoringConfig(): Promise<ScoringConfig[]> {
