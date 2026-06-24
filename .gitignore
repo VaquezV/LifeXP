@@ -10,6 +10,7 @@ web-build/
 expo-env.d.ts
 .agents
 .claude
+.worktrees
 docs/superpowers/
 .superpowers
 .codex
