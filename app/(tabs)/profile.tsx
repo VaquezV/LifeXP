@@ -1,15 +1,20 @@
+// app/(tabs)/profile.tsx
 import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, ActivityIndicator, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ThemedText } from '@/components/themed-text';
 import { Avatar } from '@/components/avatar';
 import { AccessoryIcon } from '@/components/accessory-icon';
-import { ACCESSORY_LABELS, getAccessoryTierLabel } from '@/lib/accessoires';
-import { fetchHabits } from '@/lib/habits';
-import { fetchAllLogsForDate } from '@/lib/habit-logs';
-import { calculateWeeklyScore, calculateCategoryCompletion } from '@/lib/scoring';
-import { CategoryType, Habit, CATEGORY_KEYS } from '@/lib/types';
-
+import {
+  ACCESSORY_LABELS,
+  CATEGORY_CURRENCY_NAMES,
+  getAccessoryTierLabel,
+} from '@/lib/accessoires';
+import { CategoryType, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
+import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
+import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
+import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
+import type { CategoryProgress } from '@/lib/types';
 
 const CATEGORY_ACCENT: Record<CategoryType, string> = {
   self_care:     '#4caf50',
@@ -18,39 +23,21 @@ const CATEGORY_ACCENT: Record<CategoryType, string> = {
   vie_pro:       '#42a5f5',
 };
 
-function toDateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = `${date.getMonth() + 1}`.padStart(2, '0');
-  const d = `${date.getDate()}`.padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 export default function ProfileScreen() {
   const { colors, styles: themeStyles } = useAppTheme();
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [weekLogs, setWeekLogs] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
-  const weekDates = useMemo(() => {
-    const dates: string[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setHours(12, 0, 0, 0);
-      d.setDate(d.getDate() - i);
-      dates.push(toDateKey(d));
-    }
-    return dates;
-  }, []);
+  const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
+  const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const fetchedHabits = await fetchHabits();
-        setHabits(fetchedHabits);
-        const logs: Record<string, Record<string, number>> = {};
-        for (const date of weekDates) {
-          logs[date] = await fetchAllLogsForDate(date);
-        }
-        setWeekLogs(logs);
+        const [progress, configs] = await Promise.all([
+          fetchCategoryProgress().catch(() => null),
+          fetchScoringConfig().catch(() => SCORING_CONFIG_FALLBACK),
+        ]);
+        if (progress) setCategoryProgress(progress);
+        if (configs.length) setScoringConfigs(configs);
       } catch (e) {
         console.error('Profile load error', e);
       } finally {
@@ -58,20 +45,23 @@ export default function ProfileScreen() {
       }
     };
     load();
-  }, [weekDates]);
+  }, []);
 
-  const weeklyScore = useMemo(
-    () => calculateWeeklyScore(habits, weekLogs),
-    [habits, weekLogs]
-  );
+  const progress = categoryProgress ?? defaultAllCategoryProgress('');
 
-  const categoryCompletions = useMemo(
-    () =>
-      Object.fromEntries(
-        CATEGORY_KEYS.map(cat => [cat, calculateCategoryCompletion(habits, weekLogs, cat)])
-      ) as Record<CategoryType, number>,
-    [habits, weekLogs]
-  );
+  const avatarScore = useMemo(() => {
+    const levels = Object.fromEntries(
+      CATEGORY_KEYS.map(cat => [cat, progress[cat].current_level])
+    ) as Record<CategoryType, number>;
+    return getAvatarScoreFromLevels(levels);
+  }, [progress]);
+
+  const wolfLevel = useMemo(() => {
+    const levels = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95];
+    const labels = ['N1','N1+','N2','N2+','N3','N3+','N4','N4+','N5','N5'];
+    const idx = levels.findIndex(l => avatarScore <= l);
+    return labels[idx >= 0 ? idx : labels.length - 1];
+  }, [avatarScore]);
 
   if (loading) {
     return (
@@ -85,39 +75,25 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.screen, themeStyles.screen]}>
       <ScrollView contentContainerStyle={styles.scroll}>
 
-        {/* ── Avatar zone ── */}
+        {/* Avatar zone */}
         <View style={[styles.avatarZone, { backgroundColor: colors.surface }]}>
-          {/* Subtle tint glow */}
           <View style={[styles.avatarGlow, { backgroundColor: colors.tint + '12' }]} />
-
-          <Avatar score={weeklyScore} size="large" />
-
-          {/* XP bar overlay */}
-          <View style={styles.xpBarRow}>
-            <ThemedText style={[styles.levelLabel, { color: colors.text }]}>
-              Semaine en cours
-            </ThemedText>
-            <ThemedText style={[styles.xpLabel, { color: colors.tint }]}>
-              {weeklyScore}%
-            </ThemedText>
-          </View>
-          <View style={[styles.xpTrack, { backgroundColor: colors.border }]}>
-            <View
-              style={[
-                styles.xpFill,
-                { width: `${weeklyScore}%`, backgroundColor: colors.tint },
-              ]}
-            />
-          </View>
+          <Avatar score={avatarScore} size="large" />
+          <ThemedText style={[styles.wolfLevelLabel, { color: colors.textMuted }]}>
+            Loup · {wolfLevel}
+          </ThemedText>
         </View>
 
-        {/* ── 2×2 accessory grid ── */}
+        {/* 2x2 accessory grid */}
         <View style={styles.grid}>
           {CATEGORY_KEYS.map((cat, idx) => {
-            const pct = categoryCompletions[cat];
+            const catProgress = progress[cat];
             const accent = CATEGORY_ACCENT[cat];
-            const tierLabel = getAccessoryTierLabel(pct);
+            const currencyName = CATEGORY_CURRENCY_NAMES[cat];
+            const tierLabel = getAccessoryTierLabel(catProgress.current_level);
             const accLabel = ACCESSORY_LABELS[cat];
+            const ptsDisplay = `${Math.floor(catProgress.points_in_level)} pts de ${currencyName}`;
+            const levelDisplay = `N${catProgress.current_level} · ${tierLabel}`;
 
             return (
               <View
@@ -132,31 +108,23 @@ export default function ProfileScreen() {
                   },
                 ]}
               >
-                {/* Accessory icon */}
                 <View style={styles.cellIconWrapper}>
-                  <AccessoryIcon category={cat} score={pct} size={80} />
+                  <AccessoryIcon
+                    category={cat}
+                    level={catProgress.current_level}
+                    size={80}
+                  />
                 </View>
 
-                {/* Name + progress */}
                 <View style={styles.cellMeta}>
-                  <View style={styles.cellTitleRow}>
-                    <ThemedText style={[styles.cellName, { color: accent }]}>
-                      {accLabel}
-                    </ThemedText>
-                    <ThemedText style={[styles.cellPct, { color: accent }]}>
-                      {pct}%
-                    </ThemedText>
-                  </View>
-                  <View style={[styles.cellTrack, { backgroundColor: colors.border }]}>
-                    <View
-                      style={[
-                        styles.cellFill,
-                        { width: `${pct}%`, backgroundColor: accent },
-                      ]}
-                    />
-                  </View>
+                  <ThemedText style={[styles.cellName, { color: accent }]}>
+                    {accLabel}
+                  </ThemedText>
+                  <ThemedText style={[styles.cellPts, { color: accent }]}>
+                    {ptsDisplay}
+                  </ThemedText>
                   <ThemedText style={[styles.cellTier, { color: colors.textSubtle }]}>
-                    {tierLabel}
+                    {levelDisplay}
                   </ThemedText>
                 </View>
               </View>
@@ -170,19 +138,16 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
+  screen: { flex: 1 },
+  scroll: { paddingBottom: 40 },
   avatarZone: {
     alignItems: 'center',
     paddingTop: 24,
-    paddingBottom: 0,
+    paddingBottom: 16,
     paddingHorizontal: 20,
     overflow: 'hidden',
     position: 'relative',
+    gap: 8,
   },
   avatarGlow: {
     position: 'absolute',
@@ -192,79 +157,17 @@ const styles = StyleSheet.create({
     borderRadius: 110,
     alignSelf: 'center',
   },
-  xpBarRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  levelLabel: {
-    fontSize: 12,
+  wolfLevelLabel: {
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.5,
+    marginTop: 4,
   },
-  xpLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  xpTrack: {
-    width: '100%',
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  xpFill: {
-    height: 4,
-    borderRadius: 2,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  gridCell: {
-    width: '50%',
-    padding: 16,
-    alignItems: 'center',
-    gap: 10,
-  },
-  cellIconWrapper: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cellMeta: {
-    width: '100%',
-    gap: 4,
-  },
-  cellTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  cellName: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  cellPct: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  cellTrack: {
-    height: 3,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  cellFill: {
-    height: 3,
-    borderRadius: 2,
-  },
-  cellTier: {
-    fontSize: 9,
-  },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  gridCell: { width: '50%', padding: 16, alignItems: 'center', gap: 10 },
+  cellIconWrapper: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
+  cellMeta: { width: '100%', gap: 3, alignItems: 'center' },
+  cellName: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+  cellPts: { fontSize: 12, fontWeight: '700' },
+  cellTier: { fontSize: 9 },
 });
