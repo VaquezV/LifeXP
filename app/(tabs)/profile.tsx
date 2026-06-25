@@ -115,7 +115,7 @@ export default function ProfileScreen() {
     [progress]
   );
 
-  const avatarScore = useMemo(() => getAvatarScoreFromLevels(levels), [levels]);
+  const avatarScore = getAvatarScoreFromLevels(levels);
   const tierIndex   = getWolfTierIndex(avatarScore);
   const wolfClass   = getWolfClass(avatarScore);
   const starString  = getStarString(avatarScore);
@@ -132,9 +132,14 @@ export default function ProfileScreen() {
   async function handleSaveName() {
     const trimmed = nameInput.trim();
     if (!trimmed) return;
-    await saveWolfName(trimmed);
-    setWolfName(trimmed);
-    setModalVisible(false);
+    try {
+      await saveWolfName(trimmed);
+      setWolfName(trimmed);
+      setModalVisible(false);
+    } catch {
+      // saveWolfName a échoué — on garde le modal ouvert, nom inchangé
+      setModalVisible(false);
+    }
   }
 
   if (loading) {
@@ -195,7 +200,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Accessoires ligne 2 */}
-        <View style={styles.accessoryRow}>
+        <View style={[styles.accessoryRow, { borderBottomColor: colors.border }]}>
           <AccessoryCell category="vie_familiale" catProgress={progress.vie_familiale} scoringConfigs={scoringConfigs} />
           <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
           <AccessoryCell category="vie_pro"       catProgress={progress.vie_pro}       scoringConfigs={scoringConfigs} />
