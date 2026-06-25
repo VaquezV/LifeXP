@@ -9,6 +9,7 @@ import {
   ACCESSORY_LABELS,
   CATEGORY_CURRENCY_NAMES,
   getAccessoryTierLabel,
+  formatPoints,
 } from '@/lib/accessoires';
 import { CategoryType, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
@@ -93,7 +94,7 @@ export default function ProfileScreen() {
             const currencyName = CATEGORY_CURRENCY_NAMES[cat];
             const tierLabel = getAccessoryTierLabel(catProgress.current_level);
             const accLabel = ACCESSORY_LABELS[cat];
-            const ptsDisplay = `${Math.floor(catProgress.points_in_level)} pts de ${currencyName}`;
+            const ptsDisplay = formatPoints(catProgress.points_in_level, currencyName);
             const levelDisplay = `N${catProgress.current_level} · ${tierLabel}`;
             const isMaxLevel = catProgress.current_level >= 5;
             const progressRatio = isMaxLevel

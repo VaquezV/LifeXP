@@ -16,11 +16,20 @@ export const ACCESSORY_LABELS: Record<CategoryType, string> = {
 };
 
 export const CATEGORY_CURRENCY_NAMES: Record<CategoryType, string> = {
-  self_care: 'Paille',
+  self_care: 'Fourrure',
   dev_perso: 'Souffle',
   vie_familiale: 'Interaction',
   vie_pro: 'Influence',
 };
+
+const VOWELS = /^[aeiouàâäéèêëîïôùûüœæy]/i;
+
+export function formatPoints(points: number, currencyName: string): string {
+  const n = Math.floor(points);
+  const unit = n <= 1 ? 'point' : 'points';
+  const prep = VOWELS.test(currencyName) ? "d'" : 'de ';
+  return `${n} ${unit} ${prep}${currencyName}`;
+}
 
 export function getAccessoryTierFromLevel(level: number): 0 | 1 | 2 | 3 | 4 {
   const clamped = Math.min(Math.max(level, 1), 5);
@@ -60,7 +69,7 @@ export function getAccessoryDisplayState(
 }
 
 const WOLF_QUOTES: Array<{ minScore: number; quote: string }> = [
-  { minScore: 0,  quote: 'Même le loup le plus faible peut apprendre à chasser.' },
+  { minScore: 0, quote: 'Même le loup le plus faible peut apprendre à chasser.' },
   { minScore: 25, quote: 'Chaque pas trace le chemin. Continue.' },
   { minScore: 45, quote: "La meute ne s'arrête pas quand les pattes font mal." },
   { minScore: 65, quote: 'Tu es dans ta zone. Le loup ne recule pas.' },

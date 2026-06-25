@@ -6,6 +6,7 @@ import {
   CATEGORY_CURRENCY_NAMES,
   getAccessoryTierLabel,
   getAccessoryDisplayState,
+  formatPoints,
 } from '@/lib/accessoires';
 import { CategoryType, Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -79,7 +80,7 @@ export function CategorySection({
   const currencyName = CATEGORY_CURRENCY_NAMES[category];
   const tierLabel = getAccessoryTierLabel(categoryLevel);
   const accessoryLabel = ACCESSORY_LABELS[category];
-  const pointsDisplay = `${Math.floor(pointsInLevel)} pts de ${currencyName}`;
+  const pointsDisplay = formatPoints(pointsInLevel, currencyName);
   const levelDisplay = `N${categoryLevel} · ${tierLabel}`;
 
   useEffect(() => {
