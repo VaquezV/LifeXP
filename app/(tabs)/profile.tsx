@@ -1,27 +1,26 @@
 // app/(tabs)/profile.tsx
-import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { ThemedText } from '@/components/themed-text';
-import { Avatar } from '@/components/avatar';
 import { AccessoryIcon } from '@/components/accessory-icon';
+import { Avatar } from '@/components/avatar';
+import { ThemedText } from '@/components/themed-text';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import {
   ACCESSORY_LABELS,
   CATEGORY_CURRENCY_NAMES,
-  getAccessoryTierLabel,
   formatPoints,
 } from '@/lib/accessoires';
-import { CategoryType, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
-import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
-import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
+import { defaultAllCategoryProgress, fetchCategoryProgress } from '@/lib/category-progress';
+import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import type { CategoryProgress } from '@/lib/types';
+import { CATEGORY_KEYS, CategoryType, ScoringConfig } from '@/lib/types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 const CATEGORY_ACCENT: Record<CategoryType, string> = {
-  self_care:     '#4caf50',
-  dev_perso:     '#ba68c8',
+  self_care: '#4caf50',
+  dev_perso: '#ba68c8',
   vie_familiale: '#ef5350',
-  vie_pro:       '#42a5f5',
+  vie_pro: '#42a5f5',
 };
 
 export default function ProfileScreen() {
@@ -107,10 +106,8 @@ export default function ProfileScreen() {
             const config = getScoringConfigForLevel(scoringConfigs, catProgress.current_level);
             const accent = CATEGORY_ACCENT[cat];
             const currencyName = CATEGORY_CURRENCY_NAMES[cat];
-            const tierLabel = getAccessoryTierLabel(catProgress.current_level);
             const accLabel = ACCESSORY_LABELS[cat];
             const ptsDisplay = formatPoints(catProgress.points_in_level, currencyName);
-            const levelDisplay = `N${catProgress.current_level} · ${tierLabel}`;
             const isMaxLevel = catProgress.current_level >= 5;
             const progressRatio = isMaxLevel
               ? 1
@@ -144,15 +141,9 @@ export default function ProfileScreen() {
                   <ThemedText style={[styles.cellPts, { color: accent }]}>
                     {ptsDisplay}
                   </ThemedText>
-                  <ThemedText style={[styles.cellTier, { color: colors.textSubtle }]}>
-                    {levelDisplay}
-                  </ThemedText>
-
                   {/* Barre de progression vers niveau suivant */}
                   <View style={styles.progressBlock}>
-                    <ThemedText style={[styles.progressLabel, { color: colors.textSubtle }]}>
-                      {isMaxLevel ? 'Niveau max' : 'Niveau suivant'}
-                    </ThemedText>
+
                     <View style={styles.progressRow}>
                       <ThemedText style={[styles.progressNum, { color: colors.textSubtle }]}>0</ThemedText>
                       <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
