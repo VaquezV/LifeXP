@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { CategoryType } from '@/lib/types';
-import { getNextTierFileName } from '@/lib/accessoires';
+import { getAccessoryFileName } from '@/lib/accessoires';
 
 const ACCESSORY_ASSETS = {
   'antre.0-20.svg':   require('@/assets/accessoires/antre.0-20.svg'),
@@ -45,7 +45,7 @@ function AccessoryIconComponent({
   overlayColor = 'rgba(128, 128, 128, 0.6)',
 }: AccessoryIconProps) {
   const uri = useMemo(() => {
-    const fileName = getNextTierFileName(category, level);
+    const fileName = getAccessoryFileName(category, level);
     const asset = ACCESSORY_ASSETS[fileName as keyof typeof ACCESSORY_ASSETS];
     return asset ? Asset.fromModule(asset).uri : null;
   }, [category, level]);

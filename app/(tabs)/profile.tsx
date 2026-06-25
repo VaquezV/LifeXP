@@ -88,12 +88,17 @@ export default function ProfileScreen() {
         <View style={styles.grid}>
           {CATEGORY_KEYS.map((cat, idx) => {
             const catProgress = progress[cat];
+            const config = getScoringConfigForLevel(scoringConfigs, catProgress.current_level);
             const accent = CATEGORY_ACCENT[cat];
             const currencyName = CATEGORY_CURRENCY_NAMES[cat];
             const tierLabel = getAccessoryTierLabel(catProgress.current_level);
             const accLabel = ACCESSORY_LABELS[cat];
             const ptsDisplay = `${Math.floor(catProgress.points_in_level)} pts de ${currencyName}`;
             const levelDisplay = `N${catProgress.current_level} · ${tierLabel}`;
+            const isMaxLevel = catProgress.current_level >= 5;
+            const progressRatio = isMaxLevel
+              ? 1
+              : Math.min(1, catProgress.points_in_level / config.points_to_next_level);
 
             return (
               <View
@@ -126,6 +131,27 @@ export default function ProfileScreen() {
                   <ThemedText style={[styles.cellTier, { color: colors.textSubtle }]}>
                     {levelDisplay}
                   </ThemedText>
+
+                  {/* Barre de progression vers niveau suivant */}
+                  <View style={styles.progressBlock}>
+                    <ThemedText style={[styles.progressLabel, { color: colors.textSubtle }]}>
+                      {isMaxLevel ? 'Niveau max' : 'Niveau suivant'}
+                    </ThemedText>
+                    <View style={styles.progressRow}>
+                      <ThemedText style={[styles.progressNum, { color: colors.textSubtle }]}>0</ThemedText>
+                      <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+                        <View
+                          style={[
+                            styles.progressFill,
+                            { width: `${Math.round(progressRatio * 100)}%`, backgroundColor: accent },
+                          ]}
+                        />
+                      </View>
+                      <ThemedText style={[styles.progressNum, { color: colors.textSubtle }]}>
+                        {isMaxLevel ? '—' : `${config.points_to_next_level} pts`}
+                      </ThemedText>
+                    </View>
+                  </View>
                 </View>
               </View>
             );
@@ -170,4 +196,10 @@ const styles = StyleSheet.create({
   cellName: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
   cellPts: { fontSize: 12, fontWeight: '700' },
   cellTier: { fontSize: 9 },
+  progressBlock: { width: '100%', gap: 3, marginTop: 6 },
+  progressLabel: { fontSize: 8, letterSpacing: 0.4, textAlign: 'center' },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  progressTrack: { flex: 1, height: 5, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 3 },
+  progressNum: { fontSize: 8, minWidth: 24, textAlign: 'center' },
 });
