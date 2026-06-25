@@ -62,15 +62,12 @@ export function SliderInput({
         maximumTrackTintColor={colors.border}
         thumbTintColor={accentColor}
       />
-      <Text style={[
-        styles.value,
-        { color: accentColor },
-      ]}>
-        {formatTime(displayValue)}
-      </Text>
-      <View style={styles.labels}>
+      <View style={styles.row}>
         <Text style={[styles.label, { color: colors.textSubtle }]}>
           {formatTime(min)}
+        </Text>
+        <Text style={[styles.value, { color: accentColor }]}>
+          {formatTime(displayValue)}
         </Text>
         <Text style={[styles.label, { color: colors.textSubtle }]}>
           {formatTime(max)}
@@ -82,25 +79,25 @@ export function SliderInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 12,
+    marginVertical: 8,
   },
   slider: {
     height: 40,
-    marginBottom: 8,
+    marginBottom: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   value: {
     fontSize: 14,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  labels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
   },
   label: {
     fontSize: 11,
     fontWeight: '600',
+    minWidth: 32,
   },
 });
