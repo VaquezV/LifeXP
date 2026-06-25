@@ -76,9 +76,13 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.screen, themeStyles.screen]}>
       <ScrollView contentContainerStyle={styles.scroll}>
 
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <ThemedText style={[styles.headerTitle, { color: colors.tint }]}>Life XP</ThemedText>
+        </View>
+
         {/* Avatar zone */}
-        <View style={[styles.avatarZone, { backgroundColor: colors.surface }]}>
-          <View style={[styles.avatarGlow, { backgroundColor: colors.tint + '12' }]} />
+        <View style={styles.avatarZone}>
           <Avatar score={avatarScore} size="large" />
           <ThemedText style={[styles.wolfLevelLabel, { color: colors.textMuted }]}>
             Loup · {wolfLevel}
@@ -167,22 +171,21 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scroll: { paddingBottom: 40 },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
   avatarZone: {
     alignItems: 'center',
     paddingTop: 24,
     paddingBottom: 16,
-    paddingHorizontal: 20,
-    overflow: 'hidden',
-    position: 'relative',
     gap: 8,
-  },
-  avatarGlow: {
-    position: 'absolute',
-    top: 0,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    alignSelf: 'center',
   },
   wolfLevelLabel: {
     fontSize: 13,

@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from '@/hooks/use-translation';
-import { HeroBanner } from '@/components/hero-banner';
 import { CategorySection } from '@/components/category-section';
 import { fetchHabits, createHabit } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
@@ -20,7 +19,6 @@ import { fetchPresetHabits } from '@/lib/preset-habits';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
 import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
-import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
 import type { CategoryProgress } from '@/lib/types';
 
 function getCategories(t: (key: any) => string): { key: CategoryType; label: string }[] {
@@ -78,13 +76,6 @@ export default function HomeScreen() {
     [dailyValues, habits, todayKey, weekDates]
   );
 
-  const avatarScore = useMemo(() => {
-    if (!categoryProgress) return 5;
-    const levels = Object.fromEntries(
-      CATEGORY_KEYS.map(cat => [cat, categoryProgress[cat].current_level])
-    ) as Record<CategoryType, number>;
-    return getAvatarScoreFromLevels(levels);
-  }, [categoryProgress]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -177,18 +168,9 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={[styles.container, themeStyles.screen, { paddingTop: 8 }]}>
       <FlatList
-        data={['hero-banner', ...categories.map(cat => cat.key)]}
+        data={categories.map(cat => cat.key)}
         keyExtractor={item => item}
         renderItem={({ item }) => {
-          if (item === 'hero-banner') {
-            return (
-              <HeroBanner
-                avatarScore={avatarScore}
-                weekDays={weekDays}
-              />
-            );
-          }
-
           const category = item as CategoryType;
           const catData = categories.find(c => c.key === category);
           const categoryLabel = catData?.label ?? category;

@@ -24,6 +24,15 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons color={color} name="person" size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: 'Check-in',
@@ -38,15 +47,6 @@ export default function TabLayout() {
           title: 'Performances',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons color={color} name="bar-chart" size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons color={color} name="person" size={size} />
           ),
         }}
       />
