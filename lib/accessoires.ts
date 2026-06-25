@@ -51,22 +51,6 @@ export function getNextTierFileName(category: CategoryType, level: number): stri
   return getAccessoryFileName(category, nextLevel);
 }
 
-export function getOverlayHeight(pointsInLevel: number, pointsToNextLevel: number): number {
-  if (pointsToNextLevel <= 0) return 0;
-  const progress = Math.min(1, pointsInLevel / pointsToNextLevel);
-  return Math.round((1 - progress) * 100);
-}
-
-export function getAccessoryDisplayState(
-  level: number,
-  pointsInLevel: number,
-  pointsToNextLevel: number,
-): { overlayHeight: number; overlayColor: string } {
-  return {
-    overlayHeight: getOverlayHeight(pointsInLevel, pointsToNextLevel),
-    overlayColor: 'rgba(128, 128, 128, 0.6)',
-  };
-}
 
 const WOLF_QUOTES: Array<{ minScore: number; quote: string }> = [
   { minScore: 0, quote: 'Même le loup le plus faible peut apprendre à chasser.' },

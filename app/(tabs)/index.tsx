@@ -208,7 +208,6 @@ export default function HomeScreen() {
               categoryLabel={categoryLabel}
               categoryLevel={catProgress.current_level}
               pointsInLevel={catProgress.points_in_level}
-              pointsToNextLevel={config.points_to_next_level}
               maxHabits={config.max_habits}
               habits={habits}
               weekDates={weekDates}

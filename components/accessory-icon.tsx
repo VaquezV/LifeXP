@@ -30,39 +30,23 @@ const ACCESSORY_ASSETS = {
 } as const;
 
 interface AccessoryIconProps {
-  category:       CategoryType;
-  level:          number;        // 1-5, niveau de la catégorie
-  size?:          number;
-  overlayHeight?: number;        // 0-100: % hauteur couverte depuis le haut
-  overlayColor?:  string;
+  category: CategoryType;
+  level:    number;
+  size?:    number;
 }
 
-function AccessoryIconComponent({
-  category,
-  level,
-  size = 40,
-  overlayHeight = 0,
-  overlayColor = 'rgba(128, 128, 128, 0.6)',
-}: AccessoryIconProps) {
+function AccessoryIconComponent({ category, level, size = 40 }: AccessoryIconProps) {
   const uri = useMemo(() => {
     const fileName = getAccessoryFileName(category, level);
     const asset = ACCESSORY_ASSETS[fileName as keyof typeof ACCESSORY_ASSETS];
     return asset ? Asset.fromModule(asset).uri : null;
   }, [category, level]);
 
-  const coverPixels = Math.round((overlayHeight / 100) * size);
-
   if (!uri) return <View style={[styles.container, { width: size, height: size }]} />;
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       <SvgUri width={size} height={size} uri={uri} />
-      {coverPixels > 0 && (
-        <View
-          pointerEvents="none"
-          style={[styles.overlay, { height: coverPixels, backgroundColor: overlayColor }]}
-        />
-      )}
     </View>
   );
 }
@@ -71,5 +55,4 @@ export const AccessoryIcon = memo(AccessoryIconComponent);
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0 },
 });

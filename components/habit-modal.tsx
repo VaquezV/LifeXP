@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  Modal,
-  ScrollView,
-} from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import React, { useEffect, useState } from 'react';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 interface HabitModalProps {
   visible: boolean;
@@ -130,7 +130,24 @@ export function HabitModal({
                     onChangeText={setName}
                   />
                 </View>
-
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text
+                    style={[styles.label, { color: colors.textMuted }]}
+                  >
+                    Minimum
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      themeStyles.input,
+                    ]}
+                    placeholder="0"
+                    placeholderTextColor={colors.placeholder}
+                    value={minValue}
+                    onChangeText={setMinValue}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                     <Text
@@ -151,24 +168,7 @@ export function HabitModal({
                     />
                   </View>
 
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text
-                      style={[styles.label, { color: colors.textMuted }]}
-                    >
-                      Minimum
-                    </Text>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        themeStyles.input,
-                      ]}
-                      placeholder="0"
-                      placeholderTextColor={colors.placeholder}
-                      value={minValue}
-                      onChangeText={setMinValue}
-                      keyboardType="decimal-pad"
-                    />
-                  </View>
+
                 </View>
               </ScrollView>
 

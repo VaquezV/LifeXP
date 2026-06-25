@@ -5,7 +5,6 @@ import {
   ACCESSORY_LABELS,
   CATEGORY_CURRENCY_NAMES,
   getAccessoryTierLabel,
-  getAccessoryDisplayState,
   formatPoints,
 } from '@/lib/accessoires';
 import { CategoryType, Habit } from '@/lib/types';
@@ -31,7 +30,6 @@ export interface CategorySectionProps {
   categoryLabel: string;
   categoryLevel: number;
   pointsInLevel: number;
-  pointsToNextLevel: number;
   maxHabits: number;
   habits: Habit[];
   weekDates: string[];
@@ -49,7 +47,6 @@ export function CategorySection({
   categoryLabel,
   categoryLevel,
   pointsInLevel,
-  pointsToNextLevel,
   maxHabits,
   habits,
   weekDates,
@@ -70,12 +67,6 @@ export function CategorySection({
   const categoryHabits = habits.filter(h => h.category === category);
   const habitCount = categoryHabits.length;
   const hasSlot = habitCount < maxHabits;
-
-  const { overlayHeight, overlayColor } = getAccessoryDisplayState(
-    categoryLevel,
-    pointsInLevel,
-    pointsToNextLevel,
-  );
 
   const currencyName = CATEGORY_CURRENCY_NAMES[category];
   const tierLabel = getAccessoryTierLabel(categoryLevel);
@@ -131,8 +122,6 @@ export function CategorySection({
             category={category}
             level={categoryLevel}
             size={48}
-            overlayHeight={overlayHeight}
-            overlayColor={overlayColor}
           />
         </Pressable>
 
