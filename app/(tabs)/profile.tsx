@@ -57,11 +57,22 @@ export default function ProfileScreen() {
     return getAvatarScoreFromLevels(levels);
   }, [progress]);
 
-  const wolfLevel = useMemo(() => {
-    const levels = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95];
-    const labels = ['N1','N1+','N2','N2+','N3','N3+','N4','N4+','N5','N5'];
-    const idx = levels.findIndex(l => avatarScore <= l);
-    return labels[idx >= 0 ? idx : labels.length - 1];
+  const wolfTitle = useMemo(() => {
+    const thresholds = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95];
+    const titles = [
+      'Louveteau des Cendres',
+      'Éveil des Frimas',
+      'Rôdeur des Lisières',
+      'Traqueur des Herbes',
+      'Chasseur des Brumes',
+      'Gardien des Clairières',
+      'Seigneur des Territoires',
+      'Loup-Totem',
+      'Esprit de la Meute',
+      'Loup Dieu des Origines',
+    ];
+    const idx = thresholds.findIndex(l => avatarScore <= l);
+    return titles[idx >= 0 ? idx : titles.length - 1];
   }, [avatarScore]);
 
   if (loading) {
@@ -85,7 +96,7 @@ export default function ProfileScreen() {
         <View style={styles.avatarZone}>
           <Avatar score={avatarScore} size="large" />
           <ThemedText style={[styles.wolfLevelLabel, { color: colors.textMuted }]}>
-            Loup · {wolfLevel}
+            {wolfTitle}
           </ThemedText>
         </View>
 
