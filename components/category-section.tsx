@@ -10,27 +10,19 @@ import {
 import { CategoryType, Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, ToastAndroid, View, Alert } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { AccessoryIcon } from './accessory-icon';
 import { CategoryModal } from './category-modal';
 import { HabitCard } from './habit-card';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-function showToast(message: string) {
-  if (Platform.OS === 'android') {
-    ToastAndroid.show(message, ToastAndroid.SHORT);
-  } else {
-    Alert.alert('', message);
-  }
-}
 
 export interface CategorySectionProps {
   category: CategoryType;
   categoryLabel: string;
   categoryLevel: number;
   pointsInLevel: number;
-  maxHabits: number;
   habits: Habit[];
   weekDates: string[];
   weekValues: Record<string, Record<string, number>>;
@@ -47,7 +39,6 @@ export function CategorySection({
   categoryLabel,
   categoryLevel,
   pointsInLevel,
-  maxHabits,
   habits,
   weekDates,
   weekValues,
@@ -65,8 +56,6 @@ export function CategorySection({
   const categoryColor = CATEGORY_COLORS[category];
   const accentColor = categoryColor.mid;
   const categoryHabits = habits.filter(h => h.category === category);
-  const habitCount = categoryHabits.length;
-  const hasSlot = habitCount < maxHabits;
 
   const currencyName = CATEGORY_CURRENCY_NAMES[category];
   const tierLabel = getAccessoryTierLabel(categoryLevel);
@@ -75,7 +64,6 @@ export function CategorySection({
   const levelDisplay = `N${categoryLevel} · ${tierLabel}`;
 
   useEffect(() => {
-    if (!hasSlot) { pulseAnim.setValue(1); return; }
     const anim = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.2, duration: 700, useNativeDriver: true }),
@@ -84,18 +72,11 @@ export function CategorySection({
     );
     anim.start();
     return () => anim.stop();
-  }, [hasSlot]);
+  }, []);
 
   function handleAddPress() {
     if (!onAddHabit) return;
-    if (hasSlot) {
-      onAddHabit();
-    } else {
-      const msg = categoryLevel < 5
-        ? `Niveau N${categoryLevel + 1} requis pour ajouter une habitude ici`
-        : 'Niveau maximum atteint pour cette catégorie';
-      showToast(msg);
-    }
+    onAddHabit();
   }
 
   if (categoryHabits.length === 0 && !onAddHabit) return null;
@@ -138,12 +119,8 @@ export function CategorySection({
               )}
               {onAddHabit && (
                 <Pressable onPress={handleAddPress} style={styles.iconButton} accessibilityRole="button">
-                  <Animated.View style={{ transform: [{ scale: hasSlot ? pulseAnim : 1 }] }}>
-                    <MaterialIcons
-                      name={hasSlot ? 'add-circle' : 'lock'}
-                      size={20}
-                      color={hasSlot ? accentColor : colors.textSubtle}
-                    />
+                  <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                    <MaterialIcons name="add-circle" size={20} color={accentColor} />
                   </Animated.View>
                 </Pressable>
               )}

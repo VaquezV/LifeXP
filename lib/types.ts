@@ -84,7 +84,6 @@ export interface PtsScaleEntry {
 
 export interface ScoringConfig {
   level: number;
-  max_habits: number;
   min_completion_pct: number;
   pts_scale: PtsScaleEntry[];
   daily_maintenance: number;
