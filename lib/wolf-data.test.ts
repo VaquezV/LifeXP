@@ -6,6 +6,7 @@ import {
   getAccessoryName,
   computeTotalXP,
   getNextLevelText,
+  getRandomMantra,
 } from './wolf-data';
 import type { CategoryType, CategoryProgress } from './types';
 import { SCORING_CONFIG_FALLBACK } from './scoring-config';
@@ -107,4 +108,17 @@ describe('getNextLevelText', () => {
     expect(getNextLevelText(lvl(3, 3, 3, 3))).toBe('Antre niv4, Cri niv4'));
   it('tous N5 (score 95) → —', () =>
     expect(getNextLevelText(lvl(5, 5, 5, 5))).toBe('—'));
+});
+
+describe('getRandomMantra', () => {
+  it('tier 0 → retourne une string non vide', () => {
+    expect(typeof getRandomMantra(0)).toBe('string');
+    expect(getRandomMantra(0).length).toBeGreaterThan(0);
+  });
+  it('tier 9 → retourne une string non vide', () => {
+    expect(getRandomMantra(9).length).toBeGreaterThan(0);
+  });
+  it('tier out-of-range (10) → clamp sur tier 9, string non vide', () => {
+    expect(getRandomMantra(10).length).toBeGreaterThan(0);
+  });
 });
