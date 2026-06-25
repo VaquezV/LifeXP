@@ -1,5 +1,5 @@
 import { getAvatarScoreFromLevels, type CategoryLevels } from './avatar-level';
-import { SCORING_CONFIG_FALLBACK } from './scoring-config';
+import { SCORING_CONFIG_FALLBACK } from './scoring-fallback';
 import type { CategoryProgress, CategoryType, ScoringConfig } from './types';
 import { CATEGORY_KEYS } from './types';
 
@@ -18,7 +18,7 @@ const WOLF_CLASSES = [
   'Loup Dieu des Origines',
 ] as const;
 
-const WOLF_MANTRAS: readonly string[][] = [
+const WOLF_MANTRAS: readonly (readonly string[])[] = [
   ['Chaque jour est un premier pas.', 'Le feu commence par une étincelle.', "Dormir, c'est déjà survivre."],
   ["J'ouvre les yeux sur ce que je peux devenir.", 'Le froid réveille.', 'Je sens le monde pour la première fois.'],
   ["Je n'appartiens pas encore à la forêt, mais je l'approche.", 'Chaque lisière franchie est une victoire.', "Je rôde, donc j'existe."],
@@ -97,7 +97,6 @@ export function getNextLevelText(levels: CategoryLevels): string {
   const fmt = (cats: typeof NEXT_LEVEL_CATS, niv: number) =>
     cats.map(c => `${c.label} niv${niv}`).join(', ');
 
-  if (score <= 5)  return fmt(below(2).slice(0, 1), 2);
   if (score <= 15) return fmt(below(2).slice(0, 1), 2);
   if (score <= 25) return fmt(below(2), 2);
   if (score <= 35) return fmt(below(3).slice(0, 2), 3);

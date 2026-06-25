@@ -9,7 +9,7 @@ import {
   getRandomMantra,
 } from './wolf-data';
 import type { CategoryType, CategoryProgress } from './types';
-import { SCORING_CONFIG_FALLBACK } from './scoring-config';
+import { SCORING_CONFIG_FALLBACK } from './scoring-fallback';
 
 function lvl(sc: number, dp: number, vf: number, vp: number): Record<CategoryType, number> {
   return { self_care: sc, dev_perso: dp, vie_familiale: vf, vie_pro: vp };
@@ -106,6 +106,10 @@ describe('getNextLevelText', () => {
     expect(getNextLevelText(lvl(3, 3, 2, 2))).toBe('Meute niv3, Totem niv3'));
   it('tous N3 (score 55) → Antre niv4, Cri niv4', () =>
     expect(getNextLevelText(lvl(3, 3, 3, 3))).toBe('Antre niv4, Cri niv4'));
+  it('Antre+Cri N4, reste N3 (score 65) → Meute niv4, Totem niv4', () =>
+    expect(getNextLevelText(lvl(4, 4, 3, 3))).toBe('Meute niv4, Totem niv4'));
+  it('tous N4 (score 75) → Antre niv5, Cri niv5', () =>
+    expect(getNextLevelText(lvl(4, 4, 4, 4))).toBe('Antre niv5, Cri niv5'));
   it('tous N5 (score 95) → —', () =>
     expect(getNextLevelText(lvl(5, 5, 5, 5))).toBe('—'));
 });
