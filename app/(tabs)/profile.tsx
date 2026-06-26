@@ -13,9 +13,8 @@ import {
   computeTotalXP,
   getAccessoryName,
   getNextClass,
-  getNextLevelText,
+  getNextLevelSummary,
   getRandomMantra,
-  getStarString,
   getWolfClass,
   getWolfTierIndex,
 } from '@/lib/wolf-data';
@@ -39,6 +38,27 @@ const CATEGORY_ACCENT: Record<CategoryType, string> = {
   vie_pro:       '#42a5f5',
 };
 
+function WolfTierBar({ tierIndex, tint, muted }: { tierIndex: number; tint: string; muted: string }) {
+  const filled = tierIndex + 1;
+  return (
+    <View style={styles.tierContainer}>
+      <View style={[styles.tierTrack, { backgroundColor: muted + '40' }]}>
+        <View style={[styles.tierFill, { width: `${filled * 10}%`, backgroundColor: tint }]} />
+      </View>
+      <View style={styles.tierLabels}>
+        {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const).map(n => (
+          <ThemedText
+            key={n}
+            style={[styles.tierLabelNum, { color: n <= filled ? tint : muted }]}
+          >
+            {n}
+          </ThemedText>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function AccessoryCell({
   category,
   catProgress,
@@ -57,13 +77,21 @@ function AccessoryCell({
     : Math.min(1, catProgress.points_in_level / config.points_to_next_level);
 
   return (
-    <View style={styles.accessoryCell}>
-      <AccessoryIcon category={category} level={catProgress.current_level} size={64} />
+    <View style={[
+      styles.accessoryCard,
+      {
+        backgroundColor: accent + '18',
+        borderColor: accent + '55',
+      },
+    ]}>
+      <AccessoryIcon category={category} level={catProgress.current_level} size={56} />
       <ThemedText style={[styles.accessoryName, { color: accent }]}>
         {getAccessoryName(category, catProgress.current_level)}
       </ThemedText>
+      <ThemedText style={[styles.accessoryLevel, { color: colors.textMuted }]}>
+        Niv. {catProgress.current_level}/5
+      </ThemedText>
       <View style={styles.progressRow}>
-        <ThemedText style={[styles.progressNum, { color: colors.textSubtle }]}>0</ThemedText>
         <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
           <View
             style={[
@@ -72,10 +100,10 @@ function AccessoryCell({
             ]}
           />
         </View>
-        <ThemedText style={[styles.progressNum, { color: colors.textSubtle }]}>
-          {isMaxLevel ? '—' : String(config.points_to_next_level)}
-        </ThemedText>
       </View>
+      <ThemedText style={[styles.progressPts, { color: colors.textMuted }]}>
+        {isMaxLevel ? 'MAX!' : `${catProgress.points_in_level}/${config.points_to_next_level} pts`}
+      </ThemedText>
     </View>
   );
 }
@@ -115,14 +143,13 @@ export default function ProfileScreen() {
     [progress]
   );
 
-  const avatarScore = getAvatarScoreFromLevels(levels);
-  const tierIndex   = getWolfTierIndex(avatarScore);
-  const wolfClass   = getWolfClass(avatarScore);
-  const starString  = getStarString(avatarScore);
-  const totalXP     = useMemo(() => computeTotalXP(progress, scoringConfigs), [progress, scoringConfigs]);
-  const mantra      = useMemo(() => getRandomMantra(tierIndex), [tierIndex]);
-  const nextClass   = getNextClass(avatarScore);
-  const nextLvlTxt  = useMemo(() => getNextLevelText(levels), [levels]);
+  const avatarScore    = getAvatarScoreFromLevels(levels);
+  const tierIndex      = getWolfTierIndex(avatarScore);
+  const wolfClass      = getWolfClass(avatarScore);
+  const totalXP        = useMemo(() => computeTotalXP(progress, scoringConfigs), [progress, scoringConfigs]);
+  const mantra         = useMemo(() => getRandomMantra(tierIndex), [tierIndex]);
+  const nextClass      = getNextClass(avatarScore);
+  const nextLvlSummary = useMemo(() => getNextLevelSummary(levels), [levels]);
 
   function openNameModal() {
     setNameInput(wolfName);
@@ -137,7 +164,6 @@ export default function ProfileScreen() {
       setWolfName(trimmed);
       setModalVisible(false);
     } catch {
-      // saveWolfName a échoué — on garde le modal ouvert, nom inchangé
       setModalVisible(false);
     }
   }
@@ -174,7 +200,7 @@ export default function ProfileScreen() {
               <ThemedText style={[styles.wolfName, { color: colors.text }]}>{wolfName}</ThemedText>
             </TouchableOpacity>
             <ThemedText style={[styles.wolfClass, { color: colors.tint }]}>{wolfClass}</ThemedText>
-            <ThemedText style={[styles.wolfStars, { color: colors.tint }]}>{starString}</ThemedText>
+            <WolfTierBar tierIndex={tierIndex} tint={colors.tint} muted={colors.textMuted} />
             <ThemedText style={[styles.wolfXP, { color: colors.textSubtle }]}>
               Expérience : {totalXP} XP
             </ThemedText>
@@ -187,23 +213,21 @@ export default function ProfileScreen() {
               </ThemedText>
             )}
             <ThemedText style={[styles.nextInfo, { color: colors.textSubtle }]}>
-              Pour prochain niveau : {nextLvlTxt}
+              Requis : {nextLvlSummary}
             </ThemedText>
           </View>
         </View>
 
-        {/* Accessoires ligne 1 */}
-        <View style={[styles.accessoryRow, { borderBottomColor: colors.border }]}>
-          <AccessoryCell category="self_care"     catProgress={progress.self_care}     scoringConfigs={scoringConfigs} />
-          <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
-          <AccessoryCell category="dev_perso"     catProgress={progress.dev_perso}     scoringConfigs={scoringConfigs} />
-        </View>
-
-        {/* Accessoires ligne 2 */}
-        <View style={[styles.accessoryRow, { borderBottomColor: colors.border }]}>
-          <AccessoryCell category="vie_familiale" catProgress={progress.vie_familiale} scoringConfigs={scoringConfigs} />
-          <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
-          <AccessoryCell category="vie_pro"       catProgress={progress.vie_pro}       scoringConfigs={scoringConfigs} />
+        {/* Accessoires grid */}
+        <View style={[styles.accessoryGrid, { borderTopColor: colors.border }]}>
+          <View style={styles.accessoryRowCards}>
+            <AccessoryCell category="self_care"     catProgress={progress.self_care}     scoringConfigs={scoringConfigs} />
+            <AccessoryCell category="dev_perso"     catProgress={progress.dev_perso}     scoringConfigs={scoringConfigs} />
+          </View>
+          <View style={styles.accessoryRowCards}>
+            <AccessoryCell category="vie_familiale" catProgress={progress.vie_familiale} scoringConfigs={scoringConfigs} />
+            <AccessoryCell category="vie_pro"       catProgress={progress.vie_pro}       scoringConfigs={scoringConfigs} />
+          </View>
         </View>
 
         {/* Modal édition nom */}
@@ -264,19 +288,32 @@ const styles = StyleSheet.create({
   heroInfo: { flex: 1, gap: 4 },
   wolfName:  { fontSize: 18, fontWeight: '800' },
   wolfClass: { fontSize: 13, fontWeight: '600' },
-  wolfStars: { fontSize: 16, letterSpacing: 2 },
   wolfXP:    { fontSize: 12 },
   wolfMantra: { fontSize: 11, fontStyle: 'italic', marginTop: 4, lineHeight: 16 },
   nextInfo:  { fontSize: 11, marginTop: 2 },
 
-  accessoryRow: { flexDirection: 'row', borderBottomWidth: 1 },
-  vDivider: { width: 1 },
-  accessoryCell: { flex: 1, alignItems: 'center', padding: 16, gap: 8 },
-  accessoryName: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
-  progressRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, width: '100%' },
-  progressTrack: { flex: 1, height: 5, borderRadius: 3, overflow: 'hidden' },
-  progressFill:  { height: '100%', borderRadius: 3 },
-  progressNum:   { fontSize: 8, minWidth: 20, textAlign: 'center' },
+  tierContainer: { gap: 3, marginVertical: 4 },
+  tierTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
+  tierFill:  { height: '100%', borderRadius: 4 },
+  tierLabels: { flexDirection: 'row' },
+  tierLabelNum: { flex: 1, fontSize: 8, fontWeight: '600', textAlign: 'center' },
+
+  accessoryGrid: { padding: 12, gap: 12, borderTopWidth: 1 },
+  accessoryRowCards: { flexDirection: 'row', gap: 12 },
+  accessoryCard: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    padding: 12,
+    alignItems: 'center',
+    gap: 6,
+  },
+  accessoryName:  { fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  accessoryLevel: { fontSize: 10, textAlign: 'center' },
+  progressRow:    { width: '100%' },
+  progressTrack:  { height: 5, borderRadius: 3, overflow: 'hidden' },
+  progressFill:   { height: '100%', borderRadius: 3 },
+  progressPts:    { fontSize: 9, textAlign: 'center' },
 
   overlay: {
     flex: 1,

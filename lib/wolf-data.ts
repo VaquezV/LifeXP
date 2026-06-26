@@ -106,3 +106,30 @@ export function getNextLevelText(levels: CategoryLevels): string {
   if (score <= 75) return fmt(below(5).slice(0, 2), 5);
   return fmt(below(5), 5);
 }
+
+export function getNextLevelSummary(levels: CategoryLevels): string {
+  const score = getAvatarScoreFromLevels(levels);
+  if (score >= 95) return '—';
+
+  const rules = [
+    { maxScore: 15, targetLevel: 2, required: 1 },
+    { maxScore: 25, targetLevel: 2, required: 2 },
+    { maxScore: 35, targetLevel: 2, required: 4 },
+    { maxScore: 45, targetLevel: 3, required: 2 },
+    { maxScore: 55, targetLevel: 3, required: 4 },
+    { maxScore: 65, targetLevel: 4, required: 2 },
+    { maxScore: 75, targetLevel: 4, required: 4 },
+    { maxScore: 85, targetLevel: 5, required: 2 },
+    { maxScore: 95, targetLevel: 5, required: 4 },
+  ] as const;
+
+  const rule = rules.find(r => score <= r.maxScore);
+  if (!rule) return '—';
+
+  const { targetLevel, required } = rule;
+  const currentCount = CATEGORY_KEYS.filter(cat => levels[cat] >= targetLevel).length;
+  const missing = required - currentCount;
+  const accWord = required === 1 ? 'accessoire' : 'accessoires';
+
+  return `${required} ${accWord} au Niv. ${targetLevel} (Manque : ${missing})`;
+}

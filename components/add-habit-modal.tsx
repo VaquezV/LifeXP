@@ -133,7 +133,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
 
           {step === 'picker' && (
             <ScrollView style={styles.content}>
-              {CATEGORY_KEYS.map(cat => {
+              {(defaultCategory ? [defaultCategory] : CATEGORY_KEYS).map(cat => {
                 const names = namesByCategory[cat];
                 if (!names || names.length === 0) return null;
                 return (
