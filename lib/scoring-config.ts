@@ -1,8 +1,9 @@
 // lib/scoring-config.ts
 import { supabase, SUPABASE_SETUP_MESSAGE } from './supabase';
 import { ScoringConfig, PtsScaleEntry } from './types';
+import { SCORING_CONFIG_FALLBACK } from './scoring-fallback';
 
-export { SCORING_CONFIG_FALLBACK } from './scoring-fallback';
+export { SCORING_CONFIG_FALLBACK };
 
 export function applyPtsScale(scale: PtsScaleEntry[], completionPct: number): number {
   let result = 0;
