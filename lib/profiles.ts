@@ -19,8 +19,8 @@ export async function fetchWolfName(): Promise<string> {
 export async function saveWolfName(name: string): Promise<void> {
   if (!supabase) return;
   const userId = await requireUserId();
-  // Échecs Supabase ignorés volontairement — la UI reste responsive
-  await supabase
+  const { error } = await supabase
     .from('profiles')
     .upsert({ user_id: userId, wolf_name: name.trim(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
 }

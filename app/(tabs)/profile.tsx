@@ -21,6 +21,7 @@ import {
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   SafeAreaView,
@@ -163,8 +164,8 @@ export default function ProfileScreen() {
       await saveWolfName(trimmed);
       setWolfName(trimmed);
       setModalVisible(false);
-    } catch {
-      setModalVisible(false);
+    } catch (e: any) {
+      Alert.alert('Erreur', e?.message ?? 'Impossible de sauvegarder le nom.');
     }
   }
 
