@@ -1,27 +1,23 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 
 export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
 };
 
 export function ThemedText({
   style,
-  lightColor,
-  darkColor,
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const theme = useWolfLevelTheme();
 
   return (
     <Text
       style={[
-        { color },
+        { color: theme.text },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
