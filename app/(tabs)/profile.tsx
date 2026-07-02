@@ -1,6 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { ProfileHeader, HabitCard, GamificationExplainer } from '@/components/profile-redesign';
-import { useAppTheme } from '@/hooks/use-app-theme';
+import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
 import { defaultAllCategoryProgress, fetchCategoryProgress } from '@/lib/category-progress';
 import { fetchWolfName, saveWolfName } from '@/lib/profiles';
@@ -32,7 +32,7 @@ import {
 
 
 export default function ProfileScreen() {
-  const { colors, styles: themeStyles } = useAppTheme();
+  const theme = useWolfLevelTheme();
   const { toggleTheme, mode } = useThemeContext();
   const [loading, setLoading] = useState(true);
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.screen, themeStyles.screen]}>
-        <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color={theme.tint} style={{ marginTop: 60 }} />
       </SafeAreaView>
     );
   }
@@ -105,10 +105,10 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
 
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-          <ThemedText style={[styles.headerTitle, { color: colors.tint }]}>Life XP</ThemedText>
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <ThemedText style={[styles.headerTitle, { color: theme.tint }]}>Life XP</ThemedText>
           <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
-            <ThemedText style={[styles.themeBtnText, { color: colors.textMuted }]}>
+            <ThemedText style={[styles.themeBtnText, { color: theme.textMuted }]}>
               {mode === 'dark' ? '☀' : '🌙'}
             </ThemedText>
           </TouchableOpacity>
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
         />
 
         {/* Habit Cards */}
-        <View style={[styles.habitsContainer, { backgroundColor: colors.surface }]}>
+        <View style={[styles.habitsContainer, { backgroundColor: theme.surface }]}>
           {CATEGORY_KEYS.map((category) => (
             <HabitCard
               key={category}
@@ -147,18 +147,18 @@ export default function ProfileScreen() {
           onRequestClose={() => setModalVisible(false)}
         >
           <Pressable style={styles.overlay} onPress={() => setModalVisible(false)}>
-            <Pressable style={[styles.modalBox, { backgroundColor: colors.surface }]} onPress={() => {}}>
-              <ThemedText style={[styles.modalTitle, { color: colors.text }]}>Nom du loup</ThemedText>
+            <Pressable style={[styles.modalBox, { backgroundColor: theme.surface }]} onPress={() => {}}>
+              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Nom du loup</ThemedText>
               <TextInput
                 value={nameInput}
                 onChangeText={setNameInput}
                 maxLength={30}
                 autoFocus
-                style={[styles.modalInput, { color: colors.text, borderColor: colors.border }]}
+                style={[styles.modalInput, { color: theme.text, borderColor: theme.border }]}
               />
               <TouchableOpacity
                 onPress={handleSaveName}
-                style={[styles.modalSave, { backgroundColor: colors.tint }]}
+                style={[styles.modalSave, { backgroundColor: theme.tint }]}
               >
                 <ThemedText style={styles.modalSaveLabel}>Sauvegarder</ThemedText>
               </TouchableOpacity>

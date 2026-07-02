@@ -35,14 +35,23 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('user_palette_progression')
           .select('current_wolf_level')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         if (data?.current_wolf_level) {
           setWolfLevel(data.current_wolf_level as WolfLevel);
+        } else if (!error && !data) {
+          // No row exists, create one with default level 1
+          await supabase
+            .from('user_palette_progression')
+            .insert({
+              user_id: userId,
+              current_wolf_level: 1,
+              last_seen_wolf_level: 0,
+            });
         }
       } catch (error) {
         console.error('Failed to fetch wolf level:', error);
