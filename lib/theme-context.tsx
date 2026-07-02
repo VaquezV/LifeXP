@@ -42,9 +42,10 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         if (data?.current_wolf_level) {
+          console.log('✅ Loaded wolf level:', data.current_wolf_level);
           setWolfLevel(data.current_wolf_level as WolfLevel);
         } else if (!error && !data) {
-          // No row exists, create one with default level 1
+          console.log('📝 Creating new user_palette_progression row...');
           await supabase
             .from('user_palette_progression')
             .insert({
