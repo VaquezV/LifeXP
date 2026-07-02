@@ -42,7 +42,8 @@ export function usePaletteTransition(
         }
       });
     }
-  }, [currentLevel, previousLevel, duration, customEasing, onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLevel, previousLevel]);
 
   return {
     transitionProgress,

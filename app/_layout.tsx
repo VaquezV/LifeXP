@@ -16,7 +16,7 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const { colors, styles: themeStyles } = useAppTheme();
-  const { mode, wolfLevel } = useThemeContext();
+  const { mode } = useThemeContext();
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [levelChangeInfo, setLevelChangeInfo] = useState<{
