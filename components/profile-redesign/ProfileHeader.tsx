@@ -52,7 +52,7 @@ export function ProfileHeader({
 
       {/* Name and Title Section */}
       <TouchableOpacity onPress={onEditName} activeOpacity={0.7}>
-        <ThemedText style={[styles.wolfName, { color: theme.text, letterSpacing: -0.5 }]}>
+        <ThemedText style={[styles.wolfName, { color: theme.textStrong || '#ffffff', letterSpacing: -0.5 }]}>
           {wolfName}
         </ThemedText>
       </TouchableOpacity>
@@ -60,7 +60,7 @@ export function ProfileHeader({
       <ThemedText
         style={[
           styles.wolfTitle,
-          { color: theme.tintSoft, letterSpacing: 0.5 },
+          { color: theme.tint, letterSpacing: 0.5, fontWeight: '600' },
         ]}
       >
         {wolfClass.toUpperCase()}
@@ -79,7 +79,7 @@ export function ProfileHeader({
         <ThemedText
           style={[
             styles.levelLabel,
-            { color: theme.textMuted, letterSpacing: 0.5 },
+            { color: theme.textSubtle || theme.textMuted, letterSpacing: 0.5, fontWeight: '700' },
           ]}
         >
           LEVEL
@@ -110,7 +110,7 @@ export function ProfileHeader({
               key={n}
               style={[
                 styles.levelNum,
-                { color: n <= filled ? theme.tint : theme.textMuted },
+                { color: n <= filled ? theme.tint : (theme.textSubtle || theme.textMuted), fontWeight: n <= filled ? '700' : '500' },
               ]}
             >
               {n}
@@ -122,7 +122,7 @@ export function ProfileHeader({
         <ThemedText
           style={[
             styles.xpText,
-            { color: theme.textSubtle, letterSpacing: 0.3 },
+            { color: theme.text, letterSpacing: 0.3, fontWeight: '600' },
           ]}
         >
           {totalXP} XP
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
     gap: 16,
+    alignItems: 'center',
   },
   avatarContainer: {
     alignItems: 'center',
@@ -160,21 +161,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   wolfName: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     textAlign: 'center',
   },
   wolfTitle: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
   levelSection: {
     borderLeftWidth: 3,
     borderRadius: 8,
-    padding: 12,
-    gap: 10,
+    padding: 16,
+    gap: 12,
+    width: '100%',
   },
   levelLabel: {
     fontSize: 11,
