@@ -1,10 +1,8 @@
 // components/celebration-modal.tsx
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, View, Pressable, StyleSheet, SafeAreaView } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeOut,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
