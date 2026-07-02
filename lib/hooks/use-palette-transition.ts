@@ -1,7 +1,7 @@
 // lib/hooks/use-palette-transition.ts
 
 import { useEffect, useRef } from 'react';
-import Animated, {
+import {
   useSharedValue,
   withTiming,
   Easing,
