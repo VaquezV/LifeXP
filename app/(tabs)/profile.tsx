@@ -34,6 +34,7 @@ import {
 export default function ProfileScreen() {
   const theme = useWolfLevelTheme();
   const { toggleTheme, mode } = useThemeContext();
+  const themeStyles = { screen: { backgroundColor: theme.surface } };
   const [loading, setLoading] = useState(true);
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
   const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
