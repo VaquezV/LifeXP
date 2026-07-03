@@ -1,11 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
 import { Avatar } from '@/components/avatar';
+import { ThemedText } from '@/components/themed-text';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
-import type { CategoryProgress, CategoryType } from '@/lib/types';
-import { getScoringConfigForLevel } from '@/lib/scoring-config';
-import type { ScoringConfig } from '@/lib/types';
+import { getOverallLevelProgress } from '@/lib/wolf-data';
+import React from 'react';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface ProfileHeaderProps {
   avatarScore: number;
@@ -15,8 +13,6 @@ interface ProfileHeaderProps {
   totalXP: number;
   onEditName: () => void;
   onHelpPress: () => void;
-  categoryProgress: Record<CategoryType, CategoryProgress>;
-  scoringConfigs: ScoringConfig[];
 }
 
 export function ProfileHeader({
@@ -27,21 +23,13 @@ export function ProfileHeader({
   totalXP,
   onEditName,
   onHelpPress,
-  categoryProgress,
-  scoringConfigs,
 }: ProfileHeaderProps) {
   const theme = useWolfLevelTheme();
 
-  // Calculate level progress
-  const currentLevelXP = Object.values(categoryProgress).reduce((sum, cat) => {
-    const config = getScoringConfigForLevel(scoringConfigs, cat.current_level);
-    return sum + Math.min(cat.points_in_level, config.points_to_next_level);
-  }, 0);
-
-  const maxLevelXP = scoringConfigs.reduce((sum, cfg) => sum + cfg.points_to_next_level, 0);
-  const progressRatio = maxLevelXP > 0 ? currentLevelXP / maxLevelXP : 0;
-
   const filled = tierIndex + 1;
+  // Bar position on the same 1-10 scale as the level dots below it, driven by
+  // the same avatarScore level-up conditions (SCORE_THRESHOLDS) that set the tier.
+  const overallProgress = getOverallLevelProgress(avatarScore);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
@@ -96,7 +84,7 @@ export function ProfileHeader({
             style={[
               styles.progressFill,
               {
-                width: `${Math.round(progressRatio * 100)}%`,
+                width: `${Math.round(overallProgress * 100)}%`,
                 backgroundColor: theme.tint,
               },
             ]}

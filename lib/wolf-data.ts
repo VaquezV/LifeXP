@@ -50,6 +50,17 @@ export function getWolfTierIndex(score: number): number {
   return idx >= 0 ? idx : SCORE_THRESHOLDS.length - 1;
 }
 
+// Fraction (0-1) of the way across the full 1-10 wolf level scale, using the
+// same avatarScore/SCORE_THRESHOLDS level-up conditions that decide the tier.
+export function getOverallLevelProgress(score: number): number {
+  const idx = getWolfTierIndex(score);
+  const upper = SCORE_THRESHOLDS[idx];
+  const lower = idx > 0 ? SCORE_THRESHOLDS[idx - 1] : 0;
+  const span = upper - lower;
+  const ratioInTier = span > 0 ? Math.max(0, Math.min(1, (score - lower) / span)) : 1;
+  return (idx + ratioInTier) / SCORE_THRESHOLDS.length;
+}
+
 export function getWolfClass(score: number): string {
   return WOLF_CLASSES[getWolfTierIndex(score)];
 }

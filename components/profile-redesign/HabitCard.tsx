@@ -5,6 +5,7 @@ import { AccessoryIcon } from '@/components/accessory-icon';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { getAccessoryName } from '@/lib/wolf-data';
 import { getScoringConfigForLevel } from '@/lib/scoring-config';
+import { CATEGORY_COLORS } from '@/constants/Colors';
 import type { CategoryProgress, CategoryType, ScoringConfig } from '@/lib/types';
 
 interface HabitCardProps {
@@ -13,14 +14,6 @@ interface HabitCardProps {
   scoringConfigs: ScoringConfig[];
 }
 
-// Color mapping per category
-const CATEGORY_COLORS: Record<CategoryType, string> = {
-  self_care: '#6aaa6a', // green
-  dev_perso: '#f5a840', // orange
-  vie_familiale: '#e8b8a0', // salmon/orange
-  vie_pro: '#7c9fd9', // blue
-};
-
 export function HabitCard({
   category,
   categoryProgress,
@@ -28,7 +21,7 @@ export function HabitCard({
 }: HabitCardProps) {
   const theme = useWolfLevelTheme();
 
-  const accentColor = CATEGORY_COLORS[category];
+  const accentColor = CATEGORY_COLORS[category].mid;
   const cardName = getAccessoryName(category, categoryProgress.current_level);
   const config = getScoringConfigForLevel(scoringConfigs, categoryProgress.current_level);
   const isMaxLevel = categoryProgress.current_level >= 5;

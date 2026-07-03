@@ -3,6 +3,23 @@ import { DEFAULT_THEME, type ThemeMode } from '@/constants/theme';
 import { supabase } from './supabase';
 import { requireUserId } from './auth';
 import type { WolfLevel } from './theme-evolution';
+import { fetchCategoryProgress } from './category-progress';
+import { getAvatarScoreFromLevels } from './avatar-level';
+import { getWolfTierIndex } from './wolf-data';
+import { CATEGORY_KEYS, type CategoryType } from './types';
+
+async function computeWolfLevelFromProgress(): Promise<WolfLevel | null> {
+  try {
+    const progress = await fetchCategoryProgress();
+    const levels = Object.fromEntries(
+      CATEGORY_KEYS.map(cat => [cat, progress[cat].current_level])
+    ) as Record<CategoryType, number>;
+    const score = getAvatarScoreFromLevels(levels);
+    return (getWolfTierIndex(score) + 1) as WolfLevel;
+  } catch {
+    return null;
+  }
+}
 
 type ThemeContextValue = {
   mode: ThemeMode;
@@ -41,18 +58,31 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           .eq('user_id', userId)
           .maybeSingle();
 
-        if (data?.current_wolf_level) {
-          console.log('✅ Loaded wolf level:', data.current_wolf_level);
-          setWolfLevel(data.current_wolf_level as WolfLevel);
+        const computedLevel = await computeWolfLevelFromProgress();
+
+        if (!error && data) {
+          const storedLevel = data.current_wolf_level as WolfLevel;
+          if (computedLevel && computedLevel !== storedLevel) {
+            const { error: updateError } = await supabase
+              .from('user_palette_progression')
+              .update({ current_wolf_level: computedLevel })
+              .eq('user_id', userId);
+            if (updateError) throw updateError;
+            setWolfLevel(computedLevel);
+          } else {
+            setWolfLevel(storedLevel);
+          }
         } else if (!error && !data) {
-          console.log('📝 Creating new user_palette_progression row...');
-          await supabase
+          const initialLevel = computedLevel ?? 1;
+          const { error: insertError } = await supabase
             .from('user_palette_progression')
             .insert({
               user_id: userId,
-              current_wolf_level: 1,
-              last_seen_wolf_level: 0,
+              current_wolf_level: initialLevel,
+              last_seen_wolf_level: initialLevel,
             });
+          if (insertError) throw insertError;
+          setWolfLevel(initialLevel);
         }
       } catch (error) {
         console.error('Failed to fetch wolf level:', error);

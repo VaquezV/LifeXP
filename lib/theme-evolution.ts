@@ -1,5 +1,7 @@
 // lib/theme-evolution.ts
 
+import type { ThemeColors } from '@/constants/theme';
+
 export type WolfLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export interface PaletteColors {
@@ -14,6 +16,7 @@ export interface PaletteColors {
   text: string;
   textMuted: string;
   textSubtle: string;
+  textStrong?: string;
 
   // Accents & Status
   tint: string;
@@ -158,8 +161,8 @@ const LEVEL_3_DEGEL_MOYEN: Palette = {
   surfaceAlt: '#1c1a16',
   text: '#aaaaaa',
   textMuted: '#999999',
-  textSubtle: '#4a4038',
-  tint: '#7a6a5a',
+  textSubtle: '#605247',
+  tint: '#8f7153',
   tintSoft: '#9a8a7a',
   success: '#6aaa6a',
   successSoft: '#5a8a5a',
@@ -170,9 +173,9 @@ const LEVEL_3_DEGEL_MOYEN: Palette = {
   border: '#3a3228',
   borderStrong: '#2a2218',
   borderSoft: '#4a4238',
-  inputBackground: '#22201a',
+  inputBackground: '#8f7153',
   inputBorder: '#3a3228',
-  placeholder: '#5a5048',
+  placeholder: '#6e6054',
   overlay: 'rgba(0, 0, 0, 0.75)',
   cardBorder: '#3a3228',
   tabBarBackground: '#131109',
@@ -491,4 +494,48 @@ export const PALETTES: PaletteMap = {
 
 export function getPaletteForLevel(level: WolfLevel): Palette {
   return PALETTES[level];
+}
+
+// Bridges the wolf-level evolutionary palette to the app-wide ThemeColors shape,
+// so every screen (not just Profile) renders from the same palette source.
+export function toThemeColors(palette: Palette): ThemeColors {
+  return {
+    text: palette.text,
+    textMuted: palette.textMuted,
+    textSubtle: palette.textSubtle,
+    background: palette.bgPrimary,
+    surface: palette.surface,
+    surfaceRaised: palette.surfaceRaised,
+    surfaceMuted: palette.surfaceAlt,
+    surfaceAlt: palette.surfaceAlt,
+    tint: palette.tint,
+    tintSoft: palette.tintSoft,
+    icon: palette.icon,
+    tabIconDefault: palette.icon,
+    tabIconSelected: palette.tint,
+    border: palette.border,
+    borderStrong: palette.borderStrong,
+    borderSoft: palette.borderSoft,
+    inputBackground: palette.inputBackground,
+    inputBorder: palette.inputBorder,
+    placeholder: palette.placeholder,
+    overlay: palette.overlay,
+    shadow: palette.shadowColor,
+    cardBorder: palette.cardBorder,
+    onPrimary: '#ffffff',
+    success: palette.success,
+    successSoft: palette.successSoft,
+    warning: palette.warning,
+    danger: palette.danger,
+    dangerSoft: palette.dangerSoft,
+    chartGrid: palette.borderSoft,
+    chartAxis: palette.border,
+    chartMuted: palette.textSubtle,
+    tabBarBackground: palette.tabBarBackground,
+    tabBarBorder: palette.tabBarBorder,
+    loginBackground: palette.bgPrimary,
+    loginText: palette.text,
+    loginHint: palette.textMuted,
+    loginButtonBackground: palette.tint,
+  };
 }

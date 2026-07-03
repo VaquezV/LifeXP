@@ -124,8 +124,6 @@ export default function ProfileScreen() {
           totalXP={totalXP}
           onEditName={openNameModal}
           onHelpPress={() => setExplainerVisible(true)}
-          categoryProgress={progress}
-          scoringConfigs={scoringConfigs}
         />
 
         {/* Habit Cards */}
