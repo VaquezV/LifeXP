@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth, requireUserId } from '@/lib/auth';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ThemeContextProvider, useThemeContext } from '@/lib/theme-context';
@@ -127,6 +128,7 @@ export default function RootLayout() {
     <ThemeContextProvider>
       <AuthProvider>
         <RootNavigator />
+        <Analytics />
       </AuthProvider>
     </ThemeContextProvider>
   );
