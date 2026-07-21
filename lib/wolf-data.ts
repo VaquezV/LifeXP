@@ -134,7 +134,7 @@ export function getNextLevelSummary(levels: CategoryLevels): string {
     { maxScore: 95, targetLevel: 5, required: 4 },
   ] as const;
 
-  const rule = rules.find(r => score <= r.maxScore);
+  const rule = rules.find(r => score < r.maxScore);
   if (!rule) return '—';
 
   const { targetLevel, required } = rule;
