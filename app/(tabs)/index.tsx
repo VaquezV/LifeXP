@@ -10,9 +10,10 @@ import { useTranslation } from '@/hooks/use-translation';
 import { CheckinItemSimplified } from '@/components/checkin-item-simplified';
 import { CategoryHeader } from '@/components/category-header';
 import { ManageItemsModal } from '@/components/manage-items-modal';
+import { WeekNavigator } from '@/components/week-navigator';
 import { ThemedView } from '@/components/themed-view';
 import { fetchHabits, createHabit, updateHabit, deleteHabit } from '@/lib/habits';
-import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
+import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
 import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import { Habit, CategoryType, FrequencyType, PresetHabit, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
@@ -48,6 +49,16 @@ export default function HomeScreen() {
   const todayKey = useMemo(() => toDateKey(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayKey);
 
+  const weekDates = useMemo(() => {
+    const dates: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(toDateKey(date));
+    }
+    return dates;
+  }, [todayKey]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -55,8 +66,8 @@ export default function HomeScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        const todayLogs = await fetchAllLogsForDate(todayKey);
-        setDailyValues({ [todayKey]: todayLogs });
+        const weekLogs = await fetchAllLogsForDateRange(weekDates[0], weekDates[weekDates.length - 1]);
+        setDailyValues(weekLogs);
 
         const [progress, configs] = await Promise.all([
           fetchCategoryProgress().catch(() => null),
@@ -155,6 +166,14 @@ export default function HomeScreen() {
       <FlatList
         data={categories.map(cat => cat.key)}
         keyExtractor={item => item}
+        ListHeaderComponent={
+          <WeekNavigator
+            weekDates={weekDates}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            todayKey={todayKey}
+          />
+        }
         renderItem={({ item }) => {
           const category = item as CategoryType;
           const catData = categories.find(c => c.key === category);
