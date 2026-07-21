@@ -53,14 +53,14 @@ export default function DashboardScreen() {
     loadData();
   }, []);
 
-  // Construire performance data par habit (42 slots)
+  // Construire performance data par habit (145 jours)
   const performanceData: Record<string, Record<number, number>> = useMemo(() => {
     const data: Record<string, Record<number, number>> = {};
     habits.forEach((habit) => {
       data[habit.id] = {};
-      for (let i = 0; i < 42; i++) {
+      for (let i = 0; i < 145; i++) {
         const date = new Date();
-        date.setDate(date.getDate() - (41 - i));
+        date.setDate(date.getDate() - (144 - i));
         const dateKey = toDateKey(date);
         const value = dailyValues[dateKey]?.[habit.id] ?? 0;
 
@@ -87,7 +87,7 @@ export default function DashboardScreen() {
     );
   }
 
-  // Agrégat global: moyenne de tous les habits pour chaque jour
+  // Global aggregate: mean of all habits for each day
   const globalPerformanceData: Record<string, Record<number, number>> = useMemo(() => {
     const data: Record<string, Record<number, number>> = {};
     const today = new Date();
@@ -97,13 +97,9 @@ export default function DashboardScreen() {
       const dateStr = date.toISOString().split('T')[0];
 
       let sum = 0;
-      let count = 0;
+      let count = habits.length;
       habits.forEach((habit) => {
-        const percentage = performanceData[habit.id]?.[i] ?? 0;
-        if (percentage > 0 || performanceData[habit.id] !== undefined) {
-          sum += percentage;
-          count++;
-        }
+        sum += performanceData[habit.id]?.[i] ?? 0;
       });
 
       data[dateStr] = { 0: count > 0 ? Math.round(sum / count) : 0 };
