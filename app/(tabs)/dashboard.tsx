@@ -87,26 +87,6 @@ export default function DashboardScreen() {
     );
   }
 
-  // Global aggregate: mean of all habits for each day
-  const globalPerformanceData: Record<string, Record<number, number>> = useMemo(() => {
-    const data: Record<string, Record<number, number>> = {};
-    const today = new Date();
-    for (let i = 0; i < 145; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - (144 - i));
-      const dateStr = date.toISOString().split('T')[0];
-
-      let sum = 0;
-      let count = habits.length;
-      habits.forEach((habit) => {
-        sum += performanceData[habit.id]?.[i] ?? 0;
-      });
-
-      data[dateStr] = { 0: count > 0 ? Math.round(sum / count) : 0 };
-    }
-    return data;
-  }, [habits, performanceData]);
-
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.bgPrimary }]}>
       <FlatList
@@ -114,17 +94,19 @@ export default function DashboardScreen() {
         keyExtractor={(item) => item}
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={
-          <>
+          <View>
             <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Performances</ThemedText>
             </View>
-            <PerformanceGrid
-              data={globalPerformanceData}
-              accentColor={theme.tint}
-              cols={29}
-              rows={5}
-            />
-          </>
+            {habits.length > 0 && (
+              <PerformanceGrid
+                data={performanceData}
+                accentColor={theme.tint}
+                cols={29}
+                rows={5}
+              />
+            )}
+          </View>
         }
         renderItem={({ item: category }) => {
           const categoryHabits = habits.filter((h) => h.category === category);
