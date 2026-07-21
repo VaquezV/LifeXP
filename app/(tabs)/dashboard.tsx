@@ -34,10 +34,10 @@ export default function DashboardScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        // Load logs for last 145 days
+        // Load logs for last 205 days
         const today = new Date();
         const startDate = new Date(today);
-        startDate.setDate(startDate.getDate() - 144);
+        startDate.setDate(startDate.getDate() - 204);
         const logs = await fetchAllLogsForDateRange(
           startDate.toISOString().split('T')[0],
           today.toISOString().split('T')[0]
@@ -53,14 +53,14 @@ export default function DashboardScreen() {
     loadData();
   }, []);
 
-  // Construire performance data par habit (145 jours)
+  // Construire performance data par habit (205 jours)
   const performanceData: Record<string, Record<number, number>> = useMemo(() => {
     const data: Record<string, Record<number, number>> = {};
     habits.forEach((habit) => {
       data[habit.id] = {};
-      for (let i = 0; i < 145; i++) {
+      for (let i = 0; i < 205; i++) {
         const date = new Date();
-        date.setDate(date.getDate() - (144 - i));
+        date.setDate(date.getDate() - (204 - i));
         const dateKey = toDateKey(date);
         const value = dailyValues[dateKey]?.[habit.id] ?? 0;
 
