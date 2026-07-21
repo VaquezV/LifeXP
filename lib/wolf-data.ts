@@ -32,17 +32,17 @@ const WOLF_MANTRAS: readonly (readonly string[])[] = [
 ];
 
 const ACCESSORY_NAMES: Record<CategoryType, readonly string[]> = {
-  self_care:     ['Tanière des Cendres', 'Antre des Racines', 'Refuge des Forêts', 'Sanctuaire des Profondeurs', 'Caverne des Cristaux'],
-  dev_perso:     ['Souffle Muet', 'Grondement des Plaines', 'Rugissement Doré', 'Hurlement des Vagues', 'Chant des Origines'],
+  self_care: ['Tanière des Cendres', 'Antre des Racines', 'Refuge des Forêts', 'Sanctuaire des Profondeurs', 'Caverne des Cristaux'],
+  dev_perso: ['Souffle Muet', 'Grondement des Plaines', 'Rugissement Doré', 'Hurlement des Vagues', 'Chant des Origines'],
   vie_familiale: ['Loup Solitaire', 'Duo des Lisières', 'Meute des Clairières', 'Meute des Territoires', 'Légion des Ombres'],
-  vie_pro:       ['Pierre Brute', 'Stèle Gravée', 'Totem Éveillé', 'Totem Ardent', 'Totem Divin'],
+  vie_pro: ['Pierre Brute', 'Stèle Gravée', 'Totem Éveillé', 'Totem Ardent', 'Totem Divin'],
 };
 
 const NEXT_LEVEL_CATS: Array<{ key: CategoryType; label: string }> = [
-  { key: 'self_care',     label: 'Antre' },
-  { key: 'dev_perso',     label: 'Cri' },
+  { key: 'self_care', label: 'Antre' },
+  { key: 'dev_perso', label: 'Cri' },
   { key: 'vie_familiale', label: 'Meute' },
-  { key: 'vie_pro',       label: 'Totem' },
+  { key: 'vie_pro', label: 'Totem' },
 ];
 
 export function getWolfTierIndex(score: number): number {
@@ -139,7 +139,7 @@ export function getNextLevelSummary(levels: CategoryLevels): string {
 
   const { targetLevel, required } = rule;
   const currentCount = CATEGORY_KEYS.filter(cat => levels[cat] >= targetLevel).length;
-  const missing = required - currentCount;
+  const missing = Math.max(0, required - currentCount);
   const accWord = required === 1 ? 'accessoire' : 'accessoires';
 
   return `${required} ${accWord} au Niv. ${targetLevel} (Manque : ${missing})`;
