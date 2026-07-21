@@ -479,7 +479,7 @@ const LEVEL_10_MYSTIQUE_DIVIN: Palette = {
 };
 
 // Export palette map
-export const PALETTES: PaletteMap = {
+const RAW_PALETTES: PaletteMap = {
   1: LEVEL_1_OMBRE_FERMEE,
   2: LEVEL_2_DEGEL_DEBUT,
   3: LEVEL_3_DEGEL_MOYEN,
@@ -491,6 +491,86 @@ export const PALETTES: PaletteMap = {
   9: LEVEL_9_MYSTIQUE_EMERGENCE,
   10: LEVEL_10_MYSTIQUE_DIVIN,
 };
+
+function hexToRgb(color: string): [number, number, number] {
+  const hex = color.replace('#', '');
+  return [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16)) as [number, number, number];
+}
+
+function relativeLuminance(color: string): number {
+  const channels = hexToRgb(color).map(channel => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+export function getContrastRatio(foreground: string, background: string): number {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+}
+
+function mixColors(color: string, target: string, amount: number): string {
+  const sourceRgb = hexToRgb(color);
+  const targetRgb = hexToRgb(target);
+  const result = sourceRgb.map((channel, index) =>
+    Math.round(channel + (targetRgb[index] - channel) * amount)
+  );
+  return `#${result.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Preserve the original hue while raising contrast to the requested WCAG ratio. */
+export function ensureContrast(color: string, background: string, minimumRatio = 4.5): string {
+  if (getContrastRatio(color, background) >= minimumRatio) return color;
+
+  const target = relativeLuminance(background) < 0.5 ? '#ffffff' : '#000000';
+  let low = 0;
+  let high = 1;
+  for (let iteration = 0; iteration < 16; iteration += 1) {
+    const middle = (low + high) / 2;
+    if (getContrastRatio(mixColors(color, target, middle), background) >= minimumRatio) {
+      high = middle;
+    } else {
+      low = middle;
+    }
+  }
+  return mixColors(color, target, high);
+}
+
+export function getReadableTextColor(background: string): string {
+  const light = '#ffffff';
+  const dark = '#000000';
+  return getContrastRatio(light, background) >= getContrastRatio(dark, background) ? light : dark;
+}
+
+function makeAccessible(palette: Palette): Palette {
+  const inputBackground = palette.surfaceRaised;
+  return {
+    ...palette,
+    text: ensureContrast(palette.text, palette.surface, 4.5),
+    textMuted: ensureContrast(palette.textMuted, palette.surface, 4.5),
+    textSubtle: ensureContrast(palette.textSubtle, palette.surface, 4.5),
+    tint: ensureContrast(palette.tint, palette.surface, 4.5),
+    success: ensureContrast(palette.success, palette.surface, 4.5),
+    warning: ensureContrast(palette.warning, palette.surface, 4.5),
+    danger: ensureContrast(palette.danger, palette.surface, 4.5),
+    icon: ensureContrast(palette.icon, palette.surface, 3),
+    border: ensureContrast(palette.border, palette.surface, 3),
+    borderStrong: ensureContrast(palette.borderStrong, palette.surface, 3),
+    borderSoft: ensureContrast(palette.borderSoft, palette.surface, 3),
+    cardBorder: ensureContrast(palette.cardBorder, palette.surface, 3),
+    inputBackground,
+    inputBorder: ensureContrast(palette.inputBorder, inputBackground, 3),
+    placeholder: ensureContrast(palette.placeholder, inputBackground, 4.5),
+    tabBarBorder: ensureContrast(palette.tabBarBorder, palette.tabBarBackground, 3),
+  };
+}
+
+export const PALETTES = Object.fromEntries(
+  Object.entries(RAW_PALETTES).map(([level, palette]) => [level, makeAccessible(palette)])
+) as PaletteMap;
 
 export function getPaletteForLevel(level: WolfLevel): Palette {
   return PALETTES[level];
@@ -522,7 +602,7 @@ export function toThemeColors(palette: Palette): ThemeColors {
     overlay: palette.overlay,
     shadow: palette.shadowColor,
     cardBorder: palette.cardBorder,
-    onPrimary: '#ffffff',
+    onPrimary: getReadableTextColor(palette.tint),
     success: palette.success,
     successSoft: palette.successSoft,
     warning: palette.warning,

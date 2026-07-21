@@ -50,7 +50,7 @@ export function SliderInput({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.border + '1a' }]}>
       <Slider
         style={styles.slider}
         minimumValue={min}
@@ -63,13 +63,13 @@ export function SliderInput({
         thumbTintColor={accentColor}
       />
       <View style={styles.row}>
-        <Text style={[styles.label, { color: colors.textSubtle }]}>
+        <Text style={[styles.label, { color: colors.textMuted }]}>
           {formatTime(min)}
         </Text>
         <Text style={[styles.value, { color: accentColor }]}>
           {formatTime(displayValue)}
         </Text>
-        <Text style={[styles.label, { color: colors.textSubtle }]}>
+        <Text style={[styles.label, { color: colors.textMuted }]}>
           {formatTime(max)}
         </Text>
       </View>
@@ -80,24 +80,32 @@ export function SliderInput({
 const styles = StyleSheet.create({
   container: {
     marginVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginHorizontal: -4,
   },
   slider: {
-    height: 40,
-    marginBottom: 2,
+    height: 44,
+    marginBottom: 8,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   value: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
-    minWidth: 32,
+    fontWeight: '700',
+    minWidth: 35,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
 });

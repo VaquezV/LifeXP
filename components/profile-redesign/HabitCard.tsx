@@ -1,12 +1,20 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
 import { AccessoryIcon } from '@/components/accessory-icon';
-import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
-import { getAccessoryName } from '@/lib/wolf-data';
-import { getScoringConfigForLevel } from '@/lib/scoring-config';
+import { ThemedText } from '@/components/themed-text';
 import { CATEGORY_COLORS } from '@/constants/Colors';
+import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
+import { getScoringConfigForLevel } from '@/lib/scoring-config';
+import { ensureContrast } from '@/lib/theme-evolution';
 import type { CategoryProgress, CategoryType, ScoringConfig } from '@/lib/types';
+import { getAccessoryName } from '@/lib/wolf-data';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+
+const CATEGORY_LABELS: Record<CategoryType, string> = {
+  self_care: 'ANTRE',
+  dev_perso: 'CRI',
+  vie_familiale: 'MEUTE',
+  vie_pro: 'TOTEM',
+};
 
 interface HabitCardProps {
   category: CategoryType;
@@ -21,7 +29,7 @@ export function HabitCard({
 }: HabitCardProps) {
   const theme = useWolfLevelTheme();
 
-  const accentColor = CATEGORY_COLORS[category].mid;
+  const accentColor = ensureContrast(CATEGORY_COLORS[category].mid, theme.surface, 4.5);
   const cardName = getAccessoryName(category, categoryProgress.current_level);
   const config = getScoringConfigForLevel(scoringConfigs, categoryProgress.current_level);
   const isMaxLevel = categoryProgress.current_level >= 5;
@@ -34,55 +42,49 @@ export function HabitCard({
       style={[
         styles.card,
         {
-          backgroundColor: theme.surface,
-          borderColor: theme.border,
-          borderLeftColor: accentColor,
+          backgroundColor: theme.surfaceRaised,
+          borderColor: accentColor,
         },
       ]}
     >
-      {/* Icon (left side) */}
       <View style={styles.iconContainer}>
         <AccessoryIcon
           category={category}
           level={categoryProgress.current_level}
-          size={50}
+          size={98}
         />
       </View>
 
-      {/* Content (right side) */}
       <View style={styles.contentContainer}>
-        {/* Card Name */}
+        <ThemedText style={[styles.categoryLabel, { color: accentColor }]}>
+          {CATEGORY_LABELS[category]}
+        </ThemedText>
         <ThemedText
           style={[
             styles.cardName,
             { color: theme.text },
           ]}
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {cardName}
         </ThemedText>
 
-        {/* Meta Row: Level | Points */}
-        <View style={styles.metaRow}>
+        <View style={styles.levelIndicator}>
+          <View style={[styles.levelBadge, { backgroundColor: accentColor }]}>
+            <ThemedText style={[styles.levelBadgeText, { color: theme.surface }]}>
+              Niv. {categoryProgress.current_level}
+            </ThemedText>
+          </View>
           <ThemedText
             style={[
-              styles.metaLabel,
+              styles.progressLabel,
               { color: theme.textMuted },
             ]}
           >
-            Niv. {categoryProgress.current_level}
-          </ThemedText>
-          <ThemedText
-            style={[
-              styles.metaLabel,
-              { color: theme.textMuted },
-            ]}
-          >
-            {isMaxLevel ? 'MAX!' : `${categoryProgress.points_in_level}/${config.points_to_next_level}`}
+            {isMaxLevel ? 'TERMINÉ' : ''}
           </ThemedText>
         </View>
 
-        {/* Progress Bar */}
         <View
           style={[
             styles.progressTrack,
@@ -99,6 +101,9 @@ export function HabitCard({
             ]}
           />
         </View>
+        <ThemedText style={[styles.progressValue, { color: theme.textMuted }]}>
+          {isMaxLevel ? 'Maximum atteint' : `${Math.round(progressRatio * 100)}%`}
+        </ThemedText>
       </View>
     </View>
   );
@@ -106,17 +111,17 @@ export function HabitCard({
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderLeftWidth: 4,
-    padding: 16,
-    gap: 16,
-    alignItems: 'center',
+    flexBasis: '47%',
+    flexGrow: 1,
+    minHeight: 200,
+    borderRadius: 14,
+    borderWidth: 2,
+    padding: 14,
+    gap: 12,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
+    width: '100%',
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -124,27 +129,57 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
   },
-  cardName: {
+  categoryLabel: {
+    marginTop: 10,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'capitalize',
+    justifyContent: 'center'
   },
-  metaRow: {
+  cardName: {
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: '700',
+    minHeight: 38,
+
+    justifyContent: 'center'
+  },
+  levelIndicator: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
   },
-  metaLabel: {
+  levelBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  levelBadgeText: {
     fontSize: 11,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    justifyContent: 'center'
+  },
+  progressLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+
+    justifyContent: 'center'
   },
   progressTrack: {
-    height: 6,
-    borderRadius: 3,
+    height: 7,
+    borderRadius: 3.5,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 3.5,
+  },
+  progressValue: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });

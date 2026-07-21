@@ -1,7 +1,6 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { ThemedText } from './themed-text';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
+import { useMemo } from 'react';
+import { Dimensions, StyleSheet } from 'react-native';
 
 export interface PerformanceGridProps {
   data: Record<string, Record<number, number>>; // date -> { slotIndex -> percentage (0-100) }
@@ -57,33 +56,7 @@ export function PerformanceGrid({
     return squares;
   }, [data, totalCubes]);
 
-  return (
-    <View style={styles.container}>
-      <ThemedText style={[styles.title, { color: theme.text }]}>PERFORMANCES</ThemedText>
-      <View style={[styles.cardContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={[styles.grid, { width: gridWidth, gap }]}>
-          {gridData.map((square) => (
-            <View
-              key={square.id}
-              style={[
-                styles.square,
-                {
-                  width: squareSize,
-                  height: squareSize,
-                  backgroundColor: getColorWithTransparency(square.percentage),
-                  borderColor: square.percentage === 0 ? theme.borderSoft : accentColor,
-                  borderWidth: square.percentage === 0 ? 0.5 : 0,
-                },
-              ]}
-            />
-          ))}
-        </View>
-        <ThemedText style={[styles.legend, { color: theme.textMuted }]}>
-          {totalCubes} jours ({cols}×{rows}) • Progression sur {Math.ceil(totalCubes / 7)} semaines
-        </ThemedText>
-      </View>
-    </View>
-  );
+
 }
 
 const styles = StyleSheet.create({

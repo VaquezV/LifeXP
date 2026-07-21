@@ -4,9 +4,10 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import {
   ACCESSORY_LABELS,
   CATEGORY_CURRENCY_NAMES,
-  getAccessoryTierLabel,
   formatPoints,
+  getAccessoryTierLabel,
 } from '@/lib/accessoires';
+import { ensureContrast } from '@/lib/theme-evolution';
 import { CategoryType, Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useEffect, useRef, useState } from 'react';
@@ -54,7 +55,7 @@ export function CategorySection({
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const categoryColor = CATEGORY_COLORS[category];
-  const accentColor = categoryColor.mid;
+  const accentColor = ensureContrast(categoryColor.mid, colors.surface, 4.5);
   const categoryHabits = habits.filter(h => h.category === category);
 
   const currencyName = CATEGORY_CURRENCY_NAMES[category];
@@ -92,17 +93,23 @@ export function CategorySection({
       />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderLeftColor: accentColor }]}>
         <Pressable
           onPress={onAccessoryPress}
-          style={[styles.accessoryWrapper, { borderColor: accentColor + '44' }]}
+          style={[
+            styles.accessoryWrapper,
+            {
+              borderColor: accentColor + '4d',
+              backgroundColor: accentColor + '0d',
+            },
+          ]}
           accessibilityRole="button"
           accessibilityLabel={`${accessoryLabel} — ${tierLabel}`}
         >
           <AccessoryIcon
             category={category}
             level={categoryLevel}
-            size={48}
+            size={56}
           />
         </Pressable>
 
@@ -114,13 +121,13 @@ export function CategorySection({
             <View style={styles.titleActions}>
               {onUpdateCategory && (
                 <Pressable onPress={() => setEditModalVisible(true)} style={styles.iconButton}>
-                  <MaterialIcons name="edit" size={16} color={accentColor} />
+                  <MaterialIcons name="edit" size={18} color={accentColor} />
                 </Pressable>
               )}
               {onAddHabit && (
                 <Pressable onPress={handleAddPress} style={styles.iconButton} accessibilityRole="button">
                   <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                    <MaterialIcons name="add-circle" size={20} color={accentColor} />
+                    <MaterialIcons name="add-circle" size={22} color={accentColor} />
                   </Animated.View>
                 </Pressable>
               )}
@@ -131,9 +138,11 @@ export function CategorySection({
             <ThemedText style={[styles.pointsText, { color: accentColor }]}>
               {pointsDisplay}
             </ThemedText>
-            <ThemedText style={[styles.levelText, { color: colors.textSubtle }]}>
-              {levelDisplay}
-            </ThemedText>
+            <View style={styles.metaBadge}>
+              <ThemedText style={[styles.levelText, { color: colors.textMuted }]}>
+                {levelDisplay}
+              </ThemedText>
+            </View>
           </View>
         </View>
       </View>
@@ -160,29 +169,35 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 14,
     paddingVertical: 0,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingTop: 12,
-    paddingBottom: 10,
+    gap: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderRadius: 14,
+    marginHorizontal: -14,
+    paddingHorizontal: 14,
   },
   accessoryWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 1,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     flexShrink: 0,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
   },
   categoryInfo: {
     flex: 1,
     minWidth: 0,
-    gap: 4,
+    gap: 6,
   },
   titleRow: {
     flexDirection: 'row',
@@ -190,31 +205,42 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     flexShrink: 1,
+    letterSpacing: -0.3,
   },
   titleActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   iconButton: {
-    padding: 4,
+    padding: 6,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   pointsText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  metaBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   levelText: {
     fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   habitsContainer: {
     paddingBottom: 12,
+    gap: 0,
   },
 });

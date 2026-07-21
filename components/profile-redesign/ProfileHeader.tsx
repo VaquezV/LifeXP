@@ -3,7 +3,7 @@ import { ThemedText } from '@/components/themed-text';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { getOverallLevelProgress } from '@/lib/wolf-data';
 import React from 'react';
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface ProfileHeaderProps {
   avatarScore: number;
@@ -11,8 +11,8 @@ interface ProfileHeaderProps {
   wolfClass: string;
   tierIndex: number;
   totalXP: number;
+  nextClass: string | null;
   onEditName: () => void;
-  onHelpPress: () => void;
 }
 
 export function ProfileHeader({
@@ -21,192 +21,174 @@ export function ProfileHeader({
   wolfClass,
   tierIndex,
   totalXP,
+  nextClass,
   onEditName,
-  onHelpPress,
 }: ProfileHeaderProps) {
   const theme = useWolfLevelTheme();
 
-  const filled = tierIndex + 1;
-  // Bar position on the same 1-10 scale as the level dots below it, driven by
-  // the same avatarScore level-up conditions (SCORE_THRESHOLDS) that set the tier.
   const overallProgress = getOverallLevelProgress(avatarScore);
+  const level = tierIndex + 1;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.surface }]}>
-      {/* Avatar */}
-      <View style={[styles.avatarContainer, { width: 140, height: 140 }]}>
-        <Avatar score={avatarScore} size="small" accentColor={theme.tint} />
-      </View>
-
-      {/* Name and Title Section */}
-      <TouchableOpacity onPress={onEditName} activeOpacity={0.7}>
-        <ThemedText style={[styles.wolfName, { color: theme.textStrong || '#ffffff', letterSpacing: -0.5 }]}>
-          {wolfName}
-        </ThemedText>
-      </TouchableOpacity>
-
-      <ThemedText
-        style={[
-          styles.wolfTitle,
-          { color: theme.tint, letterSpacing: 0.5, fontWeight: '600' },
-        ]}
-      >
-        {wolfClass.toUpperCase()}
-      </ThemedText>
-
-      {/* Level Section */}
+    <View style={[styles.container, { backgroundColor: theme.bgPrimary }]}>
       <View
         style={[
-          styles.levelSection,
+          styles.heroCard,
           {
-            backgroundColor: theme.tintSoft + '0a',
-            borderLeftColor: theme.tint,
+            backgroundColor: theme.surfaceRaised,
+            borderColor: theme.border,
           },
         ]}
       >
-        <ThemedText
-          style={[
-            styles.levelLabel,
-            { color: theme.textSubtle || theme.textMuted, letterSpacing: 0.5, fontWeight: '700' },
-          ]}
-        >
-          LEVEL
-        </ThemedText>
+        <View style={styles.identityRow}>
+          <View style={styles.avatarContainer}>
+            <Avatar score={avatarScore} size="medium" accentColor={theme.tint} />
+          </View>
 
-        {/* Progress Bar */}
-        <View
-          style={[
-            styles.progressTrack,
-            { backgroundColor: theme.borderSoft },
-          ]}
-        >
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${Math.round(overallProgress * 100)}%`,
-                backgroundColor: theme.tint,
-              },
-            ]}
-          />
-        </View>
-
-        {/* Level Numbers */}
-        <View style={styles.levelNumbers}>
-          {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const).map((n) => (
-            <ThemedText
-              key={n}
-              style={[
-                styles.levelNum,
-                { color: n <= filled ? theme.tint : (theme.textSubtle || theme.textMuted), fontWeight: n <= filled ? '700' : '500' },
-              ]}
-            >
-              {n}
+          <View style={styles.identityContent}>
+            <TouchableOpacity onPress={onEditName} activeOpacity={0.7}>
+              <ThemedText style={[styles.wolfName, { color: theme.text }]}>
+                {wolfName}
+              </ThemedText>
+            </TouchableOpacity>
+            <ThemedText style={[styles.wolfTitle, { color: theme.tint }]}>
+              {wolfClass.toUpperCase()}
             </ThemedText>
-          ))}
+            <View style={styles.statsRow}>
+              <View style={styles.statGroup}>
+                <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>NIVEAU</ThemedText>
+                <ThemedText style={[styles.statValue, { color: theme.text }]}>{level}</ThemedText>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statGroup}>
+                <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>POINTS</ThemedText>
+                <ThemedText style={[styles.statValue, { color: theme.tint }]}>{totalXP}</ThemedText>
+              </View>
+            </View>
+            <View style={styles.progressSection}>
+              <View style={styles.progressLabel}>
+                <ThemedText style={[styles.progressText, { color: theme.textMuted }]}>PROGRESSION</ThemedText>
+                <ThemedText style={[styles.progressPercent, { color: theme.tint }]}>
+                  {Math.round(overallProgress * 100)}%
+                </ThemedText>
+              </View>
+              <View style={[styles.progressTrack, { backgroundColor: theme.borderSoft }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.round(overallProgress * 100)}%`, backgroundColor: theme.tint },
+                  ]}
+                />
+              </View>
+            </View>
+            {nextClass && (
+              <View style={[styles.nextClassBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <ThemedText style={[styles.nextClassLabel, { color: theme.textMuted }]}>PROCHAINE ÉTAPE</ThemedText>
+                <ThemedText style={[styles.nextClassName, { color: theme.text }]}>{nextClass}</ThemedText>
+              </View>
+            )}
+          </View>
         </View>
-
-        {/* XP Display */}
-        <ThemedText
-          style={[
-            styles.xpText,
-            { color: theme.text, letterSpacing: 0.3, fontWeight: '600' },
-          ]}
-        >
-          {totalXP} XP
-        </ThemedText>
       </View>
-
-      {/* Help Button */}
-      <Pressable
-        onPress={onHelpPress}
-        style={[styles.helpButton, { backgroundColor: theme.tintSoft + '15' }]}
-        android_ripple={{ color: theme.tint + '30' }}
-      >
-        <ThemedText
-          style={[
-            styles.helpIcon,
-            { color: theme.tint, fontSize: 20, fontWeight: '600' },
-          ]}
-        >
-          ?
-        </ThemedText>
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    gap: 16,
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
+  heroCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+  },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarContainer: {
+    width: 142,
+    height: 170,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    overflow: 'hidden',
   },
+  identityContent: { flex: 1, gap: 12 },
   wolfName: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
-    textAlign: 'center',
+    letterSpacing: -0.5,
   },
   wolfTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  levelSection: {
-    borderLeftWidth: 3,
-    borderRadius: 8,
-    padding: 16,
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
-    width: '100%',
+    paddingVertical: 8,
   },
-  levelLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  statGroup: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    lineHeight: 24,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    opacity: 0.2,
+  },
+  progressSection: { gap: 6 },
+  progressLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  progressPercent: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   progressTrack: {
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  levelNumbers: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  nextClassBox: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    gap: 3,
   },
-  levelNum: {
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
-    flex: 1,
+  nextClassLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
-  xpText: {
-    fontSize: 11,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  helpButton: {
-    position: 'absolute',
-    top: 24,
-    right: 24,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  helpIcon: {
-    textAlign: 'center',
-    lineHeight: 24,
+  nextClassName: {
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 18,
   },
 });

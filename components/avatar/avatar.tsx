@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useAvatar, getAvatarByScore, getEmotionalStateFromScore } from '@/lib/avatars';
+import { getAvatarByScore, getEmotionalStateFromScore } from '@/lib/avatars';
 import { SVGAvatarLoader } from './svg-avatar-loader';
-import { Colors } from '@/constants/Colors';
+import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 
 interface AvatarProps {
   score: number;
@@ -16,8 +16,9 @@ const sizeConfig = {
   large: { width: 240, height: 270 },
 } as const;
 
-function AvatarComponent({ score, accentColor = Colors.dark.tint, size = 'medium' }: AvatarProps) {
-  const { avatarState, state, config } = useAvatar({ score, accentColor });
+function AvatarComponent({ score, accentColor, size = 'medium' }: AvatarProps) {
+  const theme = useWolfLevelTheme();
+  const resolvedAccentColor = accentColor ?? theme.tint;
   const dimensions = sizeConfig[size];
   const avatarRange = getAvatarByScore(score);
   const emotionalState = getEmotionalStateFromScore(score);
@@ -27,7 +28,7 @@ function AvatarComponent({ score, accentColor = Colors.dark.tint, size = 'medium
       <SVGAvatarLoader
         svgPath={avatarRange.svgFile}
         state={emotionalState}
-        accentColor={accentColor}
+        accentColor={resolvedAccentColor}
       />
     </View>
   );

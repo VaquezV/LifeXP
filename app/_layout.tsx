@@ -1,23 +1,35 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth, requireUserId } from '@/lib/auth';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { ThemeContextProvider, useThemeContext } from '@/lib/theme-context';
+import { ThemeContextProvider } from '@/lib/theme-context';
 import { supabase } from '@/lib/supabase';
 import { CelebrationModal } from '@/components/celebration-modal';
 import { fetchWolfName } from '@/lib/profiles';
+
+const Analytics = Platform.OS === 'web' ? require('@vercel/analytics/react').Analytics : null;
 
 function RootNavigator() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { colors, styles: themeStyles } = useAppTheme();
-  const { mode } = useThemeContext();
+  const navigationTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: colors.tint,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.danger,
+    },
+  };
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [levelChangeInfo, setLevelChangeInfo] = useState<{
@@ -100,13 +112,13 @@ function RootNavigator() {
 
   return (
     <>
-      <ThemeProvider value={mode === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={navigationTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
         </Stack>
-        <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style="light" />
       </ThemeProvider>
 
       {/* Celebration modal */}
@@ -128,7 +140,7 @@ export default function RootLayout() {
     <ThemeContextProvider>
       <AuthProvider>
         <RootNavigator />
-        <Analytics />
+        {Analytics && <Analytics />}
       </AuthProvider>
     </ThemeContextProvider>
   );

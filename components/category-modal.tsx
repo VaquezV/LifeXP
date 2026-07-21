@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { getReadableTextColor } from '@/lib/theme-evolution';
 
 interface CategoryModalProps {
   visible: boolean;
@@ -97,7 +98,7 @@ export function CategoryModal({
                   {
                     backgroundColor: color,
                     borderWidth: selectedColor === color ? 3 : 0,
-                    borderColor: selectedColor === color ? colors.onPrimary : 'transparent',
+                    borderColor: selectedColor === color ? getReadableTextColor(color) : 'transparent',
                   },
                 ]}
                 onPress={() => setSelectedColor(color)}
@@ -121,7 +122,7 @@ export function CategoryModal({
               ]}
               onPress={handleSave}
             >
-              <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
+              <Text style={[styles.buttonText, { color: getReadableTextColor(selectedColor) }]}>
                 Save
               </Text>
             </Pressable>

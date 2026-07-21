@@ -7,18 +7,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from '@/hooks/use-translation';
-import { CategorySection } from '@/components/category-section';
-import { fetchHabits, createHabit } from '@/lib/habits';
+import { CheckinItemSimplified } from '@/components/checkin-item-simplified';
+import { CategoryHeader } from '@/components/category-header';
+import { ManageItemsModal } from '@/components/manage-items-modal';
+import { ThemedView } from '@/components/themed-view';
+import { fetchHabits, createHabit, updateHabit, deleteHabit } from '@/lib/habits';
 import { fetchAllLogsForDate, logHabitValue } from '@/lib/habit-logs';
-import { calculateDayCompletion } from '@/lib/scoring';
+import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
+import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import { Habit, CategoryType, FrequencyType, PresetHabit, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
 import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { requireUserId } from '@/lib/auth';
-import { AddHabitModal } from '@/components/add-habit-modal';
-import { fetchPresetHabits } from '@/lib/preset-habits';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
-import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import type { CategoryProgress } from '@/lib/types';
 
 function getCategories(t: (key: any) => string): { key: CategoryType; label: string }[] {
@@ -32,11 +32,6 @@ function toDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function getWeekDayAbbr(dateKey: string): string {
-  const date = new Date(`${dateKey}T12:00:00`);
-  return ['DI', 'LU', 'MA', 'ME', 'JE', 'VE', 'SA'][date.getDay()];
-}
-
 export default function HomeScreen() {
   const { colors, styles: themeStyles } = useAppTheme();
   const { t } = useTranslation();
@@ -46,53 +41,22 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [dailyValues, setDailyValues] = useState<Record<string, Record<string, number>>>({});
   const [categories, setCategories] = useState(initialCategories);
-  const [presets, setPresets] = useState<PresetHabit[]>([]);
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [addModalCategory, setAddModalCategory] = useState<CategoryType>('self_care');
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
   const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
-
-  const weekDates = useMemo(() => {
-    const dates: string[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setHours(12, 0, 0, 0);
-      date.setDate(date.getDate() - i);
-      dates.push(toDateKey(date));
-    }
-    return dates;
-  }, []);
+  const [managingCategory, setManagingCategory] = useState<CategoryType | null>(null);
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
-
-  const weekDays = useMemo(
-    () =>
-      weekDates.map(date => ({
-        abbr: getWeekDayAbbr(date),
-        date: new Date(`${date}T12:00:00`).getDate().toString().padStart(2, '0'),
-        completion: calculateDayCompletion(habits, dailyValues[date] ?? {}),
-        isToday: date === todayKey,
-      })),
-    [dailyValues, habits, todayKey, weekDates]
-  );
-
+  const [selectedDate, setSelectedDate] = useState(todayKey);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [fetchedHabits, fetchedPresets] = await Promise.all([
-          fetchHabits(),
-          fetchPresetHabits(),
-        ]);
+        const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
-        setPresets(fetchedPresets);
 
-        const weekLogs: Record<string, Record<string, number>> = {};
-        for (const date of weekDates) {
-          weekLogs[date] = await fetchAllLogsForDate(date);
-        }
-        setDailyValues(weekLogs);
+        const todayLogs = await fetchAllLogsForDate(todayKey);
+        setDailyValues({ [todayKey]: todayLogs });
 
         const [progress, configs] = await Promise.all([
           fetchCategoryProgress().catch(() => null),
@@ -107,52 +71,73 @@ export default function HomeScreen() {
       }
     };
     loadData();
-  }, [weekDates]);
+  }, [todayKey]);
 
-  const handleValueChange = async (habitId: string, date: string, value: number) => {
+  const handleValueChange = async (habitId: string, newValue: number) => {
     try {
-      const habit = habits.find(item => item.id === habitId);
+      const habit = habits.find((item) => item.id === habitId);
+      if (!habit) return;
+
       await logHabitValue(
         await requireUserId(),
         habitId,
-        date,
-        value,
-        habit?.preset_habit_id ?? null,
+        selectedDate,
+        newValue,
+        habit?.preset_habit_id ?? null
       );
-      setDailyValues(prev => ({
+
+      setDailyValues((prev) => ({
         ...prev,
-        [date]: { ...(prev[date] ?? {}), [habitId]: value },
+        [selectedDate]: { ...(prev[selectedDate] ?? {}), [habitId]: newValue },
       }));
     } catch (error) {
       console.error('Error saving habit value:', error);
     }
   };
 
-  const handleHabitUpdate = (updatedHabit: Habit) => {
-    setHabits(prev => prev.map(h => h.id === updatedHabit.id ? updatedHabit : h));
+  const handleAddItem = async (category: CategoryType, newHabit: Partial<Habit>) => {
+    try {
+      const userId = await requireUserId();
+      const habit = await createHabit({
+        name: newHabit.name || 'Nouvel item',
+        emoji: newHabit.emoji || '⭐',
+        category,
+        frequency_type: 'per_day',
+        target_value: 60,
+        min_value: 0,
+        max_value: null,
+        frequency_value: 1,
+        preset_habit_id: null,
+        user_id: userId,
+      });
+      setHabits([...habits, habit]);
+    } catch (error) {
+      console.error('Error creating habit:', error);
+    }
   };
 
-  const handleHabitDelete = (habitId: string) => {
-    setHabits(prev => prev.filter(h => h.id !== habitId));
+  const handleUpdateItem = async (habitId: string, updates: Partial<Habit>) => {
+    try {
+      const updated = await updateHabit(habitId, updates);
+      if (updated) {
+        setHabits((prev) =>
+          prev.map((h) => (h.id === habitId ? { ...h, ...updates } : h))
+        );
+      }
+    } catch (error) {
+      console.error('Error updating habit:', error);
+    }
   };
 
-  const handleAddHabit = async (habitData: {
-    name: string;
-    emoji: string;
-    category: CategoryType;
-    frequency_type: FrequencyType;
-    target_value: number;
-    min_value: number;
-    preset_habit_id: string | null;
-  }) => {
-    const userId = await requireUserId();
-    const newHabit = await createHabit({
-      ...habitData,
-      user_id: userId,
-      max_value: null,
-      frequency_value: 1,
-    });
-    setHabits(prev => [...prev, newHabit]);
+  const handleDeleteItem = async (habitId: string) => {
+    try {
+      const success = await deleteHabit(habitId);
+      if (success) {
+        setHabits((prev) => prev.filter((h) => h.id !== habitId));
+      }
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+    }
   };
 
   if (loading) {
@@ -175,45 +160,50 @@ export default function HomeScreen() {
           const catData = categories.find(c => c.key === category);
           const categoryLabel = catData?.label ?? category;
           const catProgress = progress[category];
-          const config = getScoringConfigForLevel(scoringConfigs, catProgress.current_level);
-
-          const handleUpdateCategory = (newLabel: string) => {
-            setCategories(prev =>
-              prev.map(c => c.key === category ? { ...c, label: newLabel } : c)
-            );
-          };
+          const categoryHabits = habits.filter(h => h.category === category);
 
           return (
-            <CategorySection
-              key={category}
-              category={category}
-              categoryLabel={categoryLabel}
-              categoryLevel={catProgress.current_level}
-              pointsInLevel={catProgress.points_in_level}
-              habits={habits}
-              weekDates={weekDates}
-              weekValues={dailyValues}
-              onHabitValueChange={handleValueChange}
-              onHabitUpdate={handleHabitUpdate}
-              onHabitDelete={handleHabitDelete}
-              onAddHabit={() => {
-                setAddModalCategory(category);
-                setAddModalVisible(true);
-              }}
-              onUpdateCategory={handleUpdateCategory}
-            />
+            <ThemedView key={category} style={[styles.section, themeStyles.surface]}>
+              {/* Category Header - usando el componente existente */}
+              <CategoryHeader
+                category={category}
+                categoryLabel={categoryLabel}
+                categoryLevel={catProgress.current_level}
+                pointsInLevel={catProgress.points_in_level}
+                onManageItems={() => setManagingCategory(category)}
+              />
+
+              {/* Checkin Items */}
+              <ThemedView style={styles.itemsContainer}>
+                {categoryHabits.map((habit) => (
+                  <CheckinItemSimplified
+                    key={habit.id}
+                    habit={habit}
+                    value={dailyValues[selectedDate]?.[habit.id] || 0}
+                    onValueChange={(newValue) =>
+                      handleValueChange(habit.id, newValue)
+                    }
+                  />
+                ))}
+              </ThemedView>
+            </ThemedView>
           );
         }}
         scrollEnabled={true}
         contentContainerStyle={[styles.scrollContent, themeStyles.screen]}
       />
-      <AddHabitModal
-        visible={addModalVisible}
-        onClose={() => setAddModalVisible(false)}
-        onSave={handleAddHabit}
-        presets={presets}
-        defaultCategory={addModalCategory}
-      />
+
+      {/* Manage Items Modal */}
+      {managingCategory && (
+        <ManageItemsModal
+          visible={managingCategory !== null}
+          habits={habits.filter((h) => h.category === managingCategory)}
+          onClose={() => setManagingCategory(null)}
+          onAdd={(newHabit) => handleAddItem(managingCategory, newHabit)}
+          onUpdate={handleUpdateItem}
+          onDelete={handleDeleteItem}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -221,4 +211,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
+  section: {
+    marginBottom: 12,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  itemsContainer: {
+    paddingHorizontal: 0,
+  },
 });

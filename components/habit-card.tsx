@@ -1,16 +1,17 @@
-import { StyleSheet, View, Pressable } from 'react-native';
-import { useState, useMemo, useRef } from 'react';
 import { CATEGORY_COLORS } from '@/constants/Colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { deleteHabit, updateHabit } from '@/lib/habit-operations';
+import { calculateHabitCompletion } from '@/lib/scoring';
+import { ensureContrast, getReadableTextColor } from '@/lib/theme-evolution';
+import { Habit } from '@/lib/types';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { DayButton } from './day-button';
+import { HabitModal } from './habit-modal';
+import { SliderInput } from './slider-input';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
-import { HabitModal } from './habit-modal';
-import { Habit } from '@/lib/types';
-import { calculateHabitCompletion } from '@/lib/scoring';
-import { DayButton } from './day-button';
-import { SliderInput } from './slider-input';
-import { updateHabit, deleteHabit } from '@/lib/habit-operations';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useAppTheme } from '@/hooks/use-app-theme';
 
 export interface HabitCardProps {
   habit: Habit;
@@ -31,7 +32,7 @@ export function HabitCard({
 }: HabitCardProps) {
   const { colors, styles: themeStyles } = useAppTheme();
   const categoryColor = CATEGORY_COLORS[habit.category];
-  const accentColor = categoryColor.mid;
+  const accentColor = ensureContrast(categoryColor.mid, colors.surface, 4.5);
 
   const dayNames = ['LU', 'MA', 'ME', 'JE', 'VE', 'SA', 'DI'];
   const today = new Date().toISOString().split('T')[0];
@@ -142,7 +143,7 @@ export function HabitCard({
                 style={[
                   styles.countButtonText,
                   {
-                    color: selectedValue === num ? colors.onPrimary : accentColor,
+                    color: selectedValue === num ? getReadableTextColor(accentColor) : accentColor,
                   },
                 ]}
               >
@@ -170,14 +171,14 @@ export function HabitCard({
             ]}
             onPress={() => onValueChange(habit.id, selectedDate, 0)}
           >
-              <ThemedText
-                style={[
-                  styles.yesnoButtonText,
-                  {
-                    color: selectedValue === 0 ? colors.onPrimary : accentColor,
-                  },
-                ]}
-              >
+            <ThemedText
+              style={[
+                styles.yesnoButtonText,
+                {
+                  color: selectedValue === 0 ? getReadableTextColor(accentColor) : accentColor,
+                },
+              ]}
+            >
               Non
             </ThemedText>
           </Pressable>
@@ -194,14 +195,14 @@ export function HabitCard({
             ]}
             onPress={() => onValueChange(habit.id, selectedDate, 1)}
           >
-              <ThemedText
-                style={[
-                  styles.yesnoButtonText,
-                  {
-                    color: selectedValue === 1 ? colors.onPrimary : accentColor,
-                  },
-                ]}
-              >
+            <ThemedText
+              style={[
+                styles.yesnoButtonText,
+                {
+                  color: selectedValue === 1 ? getReadableTextColor(accentColor) : accentColor,
+                },
+              ]}
+            >
               Oui
             </ThemedText>
           </Pressable>
@@ -244,44 +245,44 @@ export function HabitCard({
       >
         <View style={styles.header}>
           <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
-        <View style={styles.titleSection}>
-          <ThemedText
-            type="defaultSemiBold"
-            style={[styles.habitName, { color: colors.text }]}
+          <View style={styles.titleSection}>
+            <ThemedText
+              type="defaultSemiBold"
+              style={[styles.habitName, { color: colors.text }]}
+            >
+              {habit.name}
+            </ThemedText>
+            <ThemedText
+              style={[
+                styles.frequencyLabel,
+                { color: colors.textMuted },
+              ]}
+            >
+              {habit.frequency_type === 'times_per_day'
+                ? `${habit.target_value}x per day`
+                : habit.frequency_type === 'per_day'
+                  ? `${habit.min_value}-${habit.target_value} min/day`
+                  : `${habit.target_value}x per week`}
+            </ThemedText>
+          </View>
+          <View style={styles.percentageBox}>
+            <ThemedText
+              type="defaultSemiBold"
+              style={[styles.percentage, { color: accentColor }]}
+            >
+              {weeklyCompletion}%
+            </ThemedText>
+          </View>
+          <Pressable
+            onPress={() => setEditModalVisible(true)}
+            style={styles.editButton}
           >
-            {habit.name}
-          </ThemedText>
-          <ThemedText
-            style={[
-              styles.frequencyLabel,
-              { color: colors.textMuted },
-            ]}
-          >
-            {habit.frequency_type === 'times_per_day'
-              ? `${habit.target_value}x per day`
-              : habit.frequency_type === 'per_day'
-                ? `${habit.min_value}-${habit.target_value} min/day`
-                : `${habit.target_value}x per week`}
-          </ThemedText>
+            <MaterialIcons name="edit" size={20} color={accentColor} />
+          </Pressable>
         </View>
-        <View style={styles.percentageBox}>
-          <ThemedText
-            type="defaultSemiBold"
-            style={[styles.percentage, { color: accentColor }]}
-          >
-            {weeklyCompletion}%
-          </ThemedText>
-        </View>
-        <Pressable
-          onPress={() => setEditModalVisible(true)}
-          style={styles.editButton}
-        >
-          <MaterialIcons name="edit" size={20} color={accentColor} />
-        </Pressable>
-      </View>
 
-      {renderWeekDays()}
-      {renderPresetButtons()}
+        {renderWeekDays()}
+        {renderPresetButtons()}
       </ThemedView>
     </>
   );
@@ -289,65 +290,80 @@ export function HabitCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-  },
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  } as any,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
+    gap: 10,
   },
   emoji: {
     fontSize: 28,
-    marginRight: 10,
+    marginRight: 8,
+    marginTop: 1,
+    lineHeight: 42,
   },
   titleSection: {
     flex: 1,
   },
   habitName: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 3,
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   frequencyLabel: {
-    fontSize: 11,
+    fontSize: 12,
+    fontWeight: '500',
   },
   percentageBox: {
-    alignItems: 'center',
-    marginRight: 8,
+    alignItems: 'flex-end',
   },
   percentage: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    minWidth: 45,
-    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: -0.8,
+    minWidth: 55,
+    textAlign: 'right',
+    lineHeight: 30,
   },
   editButton: {
-    padding: 4,
+    padding: 8,
+    marginRight: -8,
   },
   weekContainer: {
     flexDirection: 'row',
-    gap: 4,
-    marginBottom: 12,
+    gap: 6,
+    marginBottom: 14,
     justifyContent: 'space-between',
   },
   dayButton: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 6,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 52,
   },
   dayLabel: {
     fontWeight: '600',
     marginBottom: 2,
+    fontSize: 12,
   },
   dayNumber: {
     fontSize: 14,
+    fontWeight: '700',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -357,51 +373,73 @@ const styles = StyleSheet.create({
   presetButton: {
     flex: 1,
     minWidth: '18%',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
   },
   presetButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   countButton: {
-    minWidth: 40,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    minWidth: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   countButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   yesnoButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 6,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   yesnoButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   sliderContainer: {
-    gap: 8,
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginTop: 8,
   },
   sliderBar: {
-    height: 32,
-    borderRadius: 6,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
     flexDirection: 'row',
     gap: 1,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sliderSegment: {
     flex: 1,
@@ -411,15 +449,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   sliderLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   sliderValue: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
 });

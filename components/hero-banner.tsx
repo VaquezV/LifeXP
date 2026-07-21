@@ -1,11 +1,9 @@
 // components/hero-banner.tsx
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useThemeContext } from '@/lib/theme-context';
 import { ThemedText } from './themed-text';
 import { Avatar } from './avatar';
 import { getWolfQuote } from '@/lib/accessoires';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface WeekDay {
   abbr: string;
@@ -29,8 +27,7 @@ function computeStreak(days: WeekDay[]): number {
 }
 
 export function HeroBanner({ avatarScore, weekDays }: HeroBannerProps) {
-  const { colors, isDark } = useAppTheme();
-  const { toggleTheme } = useThemeContext();
+  const { colors } = useAppTheme();
   const streak = computeStreak(weekDays);
   const quote = getWolfQuote(avatarScore);
 
@@ -38,13 +35,6 @@ export function HeroBanner({ avatarScore, weekDays }: HeroBannerProps) {
     <View style={styles.container}>
       <View style={styles.topRow}>
         <ThemedText style={styles.appTitle}>LifeXP</ThemedText>
-        <TouchableOpacity onPress={toggleTheme} hitSlop={8} accessibilityRole="button">
-          <MaterialIcons
-            name={isDark ? 'wb-sunny' : 'brightness-3'}
-            size={20}
-            color={colors.textMuted}
-          />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.wolfRow}>

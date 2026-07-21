@@ -14,6 +14,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { getReadableTextColor } from '@/lib/theme-evolution';
 
 interface Props {
   visible: boolean;
@@ -250,7 +251,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                       ]}
                       onPress={() => !selectedPreset && setForm(f => ({ ...f, category: cat }))}
                     >
-                      <Text style={[styles.chipText, { color: form.category === cat ? colors.onPrimary : colors.textMuted }]}>
+                      <Text style={[styles.chipText, { color: form.category === cat ? getReadableTextColor(CATEGORY_COLORS[cat].mid) : colors.textMuted }]}>
                         {t(CATEGORY_TRANSLATION_KEY[cat])}
                       </Text>
                     </Pressable>

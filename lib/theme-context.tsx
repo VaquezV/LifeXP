@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { DEFAULT_THEME, type ThemeMode } from '@/constants/theme';
 import { supabase } from './supabase';
 import { requireUserId } from './auth';
 import type { WolfLevel } from './theme-evolution';
@@ -22,25 +21,18 @@ async function computeWolfLevelFromProgress(): Promise<WolfLevel | null> {
 }
 
 type ThemeContextValue = {
-  mode: ThemeMode;
-  toggleTheme: () => void;
   wolfLevel: WolfLevel;
   setWolfLevel: (level: WolfLevel) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
-  mode: DEFAULT_THEME,
-  toggleTheme: () => {},
   wolfLevel: 1,
   setWolfLevel: () => {},
 });
 
 export function ThemeContextProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>(DEFAULT_THEME);
   const [wolfLevel, setWolfLevel] = useState<WolfLevel>(1);
   const [loading, setLoading] = useState(true);
-
-  const toggleTheme = () => setMode(prev => (prev === 'dark' ? 'light' : 'dark'));
 
   // Fetch user's wolf level on mount
   useEffect(() => {
@@ -151,7 +143,7 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme, wolfLevel, setWolfLevel }}>
+    <ThemeContext.Provider value={{ wolfLevel, setWolfLevel }}>
       {children}
     </ThemeContext.Provider>
   );

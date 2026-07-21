@@ -1,18 +1,17 @@
 import { ThemedText } from '@/components/themed-text';
 import { ProfileHeader, HabitCard, GamificationExplainer } from '@/components/profile-redesign';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
+import { getReadableTextColor } from '@/lib/theme-evolution';
 import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
 import { defaultAllCategoryProgress, fetchCategoryProgress } from '@/lib/category-progress';
 import { fetchWolfName, saveWolfName } from '@/lib/profiles';
 import { fetchScoringConfig, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
-import { useThemeContext } from '@/lib/theme-context';
 import type { CategoryProgress, CategoryType, ScoringConfig } from '@/lib/types';
 import { CATEGORY_KEYS } from '@/lib/types';
 import {
   computeTotalXP,
   getNextClass,
   getNextLevelSummary,
-  getRandomMantra,
   getWolfClass,
   getWolfTierIndex,
 } from '@/lib/wolf-data';
@@ -33,8 +32,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useWolfLevelTheme();
-  const { toggleTheme, mode } = useThemeContext();
-  const themeStyles = { screen: { backgroundColor: theme.surface } };
+  const themeStyles = { screen: { backgroundColor: theme.bgPrimary } };
   const [loading, setLoading] = useState(true);
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
   const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
@@ -72,7 +70,6 @@ export default function ProfileScreen() {
   const tierIndex      = getWolfTierIndex(avatarScore);
   const wolfClass      = getWolfClass(avatarScore);
   const totalXP        = useMemo(() => computeTotalXP(progress, scoringConfigs), [progress, scoringConfigs]);
-  const mantra         = useMemo(() => getRandomMantra(tierIndex), [tierIndex]);
   const nextClass      = getNextClass(avatarScore);
   const nextLvlSummary = useMemo(() => getNextLevelSummary(levels), [levels]);
 
@@ -107,12 +104,15 @@ export default function ProfileScreen() {
 
         {/* Header */}
         <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-          <ThemedText style={[styles.headerTitle, { color: theme.tint }]}>Life XP</ThemedText>
-          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
-            <ThemedText style={[styles.themeBtnText, { color: theme.textMuted }]}>
-              {mode === 'dark' ? '☀' : '🌙'}
-            </ThemedText>
-          </TouchableOpacity>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Profil</ThemedText>
+          <Pressable
+            onPress={() => setExplainerVisible(true)}
+            style={[styles.helpButton, { backgroundColor: theme.surfaceRaised, borderColor: theme.border }]}
+            accessibilityRole="button"
+            accessibilityLabel="Comprendre la progression"
+          >
+            <ThemedText style={[styles.helpIcon, { color: theme.tint }]}>?</ThemedText>
+          </Pressable>
         </View>
 
         {/* Profile Header */}
@@ -122,20 +122,28 @@ export default function ProfileScreen() {
           wolfClass={wolfClass}
           tierIndex={tierIndex}
           totalXP={totalXP}
+          nextClass={nextClass}
           onEditName={openNameModal}
-          onHelpPress={() => setExplainerVisible(true)}
         />
 
-        {/* Habit Cards */}
-        <View style={[styles.habitsContainer, { backgroundColor: theme.surface }]}>
-          {CATEGORY_KEYS.map((category) => (
-            <HabitCard
-              key={category}
-              category={category}
-              categoryProgress={progress[category]}
-              scoringConfigs={scoringConfigs}
-            />
-          ))}
+        <View style={[styles.habitsContainer, { backgroundColor: theme.bgPrimary }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>TON TERRITOIRE</ThemedText>
+          <View style={styles.cardsGrid}>
+            {CATEGORY_KEYS.map((category) => (
+              <HabitCard
+                key={category}
+                category={category}
+                categoryProgress={progress[category]}
+                scoringConfigs={scoringConfigs}
+              />
+            ))}
+          </View>
+          <View style={[styles.nextGoal, { backgroundColor: theme.surfaceRaised, borderColor: theme.border }]}>
+            <ThemedText style={[styles.nextGoalLabel, { color: theme.tint }]}>PROCHAINE ÉVOLUTION</ThemedText>
+            <ThemedText style={[styles.nextGoalText, { color: theme.text }]}>
+              {nextLvlSummary === '—' ? 'Tous les accessoires ont atteint leur plein potentiel.' : nextLvlSummary}
+            </ThemedText>
+          </View>
         </View>
 
         {/* Modal édition nom */}
@@ -159,7 +167,7 @@ export default function ProfileScreen() {
                 onPress={handleSaveName}
                 style={[styles.modalSave, { backgroundColor: theme.tint }]}
               >
-                <ThemedText style={styles.modalSaveLabel}>Sauvegarder</ThemedText>
+                <ThemedText style={[styles.modalSaveLabel, { color: getReadableTextColor(theme.tint) }]}>Sauvegarder</ThemedText>
               </TouchableOpacity>
             </Pressable>
           </Pressable>
@@ -189,14 +197,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: { fontSize: 22, fontWeight: '900', letterSpacing: 1 },
-  themeBtn: { padding: 4 },
-  themeBtnText: { fontSize: 20 },
+  helpButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  helpIcon: { fontSize: 18, lineHeight: 22, fontWeight: '800' },
 
   habitsContainer: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 14,
   },
+  sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 1.2 },
+  cardsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  nextGoal: { borderWidth: 1, borderRadius: 12, padding: 14, gap: 5 },
+  nextGoalLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  nextGoalText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
 
   overlay: {
     flex: 1,
@@ -214,5 +234,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   modalSave: { paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  modalSaveLabel: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  modalSaveLabel: { fontWeight: '700', fontSize: 15 },
 });
