@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { ThemedText } from './themed-text';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 
@@ -30,11 +30,7 @@ export function WeekNavigator({
   };
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
+    <View style={styles.container}>
       {weekDates.map((date) => {
         const isSelected = date === selectedDate;
         const isToday = date === todayKey;
@@ -81,22 +77,22 @@ export function WeekNavigator({
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     paddingHorizontal: 12,
     paddingVertical: 12,
-    gap: 8,
+    gap: 6,
   },
   dayButton: {
-    paddingHorizontal: 14,
+    flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
-    minWidth: 54,
   },
   dayLabel: {
     fontSize: 11,
