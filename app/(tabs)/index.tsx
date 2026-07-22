@@ -15,7 +15,7 @@ import { ThemedView } from '@/components/themed-view';
 import { fetchHabits, createHabit, updateHabit, deleteHabit } from '@/lib/habits';
 import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
-import { fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
+import { calcCategoryProjectedGain, fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
 import { Habit, CategoryType, FrequencyType, PresetHabit, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
 import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { requireUserId } from '@/lib/auth';
@@ -180,6 +180,8 @@ export default function HomeScreen() {
           const categoryLabel = catData?.label ?? category;
           const catProgress = progress[category];
           const categoryHabits = habits.filter(h => h.category === category);
+          const scoringConfig = getScoringConfigForLevel(scoringConfigs, catProgress.current_level);
+          const projectedGain = calcCategoryProjectedGain(categoryHabits, dailyValues, scoringConfig);
 
           return (
             <ThemedView key={category} style={[styles.section, themeStyles.surface]}>
@@ -189,6 +191,8 @@ export default function HomeScreen() {
                 categoryLabel={categoryLabel}
                 categoryLevel={catProgress.current_level}
                 pointsInLevel={catProgress.points_in_level}
+                projectedGain={projectedGain}
+                maintenanceCost={scoringConfig.daily_maintenance}
                 onManageItems={() => setManagingCategory(category)}
               />
 

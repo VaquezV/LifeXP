@@ -22,6 +22,21 @@ export const CATEGORY_CURRENCY_NAMES: Record<CategoryType, string> = {
   vie_pro: 'Influence',
 };
 
+const CATEGORY_PROJECTION_COPY: Record<CategoryType, { name: string; gainWord: string; maintenanceWord: string }> = {
+  self_care: { name: 'Antre', gainWord: 'ton ancrage', maintenanceWord: 'mue' },
+  dev_perso: { name: 'Cri', gainWord: 'ta discipline', maintenanceWord: 'respiration' },
+  vie_familiale: { name: 'Meute', gainWord: 'ta présence', maintenanceWord: 'partage' },
+  vie_pro: { name: 'Pro', gainWord: 'ta rigueur', maintenanceWord: 'territoire' },
+};
+
+/** "Antre : +X pour ton ancrage · -Y mue" — X is today's projected scoring gain, Y the category's daily maintenance cost. */
+export function formatProjectionLine(category: CategoryType, projectedGain: number, maintenanceCost: number): string {
+  const { name, gainWord, maintenanceWord } = CATEGORY_PROJECTION_COPY[category];
+  const gain = Math.round(projectedGain);
+  const maintenance = Number.isInteger(maintenanceCost) ? maintenanceCost.toString() : maintenanceCost.toFixed(1);
+  return `${name} : +${gain} pour ${gainWord} · -${maintenance} ${maintenanceWord}`;
+}
+
 const VOWELS = /^[aeiouàâäéèêëîïôùûüœæy]/i;
 
 export function formatPoints(points: number, currencyName: string): string {

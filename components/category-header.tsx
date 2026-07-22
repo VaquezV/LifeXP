@@ -4,6 +4,7 @@ import {
   ACCESSORY_LABELS,
   CATEGORY_CURRENCY_NAMES,
   formatPoints,
+  formatProjectionLine,
   getAccessoryTierLabel,
 } from '@/lib/accessoires';
 import { ensureContrast } from '@/lib/theme-evolution';
@@ -19,6 +20,8 @@ export interface CategoryHeaderProps {
   categoryLabel: string;
   categoryLevel: number;
   pointsInLevel: number;
+  projectedGain?: number;
+  maintenanceCost?: number;
   onManageItems: () => void;
 }
 
@@ -27,6 +30,8 @@ export function CategoryHeader({
   categoryLabel,
   categoryLevel,
   pointsInLevel,
+  projectedGain,
+  maintenanceCost,
   onManageItems,
 }: CategoryHeaderProps) {
   const { colors, styles: themeStyles } = useAppTheme();
@@ -40,6 +45,10 @@ export function CategoryHeader({
   const accessoryLabel = ACCESSORY_LABELS[category];
   const pointsDisplay = formatPoints(pointsInLevel, currencyName);
   const levelDisplay = `N${categoryLevel} · ${tierLabel}`;
+  const projectionLine =
+    projectedGain !== undefined && maintenanceCost !== undefined
+      ? formatProjectionLine(category, projectedGain, maintenanceCost)
+      : null;
 
   useEffect(() => {
     const anim = Animated.loop(
@@ -99,6 +108,12 @@ export function CategoryHeader({
             </ThemedText>
           </View> */}
         </View>
+
+        {projectionLine && (
+          <ThemedText style={[styles.projectionText, { color: colors.textMuted }]}>
+            {projectionLine}
+          </ThemedText>
+        )}
       </View>
     </View>
   );
@@ -159,5 +174,9 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  projectionText: {
+    fontSize: 11,
+    fontWeight: '500',
   },
 });
