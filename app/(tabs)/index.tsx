@@ -166,6 +166,7 @@ export default function HomeScreen() {
       <FlatList
         data={categories.map(cat => cat.key)}
         keyExtractor={item => item}
+        extraData={{ dailyValues, habits, categoryProgress, scoringConfigs, selectedDate }}
         ListHeaderComponent={
           <WeekNavigator
             weekDates={weekDates}
