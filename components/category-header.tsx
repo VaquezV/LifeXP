@@ -77,7 +77,7 @@ export function CategoryHeader({
         <AccessoryIcon
           category={category}
           level={categoryLevel}
-          size={56}
+          size={90}
         />
       </Pressable>
 
@@ -122,16 +122,16 @@ export function CategoryHeader({
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderLeftWidth: 3,
     gap: 12,
   },
   accessoryWrapper: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: 104,
+    height: 104,
+    borderRadius: 20,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

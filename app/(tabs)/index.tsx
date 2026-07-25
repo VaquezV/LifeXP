@@ -13,6 +13,7 @@ import { ManageItemsModal } from '@/components/manage-items-modal';
 import { WeekNavigator } from '@/components/week-navigator';
 import { ThemedView } from '@/components/themed-view';
 import { fetchHabits, createHabit, updateHabit, deleteHabit } from '@/lib/habits';
+import { fetchPresetHabits } from '@/lib/preset-habits';
 import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
 import { calcCategoryProjectedGain, fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
   const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
   const [managingCategory, setManagingCategory] = useState<CategoryType | null>(null);
+  const [presets, setPresets] = useState<PresetHabit[]>([]);
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayKey);
@@ -65,6 +67,9 @@ export default function HomeScreen() {
         setLoading(true);
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
+
+        const fetchedPresets = await fetchPresetHabits().catch(() => []);
+        setPresets(fetchedPresets);
 
         const weekLogs = await fetchAllLogsForDateRange(weekDates[0], weekDates[weekDates.length - 1]);
         setDailyValues(weekLogs);
@@ -112,13 +117,13 @@ export default function HomeScreen() {
       const habit = await createHabit({
         name: newHabit.name || 'Nouvel item',
         emoji: newHabit.emoji || '⭐',
-        category,
-        frequency_type: 'per_day',
-        target_value: 60,
-        min_value: 0,
+        category: newHabit.category || category,
+        frequency_type: newHabit.frequency_type || 'per_day',
+        target_value: newHabit.target_value ?? 60,
+        min_value: newHabit.min_value ?? 0,
         max_value: null,
         frequency_value: 1,
-        preset_habit_id: null,
+        preset_habit_id: newHabit.preset_habit_id ?? null,
         user_id: userId,
       });
       setHabits([...habits, habit]);
@@ -221,6 +226,8 @@ export default function HomeScreen() {
       {managingCategory && (
         <ManageItemsModal
           visible={managingCategory !== null}
+          category={managingCategory}
+          presets={presets}
           habits={habits.filter((h) => h.category === managingCategory)}
           onClose={() => setManagingCategory(null)}
           onAdd={(newHabit) => handleAddItem(managingCategory, newHabit)}

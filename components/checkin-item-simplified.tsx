@@ -84,6 +84,9 @@ export function CheckinItemSimplified({
       const mins = v % 60;
       return mins > 0 ? `${hours}h${mins}` : `${hours}h`;
     }
+    if (habit.frequency_type === 'times_per_day') {
+      return `${v}`;
+    }
     return v.toString();
   };
 
@@ -102,8 +105,11 @@ export function CheckinItemSimplified({
   };
 
   const renderInteraction = () => {
-    // times_per_week ou times_per_day → simple coche (toggle 0/1)
-    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'times_per_day') {
+    // times_per_week, ou times_per_day à objectif 1x → simple coche (toggle 0/1)
+    if (
+      habit.frequency_type === 'times_per_week' ||
+      (habit.frequency_type === 'times_per_day' && habit.target_value <= 1)
+    ) {
       return (
         <Pressable
           onPress={() => toggleYesNo(1)}

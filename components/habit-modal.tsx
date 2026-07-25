@@ -80,7 +80,7 @@ export function HabitModal({
                 <Text
                   style={[styles.title, { color: colors.text }]}
                 >
-                  {habit ? 'Edit Item' : 'New Item'}
+                  {habit ? "Modifier l'item" : 'Nouvel item'}
                 </Text>
                 <Pressable onPress={onClose}>
                   <MaterialIcons
@@ -117,14 +117,14 @@ export function HabitModal({
                   <Text
                     style={[styles.label, { color: colors.textMuted }]}
                   >
-                    Name
+                    Nom
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
                       themeStyles.input,
                     ]}
-                    placeholder="Item name"
+                    placeholder="Nom de l'item"
                     placeholderTextColor={colors.placeholder}
                     value={name}
                     onChangeText={setName}
@@ -153,7 +153,7 @@ export function HabitModal({
                     <Text
                       style={[styles.label, { color: colors.textMuted }]}
                     >
-                      Target
+                      Objectif
                     </Text>
                     <TextInput
                       style={[
@@ -179,7 +179,7 @@ export function HabitModal({
                     onPress={() => setShowDeleteConfirm(true)}
                   >
                     <MaterialIcons name="delete" size={20} color={colors.danger} />
-                    <Text style={[styles.deleteButtonText, { color: colors.danger }]}>Delete</Text>
+                    <Text style={[styles.deleteButtonText, { color: colors.danger }]}>Supprimer</Text>
                   </Pressable>
                 )}
                 <View style={styles.mainActions}>
@@ -188,7 +188,7 @@ export function HabitModal({
                     onPress={onClose}
                   >
                     <Text style={[styles.buttonText, { color: colors.text }]}>
-                      Cancel
+                      Annuler
                     </Text>
                   </Pressable>
                   <Pressable
@@ -196,7 +196,7 @@ export function HabitModal({
                     onPress={handleSave}
                   >
                     <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
-                      Save
+                      Enregistrer
                     </Text>
                   </Pressable>
                 </View>
@@ -208,12 +208,12 @@ export function HabitModal({
               <Text
                 style={[styles.confirmTitle, { color: colors.text }]}
               >
-                Delete &quot;{name}&quot;?
+                Supprimer &quot;{name}&quot; ?
               </Text>
               <Text
                 style={[styles.confirmText, { color: colors.textMuted }]}
               >
-                This will delete the item and all its history.
+                Cela supprimera l'item et tout son historique.
               </Text>
 
               <View style={styles.confirmActions}>
@@ -222,7 +222,7 @@ export function HabitModal({
                   onPress={() => setShowDeleteConfirm(false)}
                 >
                   <Text style={[styles.buttonText, { color: colors.text }]}>
-                    Keep
+                    Garder
                   </Text>
                 </Pressable>
                 <Pressable
@@ -233,7 +233,7 @@ export function HabitModal({
                   }}
                 >
                   <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
-                    Delete
+                    Supprimer
                   </Text>
                 </Pressable>
               </View>
