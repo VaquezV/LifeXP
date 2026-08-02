@@ -1,6 +1,6 @@
 // lib/category-elements.ts
 
-/** Spreads elementCount milestones across N+1 equal segments of a level's point cost, so the last one stays below the level-up threshold. Called by derived element functions (Task 4) and SanctuareCategoryCard. Assumes costToNextLevel is comfortably larger than elementCount — true for all real scoring_config levels (50–140 pts vs 1–5 elements), not guaranteed for arbitrary inputs. */
+/** Spreads elementCount milestones across N+1 equal segments of a level's point cost, so the last one stays below the level-up threshold. Called by derived element functions (Task 4) and SanctuaryCategoryCard. Assumes costToNextLevel is comfortably larger than elementCount — true for all real scoring_config levels (50–140 pts vs 1–5 elements), not guaranteed for arbitrary inputs. */
 export function getElementThresholds(costToNextLevel: number, elementCount: number): number[] {
   if (elementCount <= 0) return [];
   const segments = elementCount + 1;
