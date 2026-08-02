@@ -98,3 +98,13 @@ export interface CategoryProgress {
   last_maintenance_date: string | null;
   updated_at: string;
 }
+
+export type ProgressionElement = {
+  id: string;
+  label: string;
+  alt: string;
+  description?: string;
+  assetPath?: string;
+  order: number;
+  family?: string;
+};
