@@ -1,4 +1,6 @@
 // lib/category-elements.ts
+import { CATEGORY_ELEMENTS_CONFIG } from './category-elements-config';
+import type { CategoryType, ProgressionElement } from './types';
 
 /** Spreads elementCount milestones across N+1 equal segments of a level's point cost, so the last one stays below the level-up threshold. Called by derived element functions (Task 4) and SanctuaryCategoryCard. Assumes costToNextLevel is comfortably larger than elementCount — true for all real scoring_config levels (50–140 pts vs 1–5 elements), not guaranteed for arbitrary inputs. */
 export function getElementThresholds(costToNextLevel: number, elementCount: number): number[] {
@@ -13,9 +15,6 @@ export function getElementThresholds(costToNextLevel: number, elementCount: numb
 export function getPointsWithinCurrentLevel(pointsInLevel: number, pointsToNextLevel: number): number {
   return Math.min(pointsInLevel, pointsToNextLevel);
 }
-
-import { CATEGORY_ELEMENTS_CONFIG } from './category-elements-config';
-import type { CategoryType, ProgressionElement } from './types';
 
 /** Looks up the ordered milestone elements configured for a category/level pair, sorting by `.order` so threshold-to-element mapping never depends on the config array's manual ordering. Returns an empty list for unknown categories or out-of-range levels (0 or 6+) rather than throwing, since level bounds are enforced by the scoring engine, not this lookup. Called by all derived element functions below and by SanctuaryCategoryCard. */
 export function getCategoryLevelElements(category: CategoryType, level: number): ProgressionElement[] {

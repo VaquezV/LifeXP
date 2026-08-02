@@ -1,5 +1,14 @@
 // lib/category-elements.test.ts
-import { getElementThresholds, getPointsWithinCurrentLevel } from './category-elements';
+import {
+  getElementThresholds,
+  getPointsWithinCurrentLevel,
+  getCategoryLevelElements,
+  getUnlockedElements,
+  getLockedElements,
+  getNextElement,
+  getPointsRemainingToElement,
+  getPointsRemainingToNextLevel,
+} from './category-elements';
 
 describe('getElementThresholds', () => {
   it('1 élément', () => {
@@ -62,15 +71,6 @@ describe('getPointsWithinCurrentLevel', () => {
     expect(getPointsWithinCurrentLevel(0, 85)).toBe(0);
   });
 });
-
-import {
-  getCategoryLevelElements,
-  getUnlockedElements,
-  getLockedElements,
-  getNextElement,
-  getPointsRemainingToElement,
-  getPointsRemainingToNextLevel,
-} from './category-elements';
 
 // self_care niveau 3 : 3 éléments (Herbes fraîches, Foyer de pierres, Rune de l'Antre I),
 // coût réel du niveau 3 (SCORING_CONFIG_FALLBACK) = 85 → seuils [22, 43, 64].
