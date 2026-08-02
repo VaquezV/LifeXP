@@ -28,7 +28,9 @@ export function ProgressionElementIcon({
     return (
       <Image
         source={{ uri: element.assetPath }}
+        accessible
         accessibilityLabel={element.alt}
+        accessibilityState={{ disabled: isLocked }}
         style={[styles.image, { width: size, height: size, opacity }]}
       />
     );
@@ -41,6 +43,7 @@ export function ProgressionElementIcon({
     <View
       accessible
       accessibilityLabel={element.alt}
+      accessibilityState={{ disabled: isLocked }}
       style={[
         styles.placeholder,
         { width: size, height: size, borderRadius: size / 2, backgroundColor, opacity },
