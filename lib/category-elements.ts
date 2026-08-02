@@ -17,9 +17,10 @@ export function getPointsWithinCurrentLevel(pointsInLevel: number, pointsToNextL
 import { CATEGORY_ELEMENTS_CONFIG } from './category-elements-config';
 import type { CategoryType, ProgressionElement } from './types';
 
-/** Looks up the ordered milestone elements configured for a category/level pair. Returns an empty list for unknown categories or out-of-range levels (0 or 6+) rather than throwing, since level bounds are enforced by the scoring engine, not this lookup. Called by all derived element functions below and by SanctuaryCategoryCard. */
+/** Looks up the ordered milestone elements configured for a category/level pair, sorting by `.order` so threshold-to-element mapping never depends on the config array's manual ordering. Returns an empty list for unknown categories or out-of-range levels (0 or 6+) rather than throwing, since level bounds are enforced by the scoring engine, not this lookup. Called by all derived element functions below and by SanctuaryCategoryCard. */
 export function getCategoryLevelElements(category: CategoryType, level: number): ProgressionElement[] {
-  return CATEGORY_ELEMENTS_CONFIG[category]?.[level] ?? [];
+  const elements = CATEGORY_ELEMENTS_CONFIG[category]?.[level] ?? [];
+  return [...elements].sort((a, b) => a.order - b.order);
 }
 
 /** Derives which of a level's elements are already earned, given the user's current points_in_level and the level's points_to_next_level cost. Called by SanctuaryCategoryCard to render acquired vs locked milestones with zero persistence — recomputed from category_progress on every render. */
