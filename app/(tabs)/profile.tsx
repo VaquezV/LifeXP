@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/themed-text';
-import { ProfileHeader, HabitCard, GamificationExplainer } from '@/components/profile-redesign';
+import { ProfileHeader, SanctuaryCategoryCard, GamificationExplainer } from '@/components/profile-redesign';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { getReadableTextColor } from '@/lib/theme-evolution';
 import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
@@ -104,7 +104,7 @@ export default function ProfileScreen() {
 
         {/* Header */}
         <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Profil</ThemedText>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Sanctuaire</ThemedText>
           <Pressable
             onPress={() => setExplainerVisible(true)}
             style={[styles.helpButton, { backgroundColor: theme.surfaceRaised, borderColor: theme.border }]}
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>TON TERRITOIRE</ThemedText>
           <View style={styles.cardsGrid}>
             {CATEGORY_KEYS.map((category) => (
-              <HabitCard
+              <SanctuaryCategoryCard
                 key={category}
                 category={category}
                 categoryProgress={progress[category]}

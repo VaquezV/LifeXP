@@ -1,3 +1,3 @@
 export { ProfileHeader } from './ProfileHeader';
-export { HabitCard } from './HabitCard';
+export { SanctuaryCategoryCard } from './SanctuaryCategoryCard';
 export { GamificationExplainer } from './GamificationExplainer';
