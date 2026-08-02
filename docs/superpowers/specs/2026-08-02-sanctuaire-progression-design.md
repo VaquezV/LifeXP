@@ -70,7 +70,7 @@ Exemples de référence (utilisés tels quels dans les tests) :
 ### Type ajouté (`lib/types.ts`)
 
 ```ts
-export type ProgressionElement = {
+export interface ProgressionElement {
   id: string;
   label: string;
   alt: string;
@@ -78,7 +78,7 @@ export type ProgressionElement = {
   assetPath?: string;
   order: number;
   family?: string;
-};
+}
 ```
 
 `id` stable et indépendant du `label` affiché (permet de renommer un libellé sans casser une référence future).
