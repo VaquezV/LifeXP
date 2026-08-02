@@ -99,7 +99,7 @@ export interface CategoryProgress {
   updated_at: string;
 }
 
-export type ProgressionElement = {
+export interface ProgressionElement {
   id: string;
   label: string;
   alt: string;
@@ -107,4 +107,4 @@ export type ProgressionElement = {
   assetPath?: string;
   order: number;
   family?: string;
-};
+}
