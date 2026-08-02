@@ -23,7 +23,7 @@ Add at the end of `lib/types.ts` (after the `CategoryProgress` interface, line 1
 
 ```ts
 
-export type ProgressionElement = {
+export interface ProgressionElement {
   id: string;
   label: string;
   alt: string;
@@ -31,7 +31,7 @@ export type ProgressionElement = {
   assetPath?: string;
   order: number;
   family?: string;
-};
+}
 ```
 
 - [ ] **Step 2: Typecheck**
