@@ -136,6 +136,16 @@ const PROGRESSION_ICON_ASSETS = {
   'rune_territoire-3.svg': require('@/assets/icones_accessoires/rune_territoire-3.svg'),
   'rune_territoire-4.svg': require('@/assets/icones_accessoires/rune_territoire-4.svg'),
   'rune_territoire-5.svg': require('@/assets/icones_accessoires/rune_territoire-5.svg'),
+  'arbre-5.svg': require('@/assets/icones_accessoires/arbre-5.svg'),
+  'regard-1.svg': require('@/assets/icones_accessoires/regard-1.svg'),
+  'regard-2.svg': require('@/assets/icones_accessoires/regard-2.svg'),
+  'regard-3.svg': require('@/assets/icones_accessoires/regard-3.svg'),
+  'regard-4.svg': require('@/assets/icones_accessoires/regard-4.svg'),
+  'regard-5.svg': require('@/assets/icones_accessoires/regard-5.svg'),
+  'queue-2.svg': require('@/assets/icones_accessoires/queue-2.svg'),
+  'queue-3.svg': require('@/assets/icones_accessoires/queue-3.svg'),
+  'queue-4.svg': require('@/assets/icones_accessoires/queue-4.svg'),
+  'queue-5.svg': require('@/assets/icones_accessoires/queue-5.svg'),
 } as const;
 
 /** Libellé lu dans l'interface → fichier SVG. Une absence conserve le fallback. */
@@ -144,7 +154,7 @@ export const ACCESSORY_ICON_FILES_BY_LABEL: Partial<Record<string, keyof typeof 
   'Paille sèche': 'couche-1.svg', 'Herbes coupées': 'couche-2.svg', 'Herbes fraîches': 'couche-3.svg', Mousse: 'couche-4.svg', 'Plumes douces': 'couche-5.svg',
   // Antre · Feux, sources et runes
   'Petit foyer': 'feu-2.svg', 'Foyer de pierres': 'feu-3.svg', Brasero: 'feu-4.svg', 'Flamme sacrée': 'feu-5.svg', Source: 'source-4.svg', Cascade: 'source-5.svg',
-  "Rune de l'Antre I": 'rune_antre-3.svg', "Rune de l'Antre II": 'rune_antre-4.svg', "Rune de l'Antre III": 'rune_antre-5.svg',
+  "Rune de l'Antre I": 'rune_antre-3.svg', "Rune de l'Antre II": 'rune_antre-4.svg', "Rune de l'Antre III": 'rune_antre-5.svg', 'Arbre ancien': 'arbre-5.svg',
   // Cri · Moustaches
   'Moustaches naissantes': 'moustache-1.svg', 'Moustaches allongées': 'moustache-2.svg', 'Moustaches épaisses': 'moustache-3.svg', 'Moustaches nobles': 'moustache-4.svg', 'Moustaches ancestrales': 'moustache-5.svg',
   // Cri · Crocs, feux du souffle et runes
@@ -154,6 +164,8 @@ export const ACCESSORY_ICON_FILES_BY_LABEL: Partial<Record<string, keyof typeof 
   // Meute · réserves, transmission et runes du lien
   'Réserve partagée': 'partage-4.svg', 'Réserve prospère': 'partage-5.svg', 'Relève de la Meute': 'transmission-5.svg',
   'Rune de Lien inférieur': 'rune_meute-3.svg', 'Rune de Lien intermédiaire': 'rune_meute-4.svg', 'Rune de Lien supérieur': 'rune_meute-5.svg',
+  'Regard bienveillant': 'regard-1.svg', 'Regard complice': 'regard-2.svg', Toilettage: 'regard-3.svg', Protection: 'regard-4.svg', 'Cercle de la meute': 'regard-5.svg',
+  'Queue expressive': 'queue-2.svg', 'Premier hurlement': 'queue-3.svg', 'Hurlement de meute': 'queue-4.svg', 'Chant de meute': 'queue-5.svg',
   // Totem · pierres principales
   Galet: 'pierre-1.svg', 'Pierre polie': 'pierre-2.svg', Menhir: 'pierre-3.svg', Monolithe: 'pierre-4.svg', 'Stèle sacrée': 'pierre-5.svg',
   Étincelle: 'etoile-2.svg', Lueur: 'etoile-3.svg', Halo: 'etoile-4.svg', Aurore: 'etoile-5.svg',

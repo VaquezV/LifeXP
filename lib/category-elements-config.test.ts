@@ -19,10 +19,8 @@ describe('central accessory catalog', () => {
     expect(element.assetSource).toBeDefined();
   });
 
-  it('conserve le fallback pour une dénomination sans SVG', () => {
-    const element = CATEGORY_ELEMENTS_CONFIG.vie_familiale[1][0];
-    expect(element.label).toBe('Regard bienveillant');
-    expect(element.assetSource).toBeUndefined();
+  it('conserve le fallback pour une dénomination inconnue', () => {
+    expect(ACCESSORY_ICON_FILES_BY_LABEL['Accessoire inconnu']).toBeUndefined();
   });
 
   it('relie les nouvelles familles Meute, Cri et Totem aux SVG fournis', () => {
@@ -38,6 +36,12 @@ describe('central accessory catalog', () => {
     expect(CATEGORY_ELEMENTS_CONFIG.vie_pro[4][2].assetFileName).toBe('etoile-4.svg');
     expect(CATEGORY_ELEMENTS_CONFIG.vie_pro[5][3].assetFileName).toBe('empreinte-5.svg');
     expect(CATEGORY_ELEMENTS_CONFIG.vie_pro[5][4].assetFileName).toBe('rune_territoire-5.svg');
+  });
+
+  it('relie une icône à chacun des accessoires du Sanctuaire', () => {
+    const elements = Object.values(CATEGORY_ELEMENTS_CONFIG).flatMap(levels => Object.values(levels).flat());
+    expect(elements).toHaveLength(60);
+    expect(elements.every(element => element.assetSource !== undefined)).toBe(true);
   });
 
   it('résout aussi les avatars de catégories depuis le même catalogue', () => {
