@@ -11,7 +11,6 @@ import { CATEGORY_KEYS } from '@/lib/types';
 import {
   computeTotalXP,
   getNextClass,
-  getNextLevelSummary,
   getWolfClass,
   getWolfTierIndex,
 } from '@/lib/wolf-data';
@@ -71,7 +70,6 @@ export default function ProfileScreen() {
   const wolfClass      = getWolfClass(avatarScore);
   const totalXP        = useMemo(() => computeTotalXP(progress, scoringConfigs), [progress, scoringConfigs]);
   const nextClass      = getNextClass(avatarScore);
-  const nextLvlSummary = useMemo(() => getNextLevelSummary(levels), [levels]);
 
   function openNameModal() {
     setNameInput(wolfName);
@@ -104,7 +102,10 @@ export default function ProfileScreen() {
 
         {/* Header */}
         <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Sanctuaire</ThemedText>
+          <View>
+            <ThemedText style={[styles.headerTitle, { color: theme.text }]}>SANCTUAIRE</ThemedText>
+            <ThemedText style={[styles.headerSubtitle, { color: theme.textMuted }]}>Ton territoire prend vie grâce à tes habitudes.</ThemedText>
+          </View>
           <Pressable
             onPress={() => setExplainerVisible(true)}
             style={[styles.helpButton, { backgroundColor: theme.surfaceRaised, borderColor: theme.border }]}
@@ -123,11 +124,12 @@ export default function ProfileScreen() {
           tierIndex={tierIndex}
           totalXP={totalXP}
           nextClass={nextClass}
+          categoryProgress={progress}
           onEditName={openNameModal}
         />
 
         <View style={[styles.habitsContainer, { backgroundColor: theme.bgPrimary }]}>
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>TON TERRITOIRE</ThemedText>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>LES DOMAINES DE TON SANCTUAIRE</ThemedText>
           <View style={styles.cardsGrid}>
             {CATEGORY_KEYS.map((category) => (
               <SanctuaryCategoryCard
@@ -137,12 +139,6 @@ export default function ProfileScreen() {
                 scoringConfigs={scoringConfigs}
               />
             ))}
-          </View>
-          <View style={[styles.nextGoal, { backgroundColor: theme.surfaceRaised, borderColor: theme.border }]}>
-            <ThemedText style={[styles.nextGoalLabel, { color: theme.tint }]}>PROCHAINE ÉVOLUTION</ThemedText>
-            <ThemedText style={[styles.nextGoalText, { color: theme.text }]}>
-              {nextLvlSummary === '—' ? 'Tous les accessoires ont atteint leur plein potentiel.' : nextLvlSummary}
-            </ThemedText>
           </View>
         </View>
 
@@ -196,7 +192,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: 22, fontWeight: '900', letterSpacing: 1 },
+  headerTitle: { fontSize: 22, fontWeight: '900', letterSpacing: 1.4 },
+  headerSubtitle: { marginTop: 2, fontSize: 12, lineHeight: 16, fontWeight: '600' },
   helpButton: {
     width: 36,
     height: 36,
@@ -213,10 +210,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 1.2 },
-  cardsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  nextGoal: { borderWidth: 1, borderRadius: 12, padding: 14, gap: 5 },
-  nextGoalLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  nextGoalText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
+  cardsGrid: { gap: 12 },
 
   overlay: {
     flex: 1,

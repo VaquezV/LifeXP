@@ -1,9 +1,15 @@
 import { Avatar } from '@/components/avatar';
 import { ThemedText } from '@/components/themed-text';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { CATEGORY_COLORS } from '@/constants/Colors';
+import { CATEGORY_CURRENCY_NAMES } from '@/lib/category-elements-config';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
-import { getOverallLevelProgress } from '@/lib/wolf-data';
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { getNextLevelText, getNextWolfTierScore, getOverallLevelProgress } from '@/lib/wolf-data';
+import type { CategoryProgress, CategoryType } from '@/lib/types';
+import { CATEGORY_KEYS } from '@/lib/types';
+import React, { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { WolfEvolutionModal } from './WolfEvolutionModal';
 
 interface ProfileHeaderProps {
   avatarScore: number;
@@ -12,6 +18,7 @@ interface ProfileHeaderProps {
   tierIndex: number;
   totalXP: number;
   nextClass: string | null;
+  categoryProgress: Record<CategoryType, CategoryProgress>;
   onEditName: () => void;
 }
 
@@ -22,12 +29,23 @@ export function ProfileHeader({
   tierIndex,
   totalXP,
   nextClass,
+  categoryProgress,
   onEditName,
 }: ProfileHeaderProps) {
   const theme = useWolfLevelTheme();
+  const [evolutionVisible, setEvolutionVisible] = useState(false);
 
   const overallProgress = getOverallLevelProgress(avatarScore);
   const level = tierIndex + 1;
+  const levels = useMemo(
+    () => Object.fromEntries(CATEGORY_KEYS.map(category => [category, categoryProgress[category].current_level])) as Record<CategoryType, number>,
+    [categoryProgress]
+  );
+  const nextAvatarScore = getNextWolfTierScore(avatarScore);
+  const requirements = useMemo(() => {
+    const nextLevelText = getNextLevelText(levels);
+    return nextLevelText === '—' ? [] : nextLevelText.split(', ');
+  }, [levels]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgPrimary }]}>
@@ -81,15 +99,52 @@ export function ProfileHeader({
                 />
               </View>
             </View>
-            {nextClass && (
-              <View style={[styles.nextClassBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <ThemedText style={[styles.nextClassLabel, { color: theme.textMuted }]}>PROCHAINE ÉTAPE</ThemedText>
-                <ThemedText style={[styles.nextClassName, { color: theme.text }]}>{nextClass}</ThemedText>
-              </View>
+            {nextClass && nextAvatarScore !== null && (
+              <Pressable
+                onPress={() => setEvolutionVisible(true)}
+                style={[styles.nextClassBox, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Voir les conditions pour devenir ${nextClass}`}
+              >
+                <View style={styles.nextClassCopy}>
+                  <ThemedText style={[styles.nextClassLabel, { color: theme.tint }]}>PROCHAIN AVATAR</ThemedText>
+                  <ThemedText style={[styles.nextClassName, { color: theme.text }]}>{nextClass}</ThemedText>
+                  <ThemedText style={[styles.nextClassAction, { color: theme.textMuted }]}>Voir l’avatar et les conditions</ThemedText>
+                </View>
+                <MaterialIcons name="chevron-right" size={28} color={theme.tint} />
+              </Pressable>
             )}
           </View>
         </View>
+
+        <View style={[styles.overview, { borderTopColor: theme.border }]}>
+          <View style={styles.overviewGrid}>
+            {CATEGORY_KEYS.map(category => {
+              const accent = CATEGORY_COLORS[category].mid;
+              const points = Math.max(0, Math.round(categoryProgress[category].points_in_level));
+              return (
+                <View key={category} style={styles.overviewItem}>
+                  <View style={styles.overviewMetric}>
+                    <View style={[styles.overviewDot, { backgroundColor: accent }]} />
+                    <ThemedText style={[styles.overviewPoints, { color: theme.text }]}>{points}</ThemedText>
+                  </View>
+                  <ThemedText style={[styles.overviewCurrency, { color: theme.textMuted }]}>{CATEGORY_CURRENCY_NAMES[category]}</ThemedText>
+                </View>
+              );
+            })}
+          </View>
+        </View>
       </View>
+
+      {nextClass && nextAvatarScore !== null && (
+        <WolfEvolutionModal
+          visible={evolutionVisible}
+          nextClass={nextClass}
+          nextAvatarScore={nextAvatarScore}
+          requirements={requirements}
+          onClose={() => setEvolutionVisible(false)}
+        />
+      )}
     </View>
   );
 }
@@ -176,11 +231,15 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   nextClassBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
     gap: 3,
   },
+  nextClassCopy: { flex: 1, gap: 3 },
   nextClassLabel: {
     fontSize: 9,
     fontWeight: '700',
@@ -191,4 +250,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
   },
+  nextClassAction: { fontSize: 10, lineHeight: 14, fontWeight: '600' },
+  overview: { marginTop: 16, paddingTop: 14, borderTopWidth: 1 },
+  overviewGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
+  overviewItem: { flex: 1, minWidth: 0, gap: 2 },
+  overviewMetric: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  overviewDot: { width: 8, height: 8, borderRadius: 4 },
+  overviewPoints: { fontSize: 18, lineHeight: 21, fontWeight: '900' },
+  overviewCurrency: { fontSize: 9, lineHeight: 12, fontWeight: '700' },
 });

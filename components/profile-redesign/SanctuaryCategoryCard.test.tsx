@@ -6,6 +6,18 @@ import { SCORING_CONFIG_FALLBACK } from '@/lib/scoring-fallback';
 import type { CategoryProgress } from '@/lib/types';
 import { SanctuaryCategoryCard } from './SanctuaryCategoryCard';
 
+const renderedAvatarLevels: number[] = [];
+
+jest.mock('@/components/accessory-icon', () => ({
+  AccessoryIcon: ({ level }: { level: number }) => {
+    renderedAvatarLevels.push(level);
+    return null;
+  },
+}));
+
+jest.mock('@expo/vector-icons/MaterialIcons', () => () => null);
+jest.mock('react-native-svg', () => ({ SvgUri: () => null }));
+
 function progress(current_level: number, points_in_level: number): CategoryProgress {
   return {
     user_id: 'u1',
@@ -25,25 +37,47 @@ function allText(renderer: TestRenderer.ReactTestRenderer): string {
 }
 
 describe('SanctuaryCategoryCard', () => {
-  it('niveau 3 avec 23 points : affiche le niveau, les points, le prochain élément et les points manquants', () => {
+  beforeEach(() => {
+    renderedAvatarLevels.length = 0;
+  });
+
+  it('niveau 0 : affiche les accessoires du niveau 1 et le seuil de 50 points', () => {
     let renderer!: TestRenderer.ReactTestRenderer;
     act(() => {
       renderer = TestRenderer.create(
         <SanctuaryCategoryCard
           category="self_care"
-          categoryProgress={progress(3, 23)}
+          categoryProgress={progress(0, 0)}
           scoringConfigs={SCORING_CONFIG_FALLBACK}
         />
       );
     });
     const text = allText(renderer);
-    expect(text).toContain('Niv. 3/5');
+    expect(text).toContain('Niv. 0/5');
+    expect(text).toContain('Paille sèche');
+    expect(text).toContain('0 / 50 points');
+    expect(renderedAvatarLevels).not.toContain(0);
+  });
+
+  it('niveau 2 avec 23 points : affiche les accessoires du niveau 3 et les points manquants', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <SanctuaryCategoryCard
+          category="self_care"
+          categoryProgress={progress(2, 23)}
+          scoringConfigs={SCORING_CONFIG_FALLBACK}
+        />
+      );
+    });
+    const text = allText(renderer);
+    expect(text).toContain('Niv. 2/5');
     expect(text).toContain('23 / 85');
     expect(text).toContain('Foyer de pierres');
     expect(text).toContain('20 points');
   });
 
-  it('niveau max (5) : pas de bloc "prochain élément" ni "niveau suivant", barre à 100%', () => {
+  it('niveau max (5) : ne rend ni accessoires ni barre de progression', () => {
     let renderer!: TestRenderer.ReactTestRenderer;
     act(() => {
       renderer = TestRenderer.create(
@@ -55,9 +89,9 @@ describe('SanctuaryCategoryCard', () => {
       );
     });
     const text = allText(renderer);
-    expect(text).not.toContain('Prochain');
-    expect(text).not.toContain('Niveau suivant');
-    expect(text).toContain('140 / 140');
+    expect(text).not.toContain('Prochain accessoire');
+    expect(text).not.toContain('points');
+    expect(text).toContain('Caverne des Cristaux');
   });
 
   it('affiche les éléments verrouillés du niveau courant en plus des acquis', () => {
@@ -66,12 +100,50 @@ describe('SanctuaryCategoryCard', () => {
       renderer = TestRenderer.create(
         <SanctuaryCategoryCard
           category="self_care"
-          categoryProgress={progress(4, 0)}
+          categoryProgress={progress(3, 0)}
           scoringConfigs={SCORING_CONFIG_FALLBACK}
         />
       );
     });
     const labelled = renderer.root.findAllByProps({ accessibilityLabel: "Rune de l'Antre II" });
     expect(labelled.length).toBeGreaterThan(0);
+  });
+
+  it('place le dernier accessoire à débloquer en haut de la colonne', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <SanctuaryCategoryCard
+          category="self_care"
+          categoryProgress={progress(3, 0)}
+          scoringConfigs={SCORING_CONFIG_FALLBACK}
+        />
+      );
+    });
+
+    const text = allText(renderer);
+    expect(text.indexOf("Rune de l'Antre II")).toBeLessThan(text.indexOf('Mousse'));
+  });
+
+  it('ouvre le détail de l’évolution suivante depuis le chevron', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <SanctuaryCategoryCard
+          category="self_care"
+          categoryProgress={progress(3, 23)}
+          scoringConfigs={SCORING_CONFIG_FALLBACK}
+        />
+      );
+    });
+
+    const button = renderer.root.findByProps({
+      accessibilityLabel: "Voir la prochaine évolution de Antre",
+    });
+    act(() => button.props.onPress());
+
+    const text = allText(renderer);
+    expect(text).toContain('PROCHAINE ÉVOLUTION — NIV. 4');
+    expect(text).toContain('Mousse');
   });
 });
