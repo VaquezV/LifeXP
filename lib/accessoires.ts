@@ -1,31 +1,19 @@
 // lib/accessoires.ts
-import { CategoryType } from './types';
+import { ACCESSORY_LABELS, getAccessoryFileName } from './category-elements-config';
+import type { CategoryType } from './types';
 
-const ACCESSORY_TYPE: Record<CategoryType, string> = {
-  self_care: 'antre',
-  dev_perso: 'cri',
-  vie_familiale: 'meute',
-  vie_pro: 'totem',
-};
-
-export const ACCESSORY_LABELS: Record<CategoryType, string> = {
-  self_care: 'Antre',
-  dev_perso: 'Cri',
-  vie_familiale: 'Meute',
-  vie_pro: 'Totem',
-};
-
-export const CATEGORY_CURRENCY_NAMES: Record<CategoryType, string> = {
-  self_care: 'Fourrure',
-  dev_perso: 'Souffle',
-  vie_familiale: 'Interaction',
-  vie_pro: 'Influence',
-};
+// Compatibility exports: all accessory names and local assets now live in the catalog.
+export {
+  ACCESSORY_LABELS,
+  CATEGORY_CURRENCY_NAMES,
+  getAccessoryFileName,
+  getAccessoryTierFromLevel,
+} from './category-elements-config';
 
 const CATEGORY_PROJECTION_COPY: Record<CategoryType, { name: string; gainWord: string; maintenanceWord: string }> = {
-  self_care: { name: 'Antre', gainWord: 'ton ancrage', maintenanceWord: 'mue' },
-  dev_perso: { name: 'Cri', gainWord: 'ta discipline', maintenanceWord: 'respiration' },
-  vie_familiale: { name: 'Meute', gainWord: 'ta présence', maintenanceWord: 'partage' },
+  self_care: { name: ACCESSORY_LABELS.self_care, gainWord: 'ton ancrage', maintenanceWord: 'mue' },
+  dev_perso: { name: ACCESSORY_LABELS.dev_perso, gainWord: 'ta discipline', maintenanceWord: 'respiration' },
+  vie_familiale: { name: ACCESSORY_LABELS.vie_familiale, gainWord: 'ta présence', maintenanceWord: 'partage' },
   vie_pro: { name: 'Pro', gainWord: 'ta rigueur', maintenanceWord: 'patrouille' },
 };
 
@@ -46,19 +34,8 @@ export function formatPoints(points: number, currencyName: string): string {
   return `${n} ${unit} ${prep}${currencyName}`;
 }
 
-export function getAccessoryTierFromLevel(level: number): 0 | 1 | 2 | 3 | 4 {
-  const clamped = Math.min(Math.max(level, 1), 5);
-  return (clamped - 1) as 0 | 1 | 2 | 3 | 4;
-}
-
 export function getAccessoryTierLabel(level: number): string {
   return `Palier ${level}/5`;
-}
-
-export function getAccessoryFileName(category: CategoryType, level: number): string {
-  const type = ACCESSORY_TYPE[category];
-  const tiers = ['0-20', '21-40', '41-60', '61-80', '81-100'] as const;
-  return `${type}.${tiers[getAccessoryTierFromLevel(level)]}.svg`;
 }
 
 export function getNextTierFileName(category: CategoryType, level: number): string {

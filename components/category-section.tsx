@@ -1,12 +1,8 @@
 // components/category-section.tsx
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import {
-  ACCESSORY_LABELS,
-  CATEGORY_CURRENCY_NAMES,
-  formatPoints,
-  getAccessoryTierLabel,
-} from '@/lib/accessoires';
+import { ACCESSORY_LABELS, CATEGORY_CURRENCY_NAMES } from '@/lib/category-elements-config';
+import { formatPoints, getAccessoryTierLabel } from '@/lib/accessoires';
 import { ensureContrast } from '@/lib/theme-evolution';
 import { CategoryType, Habit } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';

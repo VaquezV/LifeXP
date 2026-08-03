@@ -105,6 +105,10 @@ export interface ProgressionElement {
   alt: string;
   description?: string;
   assetPath?: string;
+  /** Local SVG module resolved by the central accessory catalog. */
+  assetSource?: number;
+  /** Human-readable local file name, kept beside the displayed denomination. */
+  assetFileName?: string;
   order: number;
   family?: string;
 }

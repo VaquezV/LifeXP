@@ -1,9 +1,11 @@
 // components/profile-redesign/ProgressionElementIcon.tsx
 import { ThemedText } from '@/components/themed-text';
 import { getReadableTextColor } from '@/lib/theme-evolution';
+import { Asset } from 'expo-asset';
 import type { ProgressionElement } from '@/lib/types';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 interface ProgressionElementIconProps {
   element: ProgressionElement;
@@ -13,7 +15,8 @@ interface ProgressionElementIconProps {
   size?: number;
 }
 
-/** Renders one Sanctuaire milestone: an Image when element.assetPath exists (future real asset), otherwise an accessible circular text placeholder (initials), dimmed when locked. Called by SanctuaryCategoryCard to display unlocked/locked progression elements. */
+/** Renders one Sanctuaire milestone: first a configured local SVG, then an optional
+ * remote image, otherwise an accessible initials fallback. */
 export function ProgressionElementIcon({
   element,
   state,
@@ -23,6 +26,23 @@ export function ProgressionElementIcon({
 }: ProgressionElementIconProps) {
   const isLocked = state === 'locked';
   const opacity = isLocked ? 0.35 : 1;
+  const localAssetUri = useMemo(
+    () => (element.assetSource ? Asset.fromModule(element.assetSource).uri : null),
+    [element.assetSource]
+  );
+
+  if (localAssetUri) {
+    return (
+      <View
+        accessible
+        accessibilityLabel={element.alt}
+        accessibilityState={{ disabled: isLocked }}
+        style={[styles.localAsset, { width: size, height: size, opacity }]}
+      >
+        <SvgUri width={size} height={size} uri={localAssetUri} />
+      </View>
+    );
+  }
 
   if (element.assetPath) {
     return (
@@ -58,6 +78,7 @@ export function ProgressionElementIcon({
 
 const styles = StyleSheet.create({
   image: { borderRadius: 8 },
+  localAsset: { alignItems: 'center', justifyContent: 'center' },
   placeholder: { alignItems: 'center', justifyContent: 'center' },
   placeholderText: { fontWeight: '800' },
 });

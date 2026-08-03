@@ -1,12 +1,7 @@
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import {
-  ACCESSORY_LABELS,
-  CATEGORY_CURRENCY_NAMES,
-  formatPoints,
-  formatProjectionLine,
-  getAccessoryTierLabel,
-} from '@/lib/accessoires';
+import { ACCESSORY_LABELS, CATEGORY_CURRENCY_NAMES } from '@/lib/category-elements-config';
+import { formatPoints, formatProjectionLine, getAccessoryTierLabel } from '@/lib/accessoires';
 import { ensureContrast } from '@/lib/theme-evolution';
 import { CategoryType } from '@/lib/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
