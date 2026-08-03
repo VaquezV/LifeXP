@@ -2,6 +2,7 @@ import {
   getWolfTierIndex,
   getWolfClass,
   getNextClass,
+  getNextWolfTierScore,
   getStarString,
   getAccessoryName,
   computeTotalXP,
@@ -52,6 +53,15 @@ describe('getNextClass', () => {
   it('score 95 → null', () => expect(getNextClass(95)).toBeNull());
 });
 
+describe('getNextWolfTierScore', () => {
+  it('score 5 → seuil 15 du prochain palier', () =>
+    expect(getNextWolfTierScore(5)).toBe(15));
+  it('score 85 → seuil 95 du prochain palier', () =>
+    expect(getNextWolfTierScore(85)).toBe(95));
+  it('score maximal → aucun aperçu suivant', () =>
+    expect(getNextWolfTierScore(95)).toBeNull());
+});
+
 describe('getStarString', () => {
   it('tier 0 (score 5) → 1 étoile remplie', () =>
     expect(getStarString(5)).toBe('★☆☆☆☆☆☆☆☆☆'));
@@ -81,35 +91,37 @@ describe('getAccessoryName', () => {
 });
 
 describe('computeTotalXP', () => {
-  it('tous N1, 0 pts → 0 XP', () =>
-    expect(computeTotalXP(prog(1, 1, 1, 1, 0), SCORING_CONFIG_FALLBACK)).toBe(0));
-  it('tous N1, 10 pts chacun → 40 XP', () =>
-    expect(computeTotalXP(prog(1, 1, 1, 1, 10), SCORING_CONFIG_FALLBACK)).toBe(40));
-  it('tous N2, 0 pts → 200 XP (4×50)', () =>
-    expect(computeTotalXP(prog(2, 2, 2, 2, 0), SCORING_CONFIG_FALLBACK)).toBe(200));
-  it('Antre N3 reste N1, 0 pts → 115 XP (50+65 pour Antre)', () =>
-    expect(computeTotalXP(prog(3, 1, 1, 1, 0), SCORING_CONFIG_FALLBACK)).toBe(115));
-  it('tous N2, 5 pts chacun → 220 XP', () =>
-    expect(computeTotalXP(prog(2, 2, 2, 2, 5), SCORING_CONFIG_FALLBACK)).toBe(220));
+  it('tous N0, 0 pts → 0 XP', () =>
+    expect(computeTotalXP(prog(0, 0, 0, 0, 0), SCORING_CONFIG_FALLBACK)).toBe(0));
+  it('tous N0, 10 pts chacun → 40 XP', () =>
+    expect(computeTotalXP(prog(0, 0, 0, 0, 10), SCORING_CONFIG_FALLBACK)).toBe(40));
+  it('tous N1, 0 pts → 200 XP (4×50)', () =>
+    expect(computeTotalXP(prog(1, 1, 1, 1, 0), SCORING_CONFIG_FALLBACK)).toBe(200));
+  it('Antre N2, reste N0, 0 pts → 115 XP (50+65 pour Antre)', () =>
+    expect(computeTotalXP(prog(2, 0, 0, 0), SCORING_CONFIG_FALLBACK)).toBe(115));
+  it('tous N1, 5 pts chacun → 220 XP', () =>
+    expect(computeTotalXP(prog(1, 1, 1, 1, 5), SCORING_CONFIG_FALLBACK)).toBe(220));
 });
 
 describe('getNextLevelText', () => {
-  it('tous N1 (score 5) → Antre niv2', () =>
-    expect(getNextLevelText(lvl(1, 1, 1, 1))).toBe('Antre niv2'));
-  it('Antre N2, reste N1 (score 15) → Cri niv2', () =>
-    expect(getNextLevelText(lvl(2, 1, 1, 1))).toBe('Cri niv2'));
-  it('Antre+Cri N2, reste N1 (score 25) → Meute niv2, Totem niv2', () =>
+  it('tous N0 (score 5) → Antre niv1, Cri niv1', () =>
+    expect(getNextLevelText(lvl(0, 0, 0, 0))).toBe('Antre niv1, Cri niv1'));
+  it('Antre+Cri N1, reste N0 (score 15) → Meute niv1, Totem niv1', () =>
+    expect(getNextLevelText(lvl(1, 1, 0, 0))).toBe('Meute niv1, Totem niv1'));
+  it('tous N1 (score 25) → Antre niv2, Cri niv2', () =>
+    expect(getNextLevelText(lvl(1, 1, 1, 1))).toBe('Antre niv2, Cri niv2'));
+  it('Antre+Cri N2, reste N1 (score 35) → Meute niv2, Totem niv2', () =>
     expect(getNextLevelText(lvl(2, 2, 1, 1))).toBe('Meute niv2, Totem niv2'));
-  it('tous N2 (score 35) → Antre niv3, Cri niv3', () =>
+  it('tous N2 (score 45) → Antre niv3, Cri niv3', () =>
     expect(getNextLevelText(lvl(2, 2, 2, 2))).toBe('Antre niv3, Cri niv3'));
-  it('Antre+Cri N3, reste N2 (score 45) → Meute niv3, Totem niv3', () =>
+  it('Antre+Cri N3, reste N2 (score 55) → Meute niv3, Totem niv3', () =>
     expect(getNextLevelText(lvl(3, 3, 2, 2))).toBe('Meute niv3, Totem niv3'));
-  it('tous N3 (score 55) → Antre niv4, Cri niv4', () =>
+  it('tous N3 (score 65) → Antre niv4, Cri niv4', () =>
     expect(getNextLevelText(lvl(3, 3, 3, 3))).toBe('Antre niv4, Cri niv4'));
-  it('Antre+Cri N4, reste N3 (score 65) → Meute niv4, Totem niv4', () =>
+  it('Antre+Cri N4, reste N3 (score 75) → Meute niv4, Totem niv4', () =>
     expect(getNextLevelText(lvl(4, 4, 3, 3))).toBe('Meute niv4, Totem niv4'));
-  it('tous N4 (score 75) → Antre niv5, Cri niv5', () =>
-    expect(getNextLevelText(lvl(4, 4, 4, 4))).toBe('Antre niv5, Cri niv5'));
+  it('tous N4 (score 85) → Antre niv5, Cri niv5, Meute niv5, Totem niv5', () =>
+    expect(getNextLevelText(lvl(4, 4, 4, 4))).toBe('Antre niv5, Cri niv5, Meute niv5, Totem niv5'));
   it('tous N5 (score 95) → —', () =>
     expect(getNextLevelText(lvl(5, 5, 5, 5))).toBe('—'));
 });

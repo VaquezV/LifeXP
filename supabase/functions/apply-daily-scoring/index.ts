@@ -103,10 +103,14 @@ Deno.serve(async (req: Request) => {
 
       if (existing?.last_maintenance_date === today) continue;
 
-      const currentLevel: number = existing?.current_level ?? 1;
+      const currentLevel: number = existing?.current_level ?? 0;
       let pointsInLevel: number = existing?.points_in_level ?? 0;
 
-      const config: ScoringConfig = configs[currentLevel];
+      // Category level N earns the accessories for N+1 using that level's cost.
+      // At level 5 the category is complete and no invisible score accumulates.
+      if (currentLevel >= 5) continue;
+
+      const config: ScoringConfig = configs[currentLevel + 1];
       if (!config) continue;
 
       const catHabits = habits.filter((h: any) => h.category === category);
@@ -123,6 +127,7 @@ Deno.serve(async (req: Request) => {
       if (pointsInLevel >= config.points_to_next_level && currentLevel < 5) {
         pointsInLevel -= config.points_to_next_level;
         newLevel = currentLevel + 1;
+        if (newLevel >= 5) pointsInLevel = 0;
       }
 
       await client.from('category_progress').upsert(

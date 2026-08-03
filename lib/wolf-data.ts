@@ -31,13 +31,6 @@ const WOLF_MANTRAS: readonly (readonly string[])[] = [
   ["Je suis l'origine et l'aboutissement.", "Rien ne commence sans effort. Rien ne s'arrête sans raison.", 'Je suis la preuve que c\'est possible.'],
 ];
 
-const ACCESSORY_NAMES: Record<CategoryType, readonly string[]> = {
-  self_care: ['Tanière des Cendres', 'Antre des Racines', 'Refuge des Forêts', 'Sanctuaire des Profondeurs', 'Caverne des Cristaux'],
-  dev_perso: ['Souffle Muet', 'Grondement des Plaines', 'Rugissement Doré', 'Hurlement des Vagues', 'Chant des Origines'],
-  vie_familiale: ['Loup Solitaire', 'Duo des Lisières', 'Meute des Clairières', 'Meute des Territoires', 'Légion des Ombres'],
-  vie_pro: ['Pierre Brute', 'Stèle Gravée', 'Totem Éveillé', 'Totem Ardent', 'Totem Divin'],
-};
-
 const NEXT_LEVEL_CATS: Array<{ key: CategoryType; label: string }> = [
   { key: 'self_care', label: 'Antre' },
   { key: 'dev_perso', label: 'Cri' },
@@ -70,6 +63,12 @@ export function getNextClass(score: number): string | null {
   return idx < WOLF_CLASSES.length - 1 ? WOLF_CLASSES[idx + 1] : null;
 }
 
+/** Score at the boundary of the next wolf tier, used to preview its avatar. */
+export function getNextWolfTierScore(score: number): number | null {
+  const nextIndex = getWolfTierIndex(score) + 1;
+  return SCORE_THRESHOLDS[nextIndex] ?? null;
+}
+
 export function getStarString(score: number): string {
   const filled = getWolfTierIndex(score) + 1;
   return '★'.repeat(filled) + '☆'.repeat(10 - filled);
@@ -80,10 +79,7 @@ export function getRandomMantra(tierIndex: number): string {
   return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
-export function getAccessoryName(category: CategoryType, level: number): string {
-  const names = ACCESSORY_NAMES[category];
-  return names[Math.min(Math.max(level - 1, 0), names.length - 1)];
-}
+export { getAccessoryName } from './category-elements-config';
 
 export function computeTotalXP(
   progress: Record<CategoryType, CategoryProgress>,
@@ -92,7 +88,7 @@ export function computeTotalXP(
   return CATEGORY_KEYS.reduce((total, cat) => {
     const { current_level, points_in_level } = progress[cat];
     let past = 0;
-    for (let l = 1; l < current_level; l++) {
+    for (let l = 1; l <= current_level; l++) {
       const cfg = scoringConfigs.find(c => c.level === l) ?? SCORING_CONFIG_FALLBACK[0];
       past += cfg.points_to_next_level;
     }
@@ -108,13 +104,15 @@ export function getNextLevelText(levels: CategoryLevels): string {
   const fmt = (cats: typeof NEXT_LEVEL_CATS, niv: number) =>
     cats.map(c => `${c.label} niv${niv}`).join(', ');
 
-  if (score <= 15) return fmt(below(2).slice(0, 1), 2);
-  if (score <= 25) return fmt(below(2), 2);
-  if (score <= 35) return fmt(below(3).slice(0, 2), 3);
-  if (score <= 45) return fmt(below(3), 3);
-  if (score <= 55) return fmt(below(4).slice(0, 2), 4);
-  if (score <= 65) return fmt(below(4), 4);
-  if (score <= 75) return fmt(below(5).slice(0, 2), 5);
+  if (score <= 5) return fmt(below(1).slice(0, 2), 1);
+  if (score <= 15) return fmt(below(1), 1);
+  if (score <= 25) return fmt(below(2).slice(0, 2), 2);
+  if (score <= 35) return fmt(below(2), 2);
+  if (score <= 45) return fmt(below(3).slice(0, 2), 3);
+  if (score <= 55) return fmt(below(3), 3);
+  if (score <= 65) return fmt(below(4).slice(0, 2), 4);
+  if (score <= 75) return fmt(below(4), 4);
+  if (score <= 85) return fmt(below(5), 5);
   return fmt(below(5), 5);
 }
 
@@ -123,14 +121,14 @@ export function getNextLevelSummary(levels: CategoryLevels): string {
   if (score >= 95) return '—';
 
   const rules = [
-    { maxScore: 15, targetLevel: 2, required: 1 },
-    { maxScore: 25, targetLevel: 2, required: 2 },
-    { maxScore: 35, targetLevel: 2, required: 4 },
-    { maxScore: 45, targetLevel: 3, required: 2 },
-    { maxScore: 55, targetLevel: 3, required: 4 },
-    { maxScore: 65, targetLevel: 4, required: 2 },
-    { maxScore: 75, targetLevel: 4, required: 4 },
-    { maxScore: 85, targetLevel: 5, required: 2 },
+    { maxScore: 15, targetLevel: 1, required: 2 },
+    { maxScore: 25, targetLevel: 1, required: 4 },
+    { maxScore: 35, targetLevel: 2, required: 2 },
+    { maxScore: 45, targetLevel: 2, required: 4 },
+    { maxScore: 55, targetLevel: 3, required: 2 },
+    { maxScore: 65, targetLevel: 3, required: 4 },
+    { maxScore: 75, targetLevel: 4, required: 2 },
+    { maxScore: 85, targetLevel: 4, required: 4 },
     { maxScore: 95, targetLevel: 5, required: 4 },
   ] as const;
 

@@ -186,7 +186,7 @@ export default function HomeScreen() {
           const categoryLabel = catData?.label ?? category;
           const catProgress = progress[category];
           const categoryHabits = habits.filter(h => h.category === category);
-          const scoringConfig = getScoringConfigForLevel(scoringConfigs, catProgress.current_level);
+          const scoringConfig = getScoringConfigForLevel(scoringConfigs, catProgress.current_level + 1);
           const projectedGain = calcCategoryProjectedGain(categoryHabits, dailyValues, scoringConfig);
 
           return (

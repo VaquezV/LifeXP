@@ -13,37 +13,22 @@ export function validateCategoryLevelProgression(currentLevel: number, targetLev
 }
 
 export function getAvatarScoreFromLevels(levels: CategoryLevels): number {
-  const lvl5 = countAtLeast(levels, 5);
-  const lvl4 = countAtLeast(levels, 4);
-  const lvl3 = countAtLeast(levels, 3);
+  const lvl1 = countAtLeast(levels, 1);
   const lvl2 = countAtLeast(levels, 2);
+  const lvl3 = countAtLeast(levels, 3);
+  const lvl4 = countAtLeast(levels, 4);
+  const lvl5 = countAtLeast(levels, 5);
 
-  // Level 10
+  // Each pair of global forms is earned by two, then four categories at the
+  // same category level. Avatar 10 remains the completion reward: all N5.
   if (lvl5 >= 4) return 95;
-
-  // level 9
-  if (lvl5 >= 2 && lvl4 >= 4) return 85;
-
-  // Level 8
-  if (lvl4 >= 4) return 75;
-
-  //  level 7
-  if (lvl4 >= 2 && lvl3 >= 4) return 65;
-
-  // Level 6 foundation
-  if (lvl3 >= 4) return 55;
-
-  // lelve 5
-  if (lvl3 >= 2 && lvl2 >= 4) return 45;
-
-  // Level 4
-  if (lvl2 >= 4) return 35;
-
-  // level 3
-  if (lvl2 >= 2) return 25;
-
-  // level 2
-  if (lvl2 >= 1) return 15;
-
+  if (lvl4 >= 4) return 85;
+  if (lvl4 >= 2) return 75;
+  if (lvl3 >= 4) return 65;
+  if (lvl3 >= 2) return 55;
+  if (lvl2 >= 4) return 45;
+  if (lvl2 >= 2) return 35;
+  if (lvl1 >= 4) return 25;
+  if (lvl1 >= 2) return 15;
   return 5;
 }

@@ -13,7 +13,7 @@ export function defaultCategoryProgress(userId: string, category: CategoryType):
   return {
     user_id: userId,
     category,
-    current_level: 1,
+    current_level: 0,
     points_in_level: 0,
     last_maintenance_date: null,
     updated_at: new Date().toISOString(),
@@ -66,7 +66,7 @@ async function calculateCategoryProgressFromDomainScores(userId: string): Promis
     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
 
     // Find level based on score thresholds from scoring config
-    let level = 1;
+    let level = 0;
     let pointsInLevel = Math.round(avgScore);
 
     for (const config of scoringConfigs) {
