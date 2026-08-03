@@ -37,11 +37,15 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+.env.bak-*
 
 # typescript
 *.tsbuildinfo
 
 app-example
+
+# supabase CLI cache
+supabase/.temp/
 
 # generated native folders
 /ios
