@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { supabase } from './supabase';
-import { requireUserId } from './auth';
+import { useAuth } from './auth';
 import type { WolfLevel } from './theme-evolution';
 import { fetchCategoryProgress } from './category-progress';
 import { getAvatarScoreFromLevels } from './avatar-level';
@@ -31,18 +31,24 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeContextProvider({ children }: { children: ReactNode }) {
+  const { session, loading: authLoading } = useAuth();
   const [wolfLevel, setWolfLevel] = useState<WolfLevel>(1);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user's wolf level on mount
+  // There is no palette to load until AuthProvider has resolved a signed-in user.
   useEffect(() => {
     async function fetchWolfLevel() {
+      if (authLoading) return;
+
+      if (!session || !supabase) {
+        setWolfLevel(1);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
-        const userId = await requireUserId();
-        if (!supabase) {
-          setLoading(false);
-          return;
-        }
+        const userId = session.user.id;
 
         const { data, error } = await supabase
           .from('user_palette_progression')
@@ -84,49 +90,34 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
     }
 
     fetchWolfLevel();
-  }, []);
+  }, [authLoading, session]);
 
   // Subscribe to real-time wolf level changes
   useEffect(() => {
-    let subscription: any;
+    if (authLoading || !session || !supabase) return;
 
-    async function subscribeToWolfLevel() {
-      try {
-        const userId = await requireUserId();
-        if (!supabase) return;
-
-        const channel = supabase
-          .channel('user_palette_progression_changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'user_palette_progression',
-              filter: `user_id=eq.${userId}`,
-            },
-            (payload: any) => {
-              if (payload.new?.current_wolf_level) {
-                setWolfLevel(payload.new.current_wolf_level as WolfLevel);
-              }
-            }
-          )
-          .subscribe();
-
-        subscription = channel;
-      } catch (error) {
-        console.error('Failed to subscribe to wolf level:', error);
-      }
-    }
-
-    subscribeToWolfLevel();
+    const channel = supabase
+      .channel('user_palette_progression_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_palette_progression',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        (payload: any) => {
+          if (payload.new?.current_wolf_level) {
+            setWolfLevel(payload.new.current_wolf_level as WolfLevel);
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
+      void channel.unsubscribe();
     };
-  }, []);
+  }, [authLoading, session]);
 
   // Prepare palette fade transitions
   // When wolfLevel changes, all components re-render with new palette colors.

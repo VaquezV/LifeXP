@@ -137,11 +137,11 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ThemeContextProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <ThemeContextProvider>
         <RootNavigator />
         {Analytics && <Analytics />}
-      </AuthProvider>
-    </ThemeContextProvider>
+      </ThemeContextProvider>
+    </AuthProvider>
   );
 }
