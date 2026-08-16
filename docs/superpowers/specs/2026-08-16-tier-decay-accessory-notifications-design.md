@@ -21,6 +21,8 @@ Cette feature ajoute :
 
 Le lookup de config passe de `configs[currentLevel + 1]` à `configs[Math.min(currentLevel + 1, 5)]`, pour que le niveau 5 (max) réutilise sa propre config (`configs[5]`) au lieu de sauter le calcul. Le niveau 5 n'est donc plus exclu (suppression du `if (currentLevel >= 5) continue`) : il continue d'accumuler/perdre des points avec `daily_maintenance` et `points_to_next_level` de `configs[5]`, mais ne peut jamais dépasser le niveau 5 (le level-up reste gardé par `currentLevel < 5`).
 
+**Choix assumé :** pour tous les niveaux 1-4, la maintenance quotidienne du niveau L vient de `configs[L+1]` (la ligne du niveau suivant) — un palier strictement plus dur à tenir à mesure qu'on progresse. Le niveau 5 n'ayant pas de "niveau 6", il réutilise `configs[5]` pour sa propre maintenance : le niveau 5 a donc la **même** `daily_maintenance` que le coût qui a servi à l'atteindre (10.0 dans le fallback), identique à celle déjà appliquée au niveau 4. Pas de nouvelle valeur/colonne introduite.
+
 ### 1.2 Algorithme (remplace les lignes 123-131 actuelles)
 
 ```
