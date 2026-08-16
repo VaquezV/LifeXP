@@ -55,3 +55,9 @@ supabase/.temp/
 *.apk
 *.aab
 
+# generated accessory icon sources
+assets/icones_accessoires/origines/
+
+# graphify regenerable AST cache
+graphify-out/cache/ast/
+

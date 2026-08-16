@@ -1,5 +1,5 @@
 import { useAppTheme } from '@/hooks/use-app-theme';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: 'Sanctuaire',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons color={color} name="person" size={size} />
+            <MaterialCommunityIcons color={color} name="paw" size={size} />
           ),
         }}
       />
@@ -38,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Check-in',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons color={color} name="check-circle" size={size} />
+            <MaterialCommunityIcons color={color} name="hexagram" size={size} />
           ),
         }}
       />
@@ -47,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Performances',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons color={color} name="bar-chart" size={size} />
+            <MaterialCommunityIcons color={color} name="trending-up" size={size} />
           ),
         }}
       />
