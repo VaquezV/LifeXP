@@ -6,6 +6,8 @@ alter table public.habits
   add constraint habits_frequency_type_check
   check (frequency_type in ('per_day', 'times_per_day', 'times_per_week', 'duration_per_week'));
 alter table public.habits
+  drop constraint if exists habits_duration_per_week_target_check;
+alter table public.habits
   add constraint habits_duration_per_week_target_check
   check (frequency_type <> 'duration_per_week' or target_value > 0);
 

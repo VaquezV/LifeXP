@@ -10,7 +10,7 @@ end;
 $$ language plpgsql;
 
 -- ── 2. Create user_palette_progression table ───────────────────────────────
-create table public.user_palette_progression (
+create table if not exists public.user_palette_progression (
   user_id uuid primary key references auth.users(id) on delete cascade,
   current_wolf_level int not null default 1 check (current_wolf_level >= 1 and current_wolf_level <= 10),
   last_seen_wolf_level int not null default 1 check (last_seen_wolf_level >= 1 and last_seen_wolf_level <= 10),

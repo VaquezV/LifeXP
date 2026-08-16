@@ -119,3 +119,8 @@ export async function deleteHabit(habitId: string): Promise<void> {
     throw error;
   }
 }
+
+/** Removes the deleted habit from a local list, for reconciling state right after a successful deleteHabit call. Called by the home screen's handleDeleteItem. */
+export function removeHabitFromList(habits: Habit[], habitId: string): Habit[] {
+  return habits.filter(h => h.id !== habitId);
+}

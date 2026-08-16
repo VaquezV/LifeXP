@@ -4,7 +4,7 @@
 drop table if exists public.category_momentum cascade;
 
 -- ── 2. scoring_config ──────────────────────────────────────────────────────
-create table public.scoring_config (
+create table if not exists public.scoring_config (
   level                int     primary key check (level between 1 and 5),
   max_habits           int     not null,
   min_completion_pct   int     not null,
@@ -26,10 +26,11 @@ values
   (2, 3, 82, '[{"pct":82,"pts":1},{"pct":87,"pts":2},{"pct":92,"pts":3},{"pct":97,"pts":4},{"pct":100,"pts":5}]'::jsonb, 2.5,  65),
   (3, 4, 84, '[{"pct":84,"pts":1},{"pct":89,"pts":2},{"pct":94,"pts":3},{"pct":99,"pts":4},{"pct":100,"pts":5}]'::jsonb, 4.0,  85),
   (4, 5, 86, '[{"pct":86,"pts":1},{"pct":91,"pts":2},{"pct":96,"pts":3},{"pct":99,"pts":4},{"pct":100,"pts":5}]'::jsonb, 6.5, 110),
-  (5, 5, 95, '[{"pct":95,"pts":1},{"pct":97,"pts":3},{"pct":99,"pts":4},{"pct":100,"pts":5}]'::jsonb,               10.0, 140);
+  (5, 5, 95, '[{"pct":95,"pts":1},{"pct":97,"pts":3},{"pct":99,"pts":4},{"pct":100,"pts":5}]'::jsonb,               10.0, 140)
+on conflict (level) do nothing;
 
 -- ── 3. category_progress ───────────────────────────────────────────────────
-create table public.category_progress (
+create table if not exists public.category_progress (
   user_id               uuid not null references auth.users(id) on delete cascade,
   category              text not null check (category in ('self_care','dev_perso','vie_familiale','vie_pro')),
   current_level         int  not null default 1 check (current_level between 1 and 5),

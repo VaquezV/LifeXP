@@ -12,7 +12,7 @@ import { CategoryHeader } from '@/components/category-header';
 import { ManageItemsModal } from '@/components/manage-items-modal';
 import { WeekNavigator } from '@/components/week-navigator';
 import { ThemedView } from '@/components/themed-view';
-import { fetchHabits, createHabit, updateHabit, deleteHabit } from '@/lib/habits';
+import { fetchHabits, createHabit, updateHabit, deleteHabit, removeHabitFromList } from '@/lib/habits';
 import { fetchPresetHabits } from '@/lib/preset-habits';
 import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
@@ -148,10 +148,8 @@ export default function HomeScreen() {
 
   const handleDeleteItem = async (habitId: string) => {
     try {
-      const success = await deleteHabit(habitId);
-      if (success) {
-        setHabits((prev) => prev.filter((h) => h.id !== habitId));
-      }
+      await deleteHabit(habitId);
+      setHabits((prev) => removeHabitFromList(prev, habitId));
     } catch (error) {
       console.error('Error deleting habit:', error);
     }
