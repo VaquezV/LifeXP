@@ -47,5 +47,6 @@ export const FREQUENCY_EMOJIS = {
   per_day: '📅',
   times_per_day: '🔄',
   times_per_week: '📆',
+  duration_per_week: '⏱️',
   per_week: '🗓️',
 } as const;

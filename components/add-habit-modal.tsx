@@ -39,6 +39,7 @@ const FREQ_LABELS: Record<string, string> = {
   per_day: 'Durée/jour',
   times_per_day: 'Fois/jour',
   times_per_week: 'Fois/sem.',
+  duration_per_week: 'Durée/sem.',
 };
 
 const EXPERTISE_LABELS: Record<string, string> = {
@@ -66,6 +67,11 @@ function formatTarget(preset: PresetHabit): string {
   }
   if (preset.frequency_type === 'times_per_day') return v === 1 ? '1x/jour' : `${v}x/jour`;
   if (preset.frequency_type === 'times_per_week') return `${v}x/sem.`;
+  if (preset.frequency_type === 'duration_per_week') {
+    const h = Math.floor(v / 60);
+    const m = v % 60;
+    return m > 0 ? `${h}h ${m}min/sem.` : `${h}h/sem.`;
+  }
   return String(v);
 }
 
@@ -93,11 +99,13 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<PresetHabit | null>(null);
   const [form, setForm] = useState({ ...INITIAL_FORM, category: defaultCategory ?? 'self_care' as CategoryType });
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const resetAndClose = () => {
     setStep('picker');
     setSelectedName(null);
     setSelectedPreset(null);
+    setValidationError(null);
     setForm({ ...INITIAL_FORM, category: defaultCategory ?? 'self_care' });
     onClose();
   };
@@ -275,7 +283,12 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                             : { borderWidth: 1, borderColor: colors.borderSoft },
                           locked ? { opacity: 0.5 } : {},
                         ]}
-                        onPress={() => !locked && setForm(f => ({ ...f, frequency_type: freq }))}
+                        onPress={() => {
+                          if (!locked) {
+                            setValidationError(null);
+                            setForm(f => ({ ...f, frequency_type: freq }));
+                          }
+                        }}
                       >
                         <Text style={[styles.chipText, { color: form.frequency_type === freq ? colors.onPrimary : colors.textMuted }]}>
                           {FREQ_LABELS[freq]}
@@ -288,7 +301,11 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
 
               {/* Target value */}
               <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: colors.textMuted }]}>Objectif</Text>
+                <Text style={[styles.formLabel, { color: colors.textMuted }]}>
+                  {form.frequency_type === 'duration_per_week'
+                    ? 'Objectif (minutes par semaine)'
+                    : 'Objectif'}
+                </Text>
                 <TextInput
                   style={[styles.textInput, themeStyles.input, { opacity: (selectedPreset && !selectedPreset.editable_target_value) ? 0.5 : 1 }]}
                   value={String(form.target_value)}
@@ -324,6 +341,13 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                   style={[styles.btnPrimary, themeStyles.primaryButton]}
                   onPress={async () => {
                     if (!form.name.trim()) return;
+                    if (
+                      form.frequency_type === 'duration_per_week' &&
+                      form.target_value <= 0
+                    ) {
+                      setValidationError('Saisis un objectif positif.');
+                      return;
+                    }
                     try {
                       await onSave({ ...form, preset_habit_id: selectedPreset?.id ?? null });
                       resetAndClose();
@@ -335,6 +359,11 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                   <Text style={[styles.btnText, { color: colors.onPrimary }]}>Sauvegarder</Text>
                 </Pressable>
               </View>
+              {validationError && (
+                <Text style={[styles.validationError, { color: colors.danger }]}>
+                  {validationError}
+                </Text>
+              )}
             </ScrollView>
           )}
         </View>
@@ -429,6 +458,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnText: { fontSize: 14, fontWeight: '600' },
+  validationError: { fontSize: 13, marginTop: -12, marginBottom: 12 },
   categoryHeader:     { borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8, marginTop: 12, marginBottom: 4 },
   categoryHeaderText: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 });

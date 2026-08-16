@@ -11,6 +11,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ensureContrast } from '@/lib/theme-evolution';
+import { calculateHabitCompletion } from '@/lib/scoring';
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -65,7 +66,14 @@ export default function DashboardScreen() {
         const value = dailyValues[dateKey]?.[habit.id] ?? 0;
 
         let percentage = 0;
-        if (habit.frequency_type === 'times_per_week') {
+        if (habit.frequency_type === 'duration_per_week') {
+          const rollingTotal = Array.from({ length: 7 }, (_, offset) => {
+            const rollingDate = new Date(date);
+            rollingDate.setDate(rollingDate.getDate() - offset);
+            return dailyValues[toDateKey(rollingDate)]?.[habit.id] ?? 0;
+          }).reduce((sum, minutes) => sum + minutes, 0);
+          percentage = calculateHabitCompletion(habit, rollingTotal);
+        } else if (habit.frequency_type === 'times_per_week') {
           percentage = value === 0 ? 0 : 100;
         } else if (habit.frequency_type === 'times_per_day') {
           percentage = (value / habit.target_value) * 100;

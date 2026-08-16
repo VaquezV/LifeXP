@@ -23,7 +23,7 @@ function calcHabitCompletionPct(habit: any, weekLogs: Record<string, Record<stri
   const dates = Object.keys(weekLogs).sort();
   if (dates.length === 0) return 0;
 
-  if (habit.frequency_type === 'times_per_week') {
+  if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week') {
     const total = dates.reduce((s: number, d: string) => s + (weekLogs[d]?.[habit.id] ?? 0), 0);
     return habit.target_value === 0 ? 0 : Math.min(100, Math.round((total / habit.target_value) * 100));
   }

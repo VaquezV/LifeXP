@@ -38,6 +38,7 @@ export function HabitModal({
     habit?.min_value?.toString() || '0'
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (habit) {
@@ -45,15 +46,24 @@ export function HabitModal({
       setEmoji(habit.emoji || '');
       setTargetValue(habit.target_value?.toString() || '1');
       setMinValue(habit.min_value?.toString() || '0');
+      setValidationError(null);
     }
   }, [habit, visible]);
 
   const handleSave = () => {
     if (name.trim()) {
+      const parsedTargetValue = parseFloat(targetValue) || 0;
+      if (
+        habit?.frequency_type === 'duration_per_week' &&
+        parsedTargetValue <= 0
+      ) {
+        setValidationError('Saisis un objectif positif.');
+        return;
+      }
       onSave({
         name,
         emoji,
-        target_value: parseFloat(targetValue) || 1,
+        target_value: parsedTargetValue || 1,
         min_value: parseFloat(minValue) || 0,
       });
       onClose();
@@ -130,30 +140,34 @@ export function HabitModal({
                     onChangeText={setName}
                   />
                 </View>
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text
-                    style={[styles.label, { color: colors.textMuted }]}
-                  >
-                    Minimum
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      themeStyles.input,
-                    ]}
-                    placeholder="0"
-                    placeholderTextColor={colors.placeholder}
-                    value={minValue}
-                    onChangeText={setMinValue}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
+                {habit?.frequency_type !== 'duration_per_week' && (
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text
+                      style={[styles.label, { color: colors.textMuted }]}
+                    >
+                      Minimum
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        themeStyles.input,
+                      ]}
+                      placeholder="0"
+                      placeholderTextColor={colors.placeholder}
+                      value={minValue}
+                      onChangeText={setMinValue}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                )}
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                     <Text
                       style={[styles.label, { color: colors.textMuted }]}
                     >
-                      Objectif
+                      {habit?.frequency_type === 'duration_per_week'
+                        ? 'Objectif (minutes par semaine)'
+                        : 'Objectif'}
                     </Text>
                     <TextInput
                       style={[
@@ -170,6 +184,11 @@ export function HabitModal({
 
 
                 </View>
+                {validationError && (
+                  <Text style={[styles.validationError, { color: colors.danger }]}>
+                    {validationError}
+                  </Text>
+                )}
               </ScrollView>
 
               <View style={[styles.actions, themeStyles.dividerTop]}>
@@ -274,6 +293,11 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+  },
+  validationError: {
+    fontSize: 13,
+    marginTop: -8,
+    marginBottom: 12,
   },
   label: {
     fontSize: 12,

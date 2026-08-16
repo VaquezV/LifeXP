@@ -26,8 +26,10 @@ export function CheckinItemWithPerformance({
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const getStepSize = (targetValue: number, minValue?: number) => {
-    if (habit.frequency_type === 'per_day') {
-      const min = minValue || habit.min_value;
+    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
+      const min = habit.frequency_type === 'duration_per_week'
+        ? 0
+        : minValue || habit.min_value;
       const range = targetValue - min;
       if (range < 30) return 5;
       if (range < 60) return 15;
@@ -46,6 +48,12 @@ export function CheckinItemWithPerformance({
     if (habit.frequency_type === 'times_per_day') {
       return Array.from({ length: habit.target_value + 1 }, (_, i) => i);
     }
+    if (habit.frequency_type === 'duration_per_week') {
+      const values: number[] = [];
+      for (let i = 0; i <= habit.target_value; i += stepSize) values.push(i);
+      if (values[values.length - 1] !== habit.target_value) values.push(habit.target_value);
+      return values;
+    }
     // per_day: build stepping
     const values: number[] = [];
     for (let i = habit.min_value; i <= habit.target_value; i += stepSize) {
@@ -62,7 +70,7 @@ export function CheckinItemWithPerformance({
   };
 
   const formatValue = (v: number) => {
-    if (habit.frequency_type === 'per_day') {
+    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
       if (v < 60) return `${v}m`;
       const hours = Math.floor(v / 60);
       const mins = v % 60;

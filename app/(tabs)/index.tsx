@@ -17,6 +17,7 @@ import { fetchPresetHabits } from '@/lib/preset-habits';
 import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
 import { calcCategoryProjectedGain, fetchScoringConfig, getScoringConfigForLevel, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
+import { calculateHabitCompletion } from '@/lib/scoring';
 import { Habit, CategoryType, FrequencyType, PresetHabit, CATEGORY_KEYS, ScoringConfig } from '@/lib/types';
 import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { requireUserId } from '@/lib/auth';
@@ -204,16 +205,28 @@ export default function HomeScreen() {
 
               {/* Checkin Items */}
               <ThemedView style={styles.itemsContainer}>
-                {categoryHabits.map((habit) => (
-                  <CheckinItemSimplified
-                    key={habit.id}
-                    habit={habit}
-                    value={dailyValues[selectedDate]?.[habit.id] || 0}
-                    onValueChange={(newValue) =>
-                      handleValueChange(habit.id, newValue)
-                    }
-                  />
-                ))}
+                {categoryHabits.map((habit) => {
+                  const weeklyTotal = weekDates.reduce(
+                    (sum, date) => sum + (dailyValues[date]?.[habit.id] ?? 0),
+                    0,
+                  );
+                  return (
+                    <CheckinItemSimplified
+                      key={habit.id}
+                      habit={habit}
+                      value={dailyValues[selectedDate]?.[habit.id] || 0}
+                      weeklyTotal={weeklyTotal}
+                      weeklyCompletion={
+                        habit.frequency_type === 'duration_per_week'
+                          ? calculateHabitCompletion(habit, weeklyTotal)
+                          : undefined
+                      }
+                      onValueChange={(newValue) =>
+                        handleValueChange(habit.id, newValue)
+                      }
+                    />
+                  );
+                })}
               </ThemedView>
             </ThemedView>
           );

@@ -2,6 +2,7 @@ import {
   calculatePerDayCompletion,
   calculateTimesPerDayCompletion,
   calculateTimesPerWeekCompletion,
+  calculateDurationPerWeekCompletion,
   calculateDayCompletion,
   calculateWeeklyScore,
 } from './scoring';
@@ -112,6 +113,16 @@ describe('calculateTimesPerWeekCompletion', () => {
   });
 });
 
+describe('calculateDurationPerWeekCompletion', () => {
+  const habit = makeHabit({ frequency_type: 'duration_per_week', target_value: 240 });
+
+  it('additionne les durées renseignées sur les 7 derniers jours', () => {
+    expect(calculateDurationPerWeekCompletion(habit, 120)).toBe(50);
+    expect(calculateDurationPerWeekCompletion(habit, 240)).toBe(100);
+    expect(calculateDurationPerWeekCompletion(habit, 270)).toBe(100);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // calculateDayCompletion
 // ---------------------------------------------------------------------------
@@ -125,6 +136,12 @@ describe('calculateDayCompletion', () => {
     const daily = makeHabit({ id: 'd1', frequency_type: 'per_day', min_value: 0, target_value: 60 });
     const values = { d1: 60 }; // daily complète, weekly ignorée
     expect(calculateDayCompletion([weekly, daily], values)).toBe(100);
+  });
+
+  it('exclut les habitudes duration_per_week du calcul journalier', () => {
+    const weeklyDuration = makeHabit({ id: 'w1', frequency_type: 'duration_per_week', target_value: 240 });
+    const daily = makeHabit({ id: 'd1', frequency_type: 'per_day', min_value: 0, target_value: 60 });
+    expect(calculateDayCompletion([weeklyDuration, daily], { d1: 60, w1: 30 })).toBe(100);
   });
 
   it('moyenne de plusieurs habitudes quotidiennes', () => {
@@ -176,5 +193,15 @@ describe('calculateWeeklyScore', () => {
       '2026-06-19': { h1: 1 },
     };
     expect(calculateWeeklyScore([habit], weekLogs)).toBe(100); // 3 total = objectif
+  });
+
+  it('habitude duration_per_week: total en minutes utilisé sur les 7 jours', () => {
+    const habit = makeHabit({ id: 'h1', frequency_type: 'duration_per_week', target_value: 240 });
+    const weekLogs = {
+      '2026-06-15': { h1: 30 },
+      '2026-06-17': { h1: 60 },
+      '2026-06-19': { h1: 30 },
+    };
+    expect(calculateWeeklyScore([habit], weekLogs)).toBe(50);
   });
 });

@@ -10,12 +10,16 @@ import { ThemedText } from './themed-text';
 export interface CheckinItemSimplifiedProps {
   habit: Habit;
   value: number;
+  weeklyTotal?: number;
+  weeklyCompletion?: number;
   onValueChange: (newValue: number) => void;
 }
 
 export function CheckinItemSimplified({
   habit,
   value,
+  weeklyTotal,
+  weeklyCompletion,
   onValueChange,
 }: CheckinItemSimplifiedProps) {
   const theme = useWolfLevelTheme();
@@ -42,8 +46,10 @@ export function CheckinItemSimplified({
   };
 
   const getStepSize = (targetValue: number, minValue?: number) => {
-    if (habit.frequency_type === 'per_day') {
-      const min = minValue || habit.min_value;
+    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
+      const min = habit.frequency_type === 'duration_per_week'
+        ? 0
+        : minValue || habit.min_value;
       const range = targetValue - min;
       if (range < 30) return 5;
       if (range < 60) return 15;
@@ -62,6 +68,12 @@ export function CheckinItemSimplified({
     if (habit.frequency_type === 'times_per_day') {
       return Array.from({ length: habit.target_value + 1 }, (_, i) => i);
     }
+    if (habit.frequency_type === 'duration_per_week') {
+      const values: number[] = [];
+      for (let i = 0; i <= habit.target_value; i += stepSize) values.push(i);
+      if (values[values.length - 1] !== habit.target_value) values.push(habit.target_value);
+      return values;
+    }
     // per_day: build stepping
     const values: number[] = [];
     for (let i = habit.min_value; i <= habit.target_value; i += stepSize) {
@@ -78,7 +90,7 @@ export function CheckinItemSimplified({
   };
 
   const formatValue = (v: number) => {
-    if (habit.frequency_type === 'per_day') {
+    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
       if (v < 60) return `${v}m`;
       const hours = Math.floor(v / 60);
       const mins = v % 60;
@@ -185,6 +197,11 @@ export function CheckinItemSimplified({
             >
               {habit.name}
             </ThemedText>
+            {habit.frequency_type === 'duration_per_week' && (
+              <ThemedText style={[styles.weeklyProgress, { color: theme.textMuted }]}>
+                {formatValue(weeklyTotal ?? 0)} / {formatValue(habit.target_value)} · {weeklyCompletion ?? 0}% sur 7 jours
+              </ThemedText>
+            )}
           </View>
         </View>
 
@@ -281,6 +298,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     letterSpacing: 0.2,
+  },
+  weeklyProgress: {
+    fontSize: 11,
+    marginTop: 2,
   },
   interactionWrapper: {
     justifyContent: 'center',

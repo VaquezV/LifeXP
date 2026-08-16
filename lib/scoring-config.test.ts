@@ -1,6 +1,6 @@
 // lib/scoring-config.test.ts
-import { applyPtsScale } from './scoring-config';
-import { PtsScaleEntry } from './types';
+import { applyPtsScale, calcHabitCompletionPct } from './scoring-config';
+import { Habit, PtsScaleEntry } from './types';
 
 const N1_SCALE: PtsScaleEntry[] = [
   { pct: 80, pts: 1 },
@@ -46,5 +46,23 @@ describe('applyPtsScale', () => {
     expect(applyPtsScale(N5_SCALE, 95)).toBe(1);
     expect(applyPtsScale(N5_SCALE, 96)).toBe(1);
     expect(applyPtsScale(N5_SCALE, 97)).toBe(3);
+  });
+});
+
+describe('calcHabitCompletionPct', () => {
+  it('calcule une durée hebdomadaire avec la somme des 7 derniers jours', () => {
+    const habit: Pick<Habit, 'id' | 'frequency_type' | 'min_value' | 'target_value'> = {
+      id: 'duration',
+      frequency_type: 'duration_per_week',
+      min_value: 0,
+      target_value: 240,
+    };
+    const logs = {
+      '2026-08-10': { duration: 30 },
+      '2026-08-12': { duration: 60 },
+      '2026-08-15': { duration: 30 },
+    };
+
+    expect(calcHabitCompletionPct(habit, logs)).toBe(50);
   });
 });

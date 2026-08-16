@@ -50,7 +50,7 @@ export function HabitCard({
 
   // Calculate weekly completion percentage
   const weeklyCompletion = useMemo(() => {
-    if (habit.frequency_type === 'times_per_week') {
+    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week') {
       return Math.min(100, Math.floor((weekTotal / habit.target_value) * 100));
     }
     // For daily habits, calculate average
@@ -210,6 +210,37 @@ export function HabitCard({
       );
     }
 
+    if (habit.frequency_type === 'duration_per_week') {
+      const values: number[] = [];
+      const step = getSegmentSize(habit.target_value);
+      for (let value = 0; value <= habit.target_value; value += step) values.push(value);
+      if (values[values.length - 1] !== habit.target_value) values.push(habit.target_value);
+      return (
+        <View style={styles.buttonContainer}>
+          {values.map(value => (
+            <Pressable
+              key={value}
+              style={[
+                styles.countButton,
+                selectedValue === value && { backgroundColor: accentColor },
+                selectedValue !== value && { borderColor: accentColor, borderWidth: 1 },
+              ]}
+              onPress={() => onValueChange(habit.id, selectedDate, value)}
+            >
+              <ThemedText
+                style={[
+                  styles.countButtonText,
+                  { color: selectedValue === value ? getReadableTextColor(accentColor) : accentColor },
+                ]}
+              >
+                {formatTime(value)}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -262,7 +293,9 @@ export function HabitCard({
                 ? `${habit.target_value}x per day`
                 : habit.frequency_type === 'per_day'
                   ? `${habit.min_value}-${habit.target_value} min/day`
-                  : `${habit.target_value}x per week`}
+                  : habit.frequency_type === 'duration_per_week'
+                    ? `${formatTime(habit.target_value)} per week`
+                    : `${habit.target_value}x per week`}
             </ThemedText>
           </View>
           <View style={styles.percentageBox}>

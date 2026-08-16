@@ -249,10 +249,11 @@ function aggregateYearly(
 }
 
 function calculateDayCompletion(habits: Habit[], dayLogs: Record<string, number>): number {
-  if (habits.length === 0) return 0;
+  const dailyHabits = habits.filter(habit => habit.frequency_type !== 'duration_per_week');
+  if (dailyHabits.length === 0) return 0;
 
   let totalCompletion = 0;
-  for (const habit of habits) {
+  for (const habit of dailyHabits) {
     const value = dayLogs[habit.id] ?? 0;
     let completion = 0;
 
@@ -273,5 +274,5 @@ function calculateDayCompletion(habits: Habit[], dayLogs: Record<string, number>
     totalCompletion += completion;
   }
 
-  return Math.round(totalCompletion / habits.length);
+  return Math.round(totalCompletion / dailyHabits.length);
 }
