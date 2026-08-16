@@ -6,6 +6,8 @@ import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
 import { defaultAllCategoryProgress, fetchCategoryProgress } from '@/lib/category-progress';
 import { fetchWolfName, saveWolfName } from '@/lib/profiles';
 import { fetchScoringConfig, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
+import { resetSanctuary } from '@/lib/sanctuary-reset';
+import { useThemeContext } from '@/lib/theme-context';
 import type { CategoryProgress, CategoryType, ScoringConfig } from '@/lib/types';
 import { CATEGORY_KEYS } from '@/lib/types';
 import {
@@ -31,6 +33,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useWolfLevelTheme();
+  const { setWolfLevel } = useThemeContext();
   const themeStyles = { screen: { backgroundColor: theme.bgPrimary } };
   const [loading, setLoading] = useState(true);
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
@@ -39,6 +42,7 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [explainerVisible, setExplainerVisible] = useState(false);
+  const [resettingSanctuary, setResettingSanctuary] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -85,6 +89,35 @@ export default function ProfileScreen() {
       setModalVisible(false);
     } catch (e: any) {
       Alert.alert('Erreur', e?.message ?? 'Impossible de sauvegarder le nom.');
+    }
+  }
+
+  function confirmSanctuaryReset() {
+    Alert.alert(
+      'Réinitialiser le Sanctuaire ?',
+      'Tes habitudes et leur historique seront supprimés. Tes quatre domaines reviendront au niveau 0 avec 0 point. Cette action est irréversible.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Réinitialiser',
+          style: 'destructive',
+          onPress: () => void handleSanctuaryReset(),
+        },
+      ],
+    );
+  }
+
+  async function handleSanctuaryReset() {
+    try {
+      setResettingSanctuary(true);
+      const userId = await resetSanctuary();
+      setCategoryProgress(defaultAllCategoryProgress(userId));
+      setWolfLevel(1);
+      Alert.alert('Sanctuaire réinitialisé', 'Tes habitudes ont été supprimées et tes domaines sont revenus au niveau 0.');
+    } catch {
+      Alert.alert('Réinitialisation impossible', 'Réessaie dans un instant.');
+    } finally {
+      setResettingSanctuary(false);
     }
   }
 
@@ -139,6 +172,28 @@ export default function ProfileScreen() {
                 scoringConfigs={scoringConfigs}
               />
             ))}
+          </View>
+
+          <View style={[styles.resetSection, { borderColor: theme.border, backgroundColor: theme.surfaceRaised }]}>
+            <ThemedText style={[styles.resetTitle, { color: theme.text }]}>RÉINITIALISER LE SANCTUAIRE</ThemedText>
+            <ThemedText style={[styles.resetDescription, { color: theme.textMuted }]}>
+              Supprime les habitudes créées et ramène tous les domaines au niveau 0.
+            </ThemedText>
+            <Pressable
+              onPress={confirmSanctuaryReset}
+              disabled={resettingSanctuary}
+              accessibilityRole="button"
+              accessibilityLabel="Réinitialiser le Sanctuaire"
+              style={[
+                styles.resetButton,
+                { borderColor: theme.danger },
+                resettingSanctuary && styles.resetButtonDisabled,
+              ]}
+            >
+              <ThemedText style={[styles.resetButtonLabel, { color: theme.danger }]}>
+                {resettingSanctuary ? 'Réinitialisation…' : 'Réinitialiser le Sanctuaire'}
+              </ThemedText>
+            </Pressable>
           </View>
         </View>
 
@@ -211,6 +266,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 1.2 },
   cardsGrid: { gap: 12 },
+  resetSection: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+  },
+  resetTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  resetDescription: { marginTop: 8, fontSize: 13, lineHeight: 18 },
+  resetButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginTop: 14,
+    paddingVertical: 11,
+  },
+  resetButtonDisabled: { opacity: 0.55 },
+  resetButtonLabel: { fontSize: 14, fontWeight: '700' },
 
   overlay: {
     flex: 1,
