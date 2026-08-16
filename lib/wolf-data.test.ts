@@ -20,6 +20,7 @@ function prog(sc: number, dp: number, vf: number, vp: number, pts = 0): Record<C
   const make = (category: CategoryType, level: number): CategoryProgress => ({
     user_id: '', category, current_level: level, points_in_level: pts,
     last_maintenance_date: null, updated_at: '',
+    last_seen_level: level, last_seen_points_in_level: pts,
   });
   return {
     self_care:     make('self_care', sc),

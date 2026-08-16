@@ -17,6 +17,8 @@ export function defaultCategoryProgress(userId: string, category: CategoryType):
     points_in_level: 0,
     last_maintenance_date: null,
     updated_at: new Date().toISOString(),
+    last_seen_level: 0,
+    last_seen_points_in_level: 0,
   };
 }
 
@@ -85,6 +87,8 @@ async function calculateCategoryProgressFromDomainScores(userId: string): Promis
       points_in_level: pointsInLevel,
       last_maintenance_date: null,
       updated_at: new Date().toISOString(),
+      last_seen_level: level,
+      last_seen_points_in_level: pointsInLevel,
     };
   }
 

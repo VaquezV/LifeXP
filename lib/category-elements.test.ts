@@ -8,6 +8,7 @@ import {
   getNextElement,
   getPointsRemainingToElement,
   getPointsRemainingToNextLevel,
+  getHeldElements,
 } from './category-elements';
 
 describe('getElementThresholds', () => {
@@ -147,5 +148,48 @@ describe('utilisateur existant avec plusieurs niveaux déjà terminés', () => {
     const unlocked = getUnlockedElements('vie_pro', 4, 60, 110);
     expect(unlocked.map(e => e.label)).toEqual(['Monolithe', 'Cristal']);
     expect(getNextElement('vie_pro', 4, 60, 110)?.label).toBe('Halo');
+  });
+});
+
+// getHeldElements = la collection cumulée que l'utilisateur possède : tous les
+// éléments des niveaux déjà entièrement franchis (1..currentLevel), plus ceux
+// déjà débloqués dans le niveau en cours de progression (currentLevel + 1).
+// self_care niveau 1 : 1 élément (Paille sèche), coût 50 → seuil [25].
+// self_care niveau 2 : 2 éléments (Herbes coupées, Petit foyer), coût 65 → seuils [22, 44].
+describe('getHeldElements', () => {
+  it('niveau 0, à moins de la moitié des points vers le niveau 1 : rien de tenu', () => {
+    expect(getHeldElements('self_care', 0, 20, 50)).toEqual([]);
+  });
+
+  it('niveau 0, à la moitié des points vers le niveau 1 : l\'accessoire du niveau 1 est acquis', () => {
+    const held = getHeldElements('self_care', 0, 25, 50);
+    expect(held.map(e => e.label)).toEqual(['Paille sèche']);
+  });
+
+  it('niveau 1 juste après la montée : l\'accessoire du niveau 1 reste acquis, rien du niveau 2 encore', () => {
+    const held = getHeldElements('self_care', 1, 0, 65);
+    expect(held.map(e => e.label)).toEqual(['Paille sèche']);
+  });
+
+  it('niveau 1 avec des points dans le niveau : cumule le niveau 1 entier + le premier élément du niveau 2', () => {
+    const held = getHeldElements('self_care', 1, 22, 65);
+    expect(held.map(e => e.label)).toEqual(['Paille sèche', 'Herbes coupées']);
+  });
+
+  it('niveau 5 (max) : tous les éléments de tous les niveaux, rien en cours', () => {
+    const held = getHeldElements('self_care', 5, 999, 0);
+    const allLabels = [1, 2, 3, 4, 5].flatMap(l => getCategoryLevelElements('self_care', l).map(e => e.label));
+    expect(held.map(e => e.label)).toEqual(allLabels);
+  });
+
+  it('une légère décroissance qui reste au-dessus du seuil ne fait rien perdre', () => {
+    // décroissance niveau 1 -> niveau 0, 75% du coût niveau 1 (50) = 38 >= seuil 25
+    const held = getHeldElements('self_care', 0, 38, 50);
+    expect(held.map(e => e.label)).toEqual(['Paille sèche']);
+  });
+
+  it('une décroissance suffisante fait perdre l\'accessoire', () => {
+    const held = getHeldElements('self_care', 0, 10, 50);
+    expect(held).toEqual([]);
   });
 });

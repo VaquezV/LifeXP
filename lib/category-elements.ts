@@ -84,3 +84,20 @@ export function getPointsRemainingToNextLevel(
   const clamped = getPointsWithinCurrentLevel(pointsInLevel, pointsToNextLevel);
   return Math.max(0, pointsToNextLevel - clamped);
 }
+
+/** The full accessory collection a user currently holds: every element of levels already fully passed (1..currentLevel, each earned in full by definition), plus whichever elements are already unlocked in the level being worked toward (currentLevel + 1). Unlike getUnlockedElements (a single level's in-progress bucket, used by SanctuaryCategoryCard as a preview), this is what the accessory gain/loss notification diffs against — an element earned in a past level stays held after leveling past it, and is only lost if points decay back below its original threshold. */
+export function getHeldElements(
+  category: CategoryType,
+  currentLevel: number,
+  pointsInLevel: number,
+  pointsToNextLevel: number
+): ProgressionElement[] {
+  const held: ProgressionElement[] = [];
+  for (let level = 1; level <= currentLevel; level++) {
+    held.push(...getCategoryLevelElements(category, level));
+  }
+  if (currentLevel < 5) {
+    held.push(...getUnlockedElements(category, currentLevel + 1, pointsInLevel, pointsToNextLevel));
+  }
+  return held;
+}

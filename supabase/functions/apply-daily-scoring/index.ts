@@ -1,5 +1,6 @@
 // supabase/functions/apply-daily-scoring/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { applyDailyNet, targetConfigLevel } from './level-decay.ts';
 
 interface PtsScaleEntry { pct: number; pts: number; }
 interface ScoringConfig {
@@ -104,13 +105,12 @@ Deno.serve(async (req: Request) => {
       if (existing?.last_maintenance_date === today) continue;
 
       const currentLevel: number = existing?.current_level ?? 0;
-      let pointsInLevel: number = existing?.points_in_level ?? 0;
+      const pointsInLevel: number = existing?.points_in_level ?? 0;
 
       // Category level N earns the accessories for N+1 using that level's cost.
-      // At level 5 the category is complete and no invisible score accumulates.
-      if (currentLevel >= 5) continue;
-
-      const config: ScoringConfig = configs[currentLevel + 1];
+      // Level 5 reuses its own config row for upkeep (no level 6 exists) and can
+      // still decay back down to level 4 if points go negative.
+      const config: ScoringConfig = configs[targetConfigLevel(currentLevel)];
       if (!config) continue;
 
       const catHabits = habits.filter((h: any) => h.category === category);
@@ -120,22 +120,18 @@ Deno.serve(async (req: Request) => {
         ptsToday += applyPtsScale(config.pts_scale, completionPct);
       }
 
-      const net = ptsToday - config.daily_maintenance;
-      pointsInLevel = Math.max(0, pointsInLevel + net);
-
-      let newLevel = currentLevel;
-      if (pointsInLevel >= config.points_to_next_level && currentLevel < 5) {
-        pointsInLevel -= config.points_to_next_level;
-        newLevel = currentLevel + 1;
-        if (newLevel >= 5) pointsInLevel = 0;
-      }
+      const { currentLevel: newLevel, pointsInLevel: newPointsInLevel } = applyDailyNet(
+        { currentLevel, pointsInLevel },
+        ptsToday,
+        (level: number) => configs[level],
+      );
 
       await client.from('category_progress').upsert(
         {
           user_id: userId,
           category,
           current_level: newLevel,
-          points_in_level: pointsInLevel,
+          points_in_level: newPointsInLevel,
           last_maintenance_date: today,
           updated_at: new Date().toISOString(),
         },

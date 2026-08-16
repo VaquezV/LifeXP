@@ -97,6 +97,9 @@ export interface CategoryProgress {
   points_in_level: number;
   last_maintenance_date: string | null;
   updated_at: string;
+  /** Snapshot of current_level/points_in_level the last time the user dismissed the accessory gain/loss modal for this category. */
+  last_seen_level: number;
+  last_seen_points_in_level: number;
 }
 
 export interface ProgressionElement {

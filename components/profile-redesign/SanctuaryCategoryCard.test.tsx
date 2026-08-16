@@ -26,6 +26,8 @@ function progress(current_level: number, points_in_level: number): CategoryProgr
     points_in_level,
     last_maintenance_date: null,
     updated_at: '2026-01-01T00:00:00.000Z',
+    last_seen_level: current_level,
+    last_seen_points_in_level: points_in_level,
   };
 }
 
