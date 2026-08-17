@@ -28,6 +28,21 @@ adaptée aux grandes quantités, et un libellé d'unité affichable (pas, kcal, 
     `preset_habits_frequency_type_check` pour inclure les 2 nouvelles valeurs
   - `alter table habits add column if not exists unit_label text;`
   - `alter table preset_habits add column if not exists unit_label text;`
+  - Nouvelle table `user_units` (unités ajoutées dynamiquement par l'utilisateur, cf. section 6) :
+    ```sql
+    create table public.user_units (
+      id uuid primary key default gen_random_uuid(),
+      user_id uuid not null references auth.users(id) on delete cascade,
+      label text not null,
+      created_at timestamptz not null default now(),
+      unique (user_id, label)
+    );
+    alter table public.user_units enable row level security;
+    create policy "user_units_select_own" on public.user_units
+      for select using (auth.uid() = user_id);
+    create policy "user_units_insert_own" on public.user_units
+      for insert with check (auth.uid() = user_id);
+    ```
   - Répercuté dans `supabase/schema.sql` (habits ~ligne 48-63, preset_habits ~ligne 97-120)
 
 ## 2. Génération des paliers — nouveau module `lib/checkin-tiers.ts`
@@ -66,7 +81,26 @@ Dispatch selon `frequency_type` :
 - `add-habit-modal.tsx` :
   - `FREQ_LABELS` : `+ unit_per_day: 'Unité/jour', unit_per_week: 'Unité/sem.'`
   - `formatTarget` : pour les 2 nouveaux types, `"${v} ${preset.unit_label ?? ''}"`.toString(), fallback `String(v)` si `unit_label` absent
+  - Champ de saisie de `unit_label` remplacé par le combobox décrit en section 6, affiché
+    uniquement quand `frequency_type` est `unit_per_day` ou `unit_per_week`
 - Dropdowns des 2 composants checkin-item : chaque option affiche `${value} ${unit_label ?? ''}`
+
+## 6. Liste d'unités prédéfinie + combobox dynamique
+
+- `lib/units.ts` (nouveau) :
+  - `DEFAULT_UNITS = ['pas', 'kcal', 'km', "verres d'eau", 'pages', 'min', '€']` (constante statique)
+  - `fetchUserUnits(): Promise<string[]>` — lit `user_units` pour l'utilisateur courant
+  - `upsertUserUnit(label: string): Promise<void>` — insert idempotent (`on conflict (user_id, label) do nothing`) si `label` non vide et absent de `DEFAULT_UNITS`
+- `components/unit-combobox.tsx` (nouveau composant UI) :
+  - `TextInput` + liste de suggestions (fusion `DEFAULT_UNITS` ∪ unités custom chargées via
+    `fetchUserUnits()` au montage, dédupliquées, filtrées par le texte tapé)
+  - Sélection d'une suggestion → remplit le champ
+  - Texte libre non présent dans la liste → accepté tel quel (pas de validation bloquante)
+- Dans `add-habit-modal.tsx`, au moment du `onSave` : si le `unit_label` final n'est pas dans
+  `DEFAULT_UNITS`, appel à `upsertUserUnit(unit_label)` pour le mémoriser côté utilisateur
+- `PresetHabit.unit_label` (habitudes prédéfinies fournies par l'app) n'est pas concerné par le
+  combobox : c'est un champ éditable au même titre que `editable_target_value`, déjà en lecture
+  seule sauf si `editable_*` l'autorise (cf. structure existante de `preset_habits`)
 
 ## 4. Scoring (`lib/scoring.ts`)
 
@@ -87,10 +121,12 @@ Dispatch selon `frequency_type` :
   (petit objectif, `min_value` non nul)
 - `lib/scoring.test.ts` : cas `unit_per_day`/`unit_per_week` ajoutés à
   `calculateHabitCompletion`/`calculateWeeklyScore`/`calculateDayCompletion`
+- `lib/units.test.ts` (nouveau) : `upsertUserUnit` n'insère pas les unités déjà dans
+  `DEFAULT_UNITS`, dédoublonnage de `fetchUserUnits()` + `DEFAULT_UNITS` dans le combobox
 
 ## Hors périmètre
 
 - Pas de migration des habitudes existantes utilisant le hack `per_day` (v >= 1000) vers le
   nouveau type `unit_per_day` — décision produit séparée, non traitée ici.
-- Pas de liste prédéfinie d'unités (pas, kcal, km...) — `unit_label` est un texte libre saisi à
-  la création.
+- Pas de suppression/renommage des unités custom une fois ajoutées (`user_units` en ajout seul,
+  pas d'UI de gestion) — pourra être ajouté plus tard si besoin.
