@@ -106,25 +106,25 @@ describe('computeTotalXP', () => {
 
 describe('getNextLevelText', () => {
   it('tous N0 (score 5) → Antre niv1, Cri niv1', () =>
-    expect(getNextLevelText(lvl(0, 0, 0, 0))).toBe('Antre niv1, Cri niv1'));
+    expect(getNextLevelText(5, lvl(0, 0, 0, 0))).toBe('Antre niv1, Cri niv1'));
   it('Antre+Cri N1, reste N0 (score 15) → Meute niv1, Totem niv1', () =>
-    expect(getNextLevelText(lvl(1, 1, 0, 0))).toBe('Meute niv1, Totem niv1'));
+    expect(getNextLevelText(15, lvl(1, 1, 0, 0))).toBe('Meute niv1, Totem niv1'));
   it('tous N1 (score 25) → Antre niv2, Cri niv2', () =>
-    expect(getNextLevelText(lvl(1, 1, 1, 1))).toBe('Antre niv2, Cri niv2'));
+    expect(getNextLevelText(25, lvl(1, 1, 1, 1))).toBe('Antre niv2, Cri niv2'));
   it('Antre+Cri N2, reste N1 (score 35) → Meute niv2, Totem niv2', () =>
-    expect(getNextLevelText(lvl(2, 2, 1, 1))).toBe('Meute niv2, Totem niv2'));
+    expect(getNextLevelText(35, lvl(2, 2, 1, 1))).toBe('Meute niv2, Totem niv2'));
   it('tous N2 (score 45) → Antre niv3, Cri niv3', () =>
-    expect(getNextLevelText(lvl(2, 2, 2, 2))).toBe('Antre niv3, Cri niv3'));
+    expect(getNextLevelText(45, lvl(2, 2, 2, 2))).toBe('Antre niv3, Cri niv3'));
   it('Antre+Cri N3, reste N2 (score 55) → Meute niv3, Totem niv3', () =>
-    expect(getNextLevelText(lvl(3, 3, 2, 2))).toBe('Meute niv3, Totem niv3'));
+    expect(getNextLevelText(55, lvl(3, 3, 2, 2))).toBe('Meute niv3, Totem niv3'));
   it('tous N3 (score 65) → Antre niv4, Cri niv4', () =>
-    expect(getNextLevelText(lvl(3, 3, 3, 3))).toBe('Antre niv4, Cri niv4'));
+    expect(getNextLevelText(65, lvl(3, 3, 3, 3))).toBe('Antre niv4, Cri niv4'));
   it('Antre+Cri N4, reste N3 (score 75) → Meute niv4, Totem niv4', () =>
-    expect(getNextLevelText(lvl(4, 4, 3, 3))).toBe('Meute niv4, Totem niv4'));
+    expect(getNextLevelText(75, lvl(4, 4, 3, 3))).toBe('Meute niv4, Totem niv4'));
   it('tous N4 (score 85) → Antre niv5, Cri niv5, Meute niv5, Totem niv5', () =>
-    expect(getNextLevelText(lvl(4, 4, 4, 4))).toBe('Antre niv5, Cri niv5, Meute niv5, Totem niv5'));
+    expect(getNextLevelText(85, lvl(4, 4, 4, 4))).toBe('Antre niv5, Cri niv5, Meute niv5, Totem niv5'));
   it('tous N5 (score 95) → —', () =>
-    expect(getNextLevelText(lvl(5, 5, 5, 5))).toBe('—'));
+    expect(getNextLevelText(95, lvl(5, 5, 5, 5))).toBe('—'));
 });
 
 describe('getRandomMantra', () => {

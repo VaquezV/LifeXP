@@ -43,9 +43,9 @@ export function ProfileHeader({
   );
   const nextAvatarScore = getNextWolfTierScore(avatarScore);
   const requirements = useMemo(() => {
-    const nextLevelText = getNextLevelText(levels);
+    const nextLevelText = getNextLevelText(avatarScore, levels);
     return nextLevelText === '—' ? [] : nextLevelText.split(', ');
-  }, [levels]);
+  }, [avatarScore, levels]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgPrimary }]}>

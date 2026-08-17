@@ -1,4 +1,4 @@
-import { getAvatarScoreFromLevels, type CategoryLevels } from './avatar-level';
+import type { CategoryLevels } from './avatar-level';
 import { SCORING_CONFIG_FALLBACK } from './scoring-fallback';
 import type { CategoryProgress, CategoryType, ScoringConfig } from './types';
 import { CATEGORY_KEYS } from './types';
@@ -96,8 +96,7 @@ export function computeTotalXP(
   }, 0);
 }
 
-export function getNextLevelText(levels: CategoryLevels): string {
-  const score = getAvatarScoreFromLevels(levels);
+export function getNextLevelText(score: number, levels: CategoryLevels): string {
   if (score >= 95) return '—';
 
   const below = (minLevel: number) => NEXT_LEVEL_CATS.filter(c => levels[c.key] < minLevel);
@@ -116,8 +115,7 @@ export function getNextLevelText(levels: CategoryLevels): string {
   return fmt(below(5), 5);
 }
 
-export function getNextLevelSummary(levels: CategoryLevels): string {
-  const score = getAvatarScoreFromLevels(levels);
+export function getNextLevelSummary(score: number, levels: CategoryLevels): string {
   if (score >= 95) return '—';
 
   const rules = [

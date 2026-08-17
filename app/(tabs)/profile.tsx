@@ -2,7 +2,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ProfileHeader, SanctuaryCategoryCard, GamificationExplainer } from '@/components/profile-redesign';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { getReadableTextColor } from '@/lib/theme-evolution';
-import { getAvatarScoreFromLevels } from '@/lib/avatar-level';
 import { defaultAllCategoryProgress, fetchCategoryProgress } from '@/lib/category-progress';
 import { fetchWolfName, saveWolfName } from '@/lib/profiles';
 import { fetchScoringConfig, SCORING_CONFIG_FALLBACK } from '@/lib/scoring-config';
@@ -33,7 +32,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useWolfLevelTheme();
-  const { setWolfLevel } = useThemeContext();
+  const { avatarScore, setWolfLevel } = useThemeContext();
   const themeStyles = { screen: { backgroundColor: theme.bgPrimary } };
   const [loading, setLoading] = useState(true);
   const [categoryProgress, setCategoryProgress] = useState<Record<CategoryType, CategoryProgress> | null>(null);
@@ -64,12 +63,6 @@ export default function ProfileScreen() {
 
   const progress = categoryProgress ?? defaultAllCategoryProgress('');
 
-  const levels = useMemo(
-    () => Object.fromEntries(CATEGORY_KEYS.map(cat => [cat, progress[cat].current_level])) as Record<CategoryType, number>,
-    [progress]
-  );
-
-  const avatarScore    = getAvatarScoreFromLevels(levels);
   const tierIndex      = getWolfTierIndex(avatarScore);
   const wolfClass      = getWolfClass(avatarScore);
   const totalXP        = useMemo(() => computeTotalXP(progress, scoringConfigs), [progress, scoringConfigs]);
