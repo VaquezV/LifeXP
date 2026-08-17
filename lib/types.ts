@@ -16,6 +16,8 @@ export interface Habit {
   target_value: number;
   max_value: number | null;
   unit_label?: string | null;
+  is_active: boolean;
+  position: number;
   preset_habit_id: string | null;
   created_at: string;
 }

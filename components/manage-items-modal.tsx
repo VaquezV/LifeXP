@@ -19,10 +19,13 @@ export interface ManageItemsModalProps {
   category: CategoryType | null;
   presets: PresetHabit[];
   habits: Habit[];
+  inactiveHabits: Habit[];
   onClose: () => void;
   onAdd: (habit: Partial<Habit>) => void;
   onUpdate: (habitId: string, updates: Partial<Habit>) => void;
   onDelete: (habitId: string) => void;
+  onMoveUp: (habitId: string) => void;
+  onReactivate: (habitId: string) => void;
 }
 
 export function ManageItemsModal({
@@ -30,10 +33,13 @@ export function ManageItemsModal({
   category,
   presets,
   habits,
+  inactiveHabits,
   onClose,
   onAdd,
   onUpdate,
   onDelete,
+  onMoveUp,
+  onReactivate,
 }: ManageItemsModalProps) {
   const theme = useWolfLevelTheme();
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -64,7 +70,7 @@ export function ManageItemsModal({
 
         {/* Items List */}
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {habits.map((habit) => (
+          {habits.map((habit, index) => (
             <View
               key={habit.id}
               style={[
@@ -81,6 +87,16 @@ export function ManageItemsModal({
                   {habit.name}
                 </ThemedText>
                 <View style={styles.actions}>
+                  <Pressable
+                    onPress={() => onMoveUp(habit.id)}
+                    disabled={index === 0}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: theme.surfaceRaised, opacity: index === 0 ? 0.35 : 1 },
+                    ]}
+                  >
+                    <MaterialIcons name="arrow-upward" size={18} color={theme.tint} />
+                  </Pressable>
                   <Pressable
                     onPress={() => setEditingHabit(habit)}
                     style={[styles.actionButton, { backgroundColor: theme.surfaceRaised }]}
@@ -111,6 +127,48 @@ export function ManageItemsModal({
               Ajouter un item
             </ThemedText>
           </Pressable>
+
+          {/* Habitudes désactivées */}
+          {inactiveHabits.length > 0 && (
+            <View style={styles.inactiveSection}>
+              <ThemedText style={[styles.inactiveSectionTitle, { color: theme.textMuted }]}>
+                Habitudes désactivées
+              </ThemedText>
+              {inactiveHabits.map((habit) => (
+                <View
+                  key={habit.id}
+                  style={[
+                    styles.itemRow,
+                    {
+                      backgroundColor: theme.surface,
+                      borderBottomColor: theme.border,
+                      opacity: 0.7,
+                    },
+                  ]}
+                >
+                  <View style={styles.viewContainer}>
+                    <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
+                    <View style={styles.inactiveNameGroup}>
+                      <ThemedText style={[styles.itemName, { color: theme.text }]} numberOfLines={1}>
+                        {habit.name}
+                      </ThemedText>
+                      <View style={[styles.inactiveBadge, { backgroundColor: theme.surfaceRaised }]}>
+                        <ThemedText style={[styles.inactiveBadgeText, { color: theme.textMuted }]}>
+                          Désactivée
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <Pressable
+                      onPress={() => onReactivate(habit.id)}
+                      style={[styles.actionButton, { backgroundColor: theme.surfaceRaised }]}
+                    >
+                      <MaterialIcons name="restore" size={18} color={theme.tint} />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
 
         {/* Footer */}
@@ -232,6 +290,31 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  inactiveSection: {
+    marginTop: 8,
+  },
+  inactiveSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  inactiveNameGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  inactiveBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  inactiveBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   footer: {
     paddingHorizontal: 16,

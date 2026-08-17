@@ -12,7 +12,17 @@ import { CategoryHeader } from '@/components/category-header';
 import { ManageItemsModal } from '@/components/manage-items-modal';
 import { WeekNavigator } from '@/components/week-navigator';
 import { ThemedView } from '@/components/themed-view';
-import { fetchHabits, createHabit, updateHabit, deleteHabit, removeHabitFromList } from '@/lib/habits';
+import {
+  fetchHabits,
+  fetchHabitsByCategory,
+  fetchInactiveHabits,
+  createHabit,
+  updateHabit,
+  deleteHabit,
+  reactivateHabit,
+  moveHabitUp,
+  removeHabitFromList,
+} from '@/lib/habits';
 import { fetchPresetHabits } from '@/lib/preset-habits';
 import { fetchAllLogsForDateRange, logHabitValue } from '@/lib/habit-logs';
 import { fetchCategoryProgress, defaultAllCategoryProgress } from '@/lib/category-progress';
@@ -48,6 +58,7 @@ export default function HomeScreen() {
   const [scoringConfigs, setScoringConfigs] = useState<ScoringConfig[]>(SCORING_CONFIG_FALLBACK);
   const [managingCategory, setManagingCategory] = useState<CategoryType | null>(null);
   const [presets, setPresets] = useState<PresetHabit[]>([]);
+  const [inactiveHabits, setInactiveHabits] = useState<Habit[]>([]);
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayKey);
@@ -89,6 +100,19 @@ export default function HomeScreen() {
     };
     loadData();
   }, [todayKey]);
+
+  useEffect(() => {
+    if (!managingCategory) {
+      setInactiveHabits([]);
+      return;
+    }
+    fetchInactiveHabits(managingCategory)
+      .then(setInactiveHabits)
+      .catch((error) => {
+        console.error('Error loading inactive habits:', error);
+        setInactiveHabits([]);
+      });
+  }, [managingCategory]);
 
   const handleValueChange = async (habitId: string, newValue: number) => {
     try {
@@ -150,9 +174,37 @@ export default function HomeScreen() {
   const handleDeleteItem = async (habitId: string) => {
     try {
       await deleteHabit(habitId);
+      const deactivated = habits.find((h) => h.id === habitId);
       setHabits((prev) => removeHabitFromList(prev, habitId));
+      if (deactivated) {
+        setInactiveHabits((prev) => [{ ...deactivated, is_active: false }, ...prev]);
+      }
     } catch (error) {
       console.error('Error deleting habit:', error);
+    }
+  };
+
+  const handleReactivateItem = async (habitId: string) => {
+    try {
+      const reactivated = await reactivateHabit(habitId);
+      setHabits((prev) => [...prev, reactivated]);
+      setInactiveHabits((prev) => prev.filter((h) => h.id !== habitId));
+    } catch (error) {
+      console.error('Error reactivating habit:', error);
+    }
+  };
+
+  const handleMoveHabitUp = async (habitId: string) => {
+    if (!managingCategory) return;
+    try {
+      await moveHabitUp(habitId, managingCategory);
+      const refreshed = await fetchHabitsByCategory(managingCategory);
+      setHabits((prev) => [
+        ...prev.filter((h) => h.category !== managingCategory),
+        ...refreshed,
+      ]);
+    } catch (error) {
+      console.error('Error reordering habit:', error);
     }
   };
 
@@ -241,10 +293,13 @@ export default function HomeScreen() {
           category={managingCategory}
           presets={presets}
           habits={habits.filter((h) => h.category === managingCategory)}
+          inactiveHabits={inactiveHabits}
           onClose={() => setManagingCategory(null)}
           onAdd={(newHabit) => handleAddItem(managingCategory, newHabit)}
           onUpdate={handleUpdateItem}
           onDelete={handleDeleteItem}
+          onMoveUp={handleMoveHabitUp}
+          onReactivate={handleReactivateItem}
         />
       )}
     </SafeAreaView>

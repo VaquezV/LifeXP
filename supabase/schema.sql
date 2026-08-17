@@ -56,12 +56,16 @@ create table if not exists public.habits (
   min_value integer default 0,
   target_value integer not null,
   unit_label text,
+  is_active boolean not null default true,
+  position integer not null default 0,
   constraint habits_duration_per_week_target_check check (
     frequency_type <> 'duration_per_week' or target_value > 0
   ),
-  created_at timestamptz not null default timezone('utc', now()),
-  constraint habits_user_name_unique unique (user_id, name)
+  created_at timestamptz not null default timezone('utc', now())
 );
+
+create unique index if not exists habits_user_name_active_unique
+  on public.habits (user_id, name) where is_active;
 
 -- Habit logs: one entry per habit per day
 create table if not exists public.habit_logs (
@@ -166,3 +170,25 @@ create table if not exists public.user_units (
 alter table public.user_units enable row level security;
 create policy user_units_select on public.user_units for select to authenticated using (auth.uid() = user_id);
 create policy user_units_insert on public.user_units for insert to authenticated with check (auth.uid() = user_id);
+
+-- Single source of truth for the dashboard's visible history window (days) and the
+-- active-habit log purge threshold below, kept in sync with each other.
+create or replace function public.active_habit_history_days() returns integer
+  language sql immutable as $$ select 205 $$;
+
+create or replace function public.purge_old_habit_logs() returns void
+  language plpgsql security definer as $$
+begin
+  delete from public.habit_logs hl
+  using public.habits h
+  where hl.habit_id = h.id
+    and h.is_active = false
+    and hl.date < (current_date - interval '60 days');
+
+  delete from public.habit_logs hl
+  using public.habits h
+  where hl.habit_id = h.id
+    and h.is_active = true
+    and hl.date < (current_date - (public.active_habit_history_days() || ' days')::interval);
+end;
+$$;

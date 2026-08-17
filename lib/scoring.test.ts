@@ -25,6 +25,8 @@ function makeHabit(overrides: Partial<Habit> = {}): Habit {
     target_value: 60,
     max_value: null,
     preset_habit_id: null,
+    is_active: true,
+    position: 0,
     created_at: '2026-01-01',
     ...overrides,
   };

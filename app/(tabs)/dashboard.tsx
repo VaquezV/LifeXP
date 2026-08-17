@@ -5,6 +5,7 @@ import { PerformanceGrid } from '@/components/performance-grid';
 import { ThemedText } from '@/components/themed-text';
 import { fetchHabits } from '@/lib/habits';
 import { fetchAllLogsForDateRange } from '@/lib/habit-logs';
+import { supabase } from '@/lib/supabase';
 import { Habit, CATEGORY_KEYS, CategoryType } from '@/lib/types';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { useTranslation } from '@/hooks/use-translation';
@@ -12,6 +13,10 @@ import { CATEGORY_TRANSLATION_KEY } from '@/lib/translations';
 import { CATEGORY_COLORS } from '@/constants/Colors';
 import { ensureContrast } from '@/lib/theme-evolution';
 import { calculateHabitCompletion } from '@/lib/scoring';
+
+// Fallback if the active_habit_history_days() RPC is unreachable (e.g. offline);
+// kept in sync server-side with the habit_logs purge window (see purge_old_habit_logs()).
+const DEFAULT_HISTORY_DAYS = 205;
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -27,6 +32,7 @@ export default function DashboardScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [dailyValues, setDailyValues] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
+  const [historyDays, setHistoryDays] = useState(DEFAULT_HISTORY_DAYS);
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,10 +41,18 @@ export default function DashboardScreen() {
         const fetchedHabits = await fetchHabits();
         setHabits(fetchedHabits);
 
-        // Load logs for last 205 days
+        const days = supabase
+          ? await supabase.rpc('active_habit_history_days').then(
+              ({ data }) => (typeof data === 'number' ? data : DEFAULT_HISTORY_DAYS),
+              () => DEFAULT_HISTORY_DAYS,
+            )
+          : DEFAULT_HISTORY_DAYS;
+        setHistoryDays(days);
+
+        // Load logs for the last `days` days
         const today = new Date();
         const startDate = new Date(today);
-        startDate.setDate(startDate.getDate() - 204);
+        startDate.setDate(startDate.getDate() - (days - 1));
         const logs = await fetchAllLogsForDateRange(
           startDate.toISOString().split('T')[0],
           today.toISOString().split('T')[0]
@@ -54,14 +68,14 @@ export default function DashboardScreen() {
     loadData();
   }, []);
 
-  // Construire performance data par habit (205 jours)
+  // Construire performance data par habit (fenêtre = historyDays)
   const performanceData: Record<string, Record<number, number>> = useMemo(() => {
     const data: Record<string, Record<number, number>> = {};
     habits.forEach((habit) => {
       data[habit.id] = {};
-      for (let i = 0; i < 205; i++) {
+      for (let i = 0; i < historyDays; i++) {
         const date = new Date();
-        date.setDate(date.getDate() - (204 - i));
+        date.setDate(date.getDate() - (historyDays - 1 - i));
         const dateKey = toDateKey(date);
         const value = dailyValues[dateKey]?.[habit.id] ?? 0;
 
@@ -87,7 +101,7 @@ export default function DashboardScreen() {
       }
     });
     return data;
-  }, [habits, dailyValues]);
+  }, [habits, dailyValues, historyDays]);
 
   if (loading) {
     return (
