@@ -123,6 +123,7 @@ export default function HomeScreen() {
         target_value: newHabit.target_value ?? 60,
         min_value: newHabit.min_value ?? 0,
         max_value: null,
+        unit_label: newHabit.unit_label ?? null,
         frequency_value: 1,
         preset_habit_id: newHabit.preset_habit_id ?? null,
         user_id: userId,

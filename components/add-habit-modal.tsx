@@ -15,6 +15,8 @@ import { CATEGORY_COLORS } from '@/constants/Colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { getReadableTextColor } from '@/lib/theme-evolution';
+import { UnitCombobox } from './unit-combobox';
+import { upsertUserUnit } from '@/lib/units';
 
 interface Props {
   visible: boolean;
@@ -26,6 +28,7 @@ interface Props {
     frequency_type: FrequencyType;
     target_value: number;
     min_value: number;
+    unit_label: string | null;
     preset_habit_id: string | null;
   }) => Promise<void>;
   presets: PresetHabit[];
@@ -40,6 +43,8 @@ const FREQ_LABELS: Record<string, string> = {
   times_per_day: 'Fois/jour',
   times_per_week: 'Fois/sem.',
   duration_per_week: 'Durée/sem.',
+  unit_per_day: 'Unité/jour',
+  unit_per_week: 'Unité/sem.',
 };
 
 const EXPERTISE_LABELS: Record<string, string> = {
@@ -72,6 +77,9 @@ function formatTarget(preset: PresetHabit): string {
     const m = v % 60;
     return m > 0 ? `${h}h ${m}min/sem.` : `${h}h/sem.`;
   }
+  if (preset.frequency_type === 'unit_per_day' || preset.frequency_type === 'unit_per_week') {
+    return preset.unit_label ? `${v} ${preset.unit_label}` : String(v);
+  }
   return String(v);
 }
 
@@ -82,6 +90,7 @@ const INITIAL_FORM: {
   frequency_type: FrequencyType;
   target_value: number;
   min_value: number;
+  unit_label: string;
 } = {
   name: '',
   emoji: '⭐',
@@ -89,6 +98,7 @@ const INITIAL_FORM: {
   frequency_type: 'per_day',
   target_value: 60,
   min_value: 30,
+  unit_label: '',
 };
 
 export function AddHabitModal({ visible, onClose, onSave, presets, defaultCategory }: Props) {
@@ -200,6 +210,7 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                         frequency_type: variant.frequency_type,
                         target_value: variant.target_value,
                         min_value: variant.min_value,
+                        unit_label: variant.unit_label ?? '',
                       });
                       setStep('form');
                     }}
@@ -315,8 +326,8 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                 />
               </View>
 
-              {/* Min value — seulement si per_day */}
-              {form.frequency_type === 'per_day' && (
+              {/* Min value — seulement si per_day / unit_per_day */}
+              {(form.frequency_type === 'per_day' || form.frequency_type === 'unit_per_day') && (
                 <View style={styles.formGroup}>
                   <Text style={[styles.formLabel, { color: colors.textMuted }]}>Minimum</Text>
                   <TextInput
@@ -325,6 +336,17 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                     onChangeText={t => setForm(f => ({ ...f, min_value: parseInt(t) || 0 }))}
                     keyboardType="number-pad"
                     editable={!selectedPreset || selectedPreset.editable_min_value}
+                  />
+                </View>
+              )}
+
+              {/* Unité — seulement si unit_per_day / unit_per_week */}
+              {(form.frequency_type === 'unit_per_day' || form.frequency_type === 'unit_per_week') && (
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: colors.textMuted }]}>Unité</Text>
+                  <UnitCombobox
+                    value={form.unit_label}
+                    onChange={u => setForm(f => ({ ...f, unit_label: u }))}
                   />
                 </View>
               )}
@@ -348,8 +370,16 @@ export function AddHabitModal({ visible, onClose, onSave, presets, defaultCatego
                       setValidationError('Saisis un objectif positif.');
                       return;
                     }
+                    const isUnitType = form.frequency_type === 'unit_per_day' || form.frequency_type === 'unit_per_week';
                     try {
-                      await onSave({ ...form, preset_habit_id: selectedPreset?.id ?? null });
+                      await onSave({
+                        ...form,
+                        unit_label: isUnitType && form.unit_label.trim() ? form.unit_label.trim() : null,
+                        preset_habit_id: selectedPreset?.id ?? null,
+                      });
+                      if (isUnitType && form.unit_label.trim()) {
+                        await upsertUserUnit(form.unit_label.trim());
+                      }
                       resetAndClose();
                     } catch (e) {
                       console.error('Erreur lors de la sauvegarde :', e);

@@ -19,7 +19,7 @@ function calcCategoryScore(
 
   const completions: number[] = [];
   for (const h of habits) {
-    if (h.frequency_type === 'times_per_week' || h.frequency_type === 'duration_per_week') {
+    if (h.frequency_type === 'times_per_week' || h.frequency_type === 'duration_per_week' || h.frequency_type === 'unit_per_week') {
       const total = dates.reduce((s: number, d: string) => s + (weekLogs[d]?.[h.id] ?? 0), 0);
       completions.push(
         h.target_value === 0 ? 0 : Math.min(100, Math.round((total / h.target_value) * 100)),

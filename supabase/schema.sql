@@ -51,10 +51,11 @@ create table if not exists public.habits (
   category text not null check (category in ('self_care', 'dev_perso', 'vie_familiale', 'vie_pro')),
   name text not null,
   emoji text,
-  frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week', 'duration_per_week')),
+  frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week', 'duration_per_week', 'unit_per_day', 'unit_per_week')),
   frequency_value integer not null,
   min_value integer default 0,
   target_value integer not null,
+  unit_label text,
   constraint habits_duration_per_week_target_check check (
     frequency_type <> 'duration_per_week' or target_value > 0
   ),
@@ -102,11 +103,12 @@ create table if not exists public.preset_habits (
   expertise text not null check (expertise in ('debutant', 'intermediaire', 'expert', 'enfant', 'ado', 'adulte_homme', 'adulte_femme', 'standard')),
   emoji text,
 
-  frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week', 'duration_per_week')),
+  frequency_type text not null check (frequency_type in ('per_day', 'times_per_day', 'times_per_week', 'duration_per_week', 'unit_per_day', 'unit_per_week')),
   frequency_value integer not null,
   min_value integer not null,
   target_value integer not null,
   max_value integer not null,
+  unit_label text,
 
   editable_min_value boolean default true,
   editable_target_value boolean default true,
@@ -150,3 +152,17 @@ create policy preset_badges_select on public.preset_badges for select to authent
 alter table public.habits add column if not exists preset_habit_id uuid references public.preset_habits(id) on delete set null;
 
 create index if not exists habits_preset_habit_idx on public.habits(preset_habit_id);
+
+-- User-defined units (combobox suggestions for unit_per_day / unit_per_week habits),
+-- in addition to the app's static predefined list.
+create table if not exists public.user_units (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid(),
+  label text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint user_units_user_label_unique unique (user_id, label)
+);
+
+alter table public.user_units enable row level security;
+create policy user_units_select on public.user_units for select to authenticated using (auth.uid() = user_id);
+create policy user_units_insert on public.user_units for insert to authenticated with check (auth.uid() = user_id);

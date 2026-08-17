@@ -50,7 +50,7 @@ export function HabitCard({
 
   // Calculate weekly completion percentage
   const weeklyCompletion = useMemo(() => {
-    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week') {
+    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week' || habit.frequency_type === 'unit_per_week') {
       return Math.min(100, Math.floor((weekTotal / habit.target_value) * 100));
     }
     // For daily habits, calculate average

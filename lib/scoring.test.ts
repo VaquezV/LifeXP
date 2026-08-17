@@ -3,6 +3,9 @@ import {
   calculateTimesPerDayCompletion,
   calculateTimesPerWeekCompletion,
   calculateDurationPerWeekCompletion,
+  calculateUnitPerDayCompletion,
+  calculateUnitPerWeekCompletion,
+  calculateHabitCompletion,
   calculateDayCompletion,
   calculateWeeklyScore,
 } from './scoring';
@@ -123,6 +126,41 @@ describe('calculateDurationPerWeekCompletion', () => {
   });
 });
 
+describe('calculateUnitPerDayCompletion', () => {
+  const pas = makeHabit({ frequency_type: 'unit_per_day', min_value: 0, target_value: 10000, unit_label: 'pas' });
+
+  it('0 pas → 0%', () => expect(calculateUnitPerDayCompletion(pas, 0)).toBe(0));
+  it('objectif atteint → 100%', () => expect(calculateUnitPerDayCompletion(pas, 10000)).toBe(100));
+  it('dépassement clampé à 100%', () => expect(calculateUnitPerDayCompletion(pas, 15000)).toBe(100));
+  it('5000/10000 pas → 50%', () => expect(calculateUnitPerDayCompletion(pas, 5000)).toBe(50));
+
+  it('lève une erreur pour un type de fréquence incompatible', () => {
+    const other = makeHabit({ frequency_type: 'per_day' });
+    expect(() => calculateUnitPerDayCompletion(other, 1)).toThrow();
+  });
+});
+
+describe('calculateUnitPerWeekCompletion', () => {
+  const kcal = makeHabit({ frequency_type: 'unit_per_week', target_value: 7000, unit_label: 'kcal' });
+
+  it('0 kcal → 0%', () => expect(calculateUnitPerWeekCompletion(kcal, 0)).toBe(0));
+  it('objectif hebdo atteint → 100%', () => expect(calculateUnitPerWeekCompletion(kcal, 7000)).toBe(100));
+  it('dépassement clampé à 100%', () => expect(calculateUnitPerWeekCompletion(kcal, 9000)).toBe(100));
+  it('3500/7000 kcal → 50%', () => expect(calculateUnitPerWeekCompletion(kcal, 3500)).toBe(50));
+});
+
+describe('calculateHabitCompletion — dispatch unit_per_day / unit_per_week', () => {
+  it('route unit_per_day vers calculateUnitPerDayCompletion', () => {
+    const pas = makeHabit({ frequency_type: 'unit_per_day', target_value: 10000 });
+    expect(calculateHabitCompletion(pas, 5000)).toBe(50);
+  });
+
+  it('route unit_per_week vers calculateUnitPerWeekCompletion', () => {
+    const kcal = makeHabit({ frequency_type: 'unit_per_week', target_value: 7000 });
+    expect(calculateHabitCompletion(kcal, 3500)).toBe(50);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // calculateDayCompletion
 // ---------------------------------------------------------------------------
@@ -149,6 +187,17 @@ describe('calculateDayCompletion', () => {
     const h2 = makeHabit({ id: 'h2', frequency_type: 'per_day', min_value: 0, target_value: 100 });
     const values = { h1: 100, h2: 0 }; // 100% + 0% = 50%
     expect(calculateDayCompletion([h1, h2], values)).toBe(50);
+  });
+
+  it('exclut les habitudes unit_per_week du calcul journalier', () => {
+    const weeklyUnit = makeHabit({ id: 'w1', frequency_type: 'unit_per_week', target_value: 7000 });
+    const daily = makeHabit({ id: 'd1', frequency_type: 'per_day', min_value: 0, target_value: 60 });
+    expect(calculateDayCompletion([weeklyUnit, daily], { d1: 60, w1: 1000 })).toBe(100);
+  });
+
+  it('inclut les habitudes unit_per_day dans le calcul journalier', () => {
+    const pas = makeHabit({ id: 'p1', frequency_type: 'unit_per_day', target_value: 10000 });
+    expect(calculateDayCompletion([pas], { p1: 5000 })).toBe(50);
   });
 });
 
@@ -203,5 +252,24 @@ describe('calculateWeeklyScore', () => {
       '2026-06-19': { h1: 30 },
     };
     expect(calculateWeeklyScore([habit], weekLogs)).toBe(50);
+  });
+
+  it('habitude unit_per_week: total sur les 7 jours utilisé (pas moyenne quotidienne)', () => {
+    const habit = makeHabit({ id: 'h1', frequency_type: 'unit_per_week', target_value: 7000 });
+    const weekLogs = {
+      '2026-06-15': { h1: 1000 },
+      '2026-06-17': { h1: 1500 },
+      '2026-06-19': { h1: 1000 },
+    };
+    expect(calculateWeeklyScore([habit], weekLogs)).toBe(50); // 3500/7000
+  });
+
+  it('habitude unit_per_day: moyenne des scores quotidiens', () => {
+    const habit = makeHabit({ id: 'h1', frequency_type: 'unit_per_day', target_value: 10000 });
+    const weekLogs = {
+      '2026-06-15': { h1: 10000 },
+      '2026-06-16': { h1: 0 },
+    };
+    expect(calculateWeeklyScore([habit], weekLogs)).toBe(50); // (100+0)/2
   });
 });

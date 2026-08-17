@@ -1,7 +1,7 @@
 export type CategoryType = 'self_care' | 'dev_perso' | 'vie_familiale' | 'vie_pro';
 
 export const CATEGORY_KEYS = ['self_care', 'dev_perso', 'vie_familiale', 'vie_pro'] as const satisfies CategoryType[];
-export type FrequencyType = 'per_day' | 'times_per_day' | 'times_per_week' | 'duration_per_week';
+export type FrequencyType = 'per_day' | 'times_per_day' | 'times_per_week' | 'duration_per_week' | 'unit_per_day' | 'unit_per_week';
 
 export interface Habit {
   id: string;
@@ -15,6 +15,7 @@ export interface Habit {
   min_value: number;
   target_value: number;
   max_value: number | null;
+  unit_label?: string | null;
   preset_habit_id: string | null;
   created_at: string;
 }
@@ -55,6 +56,7 @@ export interface PresetHabit {
   min_value: number;
   target_value: number;
   max_value: number;
+  unit_label?: string | null;
   editable_min_value: boolean;
   editable_target_value: boolean;
   editable_max_value: boolean;

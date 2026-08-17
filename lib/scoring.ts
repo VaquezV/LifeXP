@@ -80,8 +80,42 @@ export function calculateDurationPerWeekCompletion(
 }
 
 /**
+ * Calculate daily completion % for a unit_per_day habit (e.g. 10000 steps)
+ * % = (value / target_value) * 100, clamped [0, 100]
+ */
+export function calculateUnitPerDayCompletion(
+  habit: Habit,
+  value: number
+): number {
+  if (habit.frequency_type !== 'unit_per_day') {
+    throw new Error('calculateUnitPerDayCompletion: habit must be unit_per_day type');
+  }
+
+  if (habit.target_value === 0) return 0;
+  const percentage = (value / habit.target_value) * 100;
+  return Math.max(0, Math.min(100, Math.round(percentage)));
+}
+
+/**
+ * Calculate rolling 7-day completion % for a unit_per_week habit (e.g. 7000 kcal)
+ * % = (weekTotalValue / target_value) * 100, clamped [0, 100]
+ */
+export function calculateUnitPerWeekCompletion(
+  habit: Habit,
+  weekTotalValue: number
+): number {
+  if (habit.frequency_type !== 'unit_per_week') {
+    throw new Error('calculateUnitPerWeekCompletion: habit must be unit_per_week type');
+  }
+
+  if (habit.target_value === 0) return 0;
+  const percentage = (weekTotalValue / habit.target_value) * 100;
+  return Math.max(0, Math.min(100, Math.round(percentage)));
+}
+
+/**
  * Generic function: calculate % for any habit + value
- * For times_per_week, pass the SUM of values from all 7 days
+ * For times_per_week/duration_per_week/unit_per_week, pass the SUM of values from all 7 days
  */
 export function calculateHabitCompletion(
   habit: Habit,
@@ -96,6 +130,10 @@ export function calculateHabitCompletion(
       return calculateTimesPerWeekCompletion(habit, value);
     case 'duration_per_week':
       return calculateDurationPerWeekCompletion(habit, value);
+    case 'unit_per_day':
+      return calculateUnitPerDayCompletion(habit, value);
+    case 'unit_per_week':
+      return calculateUnitPerWeekCompletion(habit, value);
     default:
       throw new Error(`Unknown frequency type: ${habit.frequency_type}`);
   }
@@ -111,7 +149,7 @@ export function calculateDayCompletion(
   dailyValues: Record<string, number> // habit_id -> value
 ): number {
   const dailyHabits = habits.filter(
-    h => h.frequency_type !== 'times_per_week' && h.frequency_type !== 'duration_per_week',
+    h => h.frequency_type !== 'times_per_week' && h.frequency_type !== 'duration_per_week' && h.frequency_type !== 'unit_per_week',
   );
 
   if (dailyHabits.length === 0) {
@@ -159,7 +197,7 @@ export function calculateWeeklyScore(
   habits.forEach(habit => {
     const weekTotal = habitWeekTotals[habit.id] ?? 0;
 
-    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week') {
+    if (habit.frequency_type === 'times_per_week' || habit.frequency_type === 'duration_per_week' || habit.frequency_type === 'unit_per_week') {
       // Use week total
       completionPercentages.push(calculateHabitCompletion(habit, weekTotal));
     } else {

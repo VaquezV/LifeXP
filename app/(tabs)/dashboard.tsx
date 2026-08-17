@@ -66,7 +66,7 @@ export default function DashboardScreen() {
         const value = dailyValues[dateKey]?.[habit.id] ?? 0;
 
         let percentage = 0;
-        if (habit.frequency_type === 'duration_per_week') {
+        if (habit.frequency_type === 'duration_per_week' || habit.frequency_type === 'unit_per_week') {
           const rollingTotal = Array.from({ length: 7 }, (_, offset) => {
             const rollingDate = new Date(date);
             rollingDate.setDate(rollingDate.getDate() - offset);
@@ -78,6 +78,8 @@ export default function DashboardScreen() {
         } else if (habit.frequency_type === 'times_per_day') {
           percentage = (value / habit.target_value) * 100;
         } else if (habit.frequency_type === 'per_day') {
+          percentage = (value / habit.target_value) * 100;
+        } else if (habit.frequency_type === 'unit_per_day') {
           percentage = (value / habit.target_value) * 100;
         }
 

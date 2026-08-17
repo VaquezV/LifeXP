@@ -1,4 +1,5 @@
 import { CATEGORY_COLORS } from '@/constants/Colors';
+import { formatCheckinValue, getAvailableTiers } from '@/lib/checkin-tiers';
 import { useWolfLevelTheme } from '@/lib/hooks/use-wolf-level-theme';
 import { ensureContrast, getReadableTextColor } from '@/lib/theme-evolution';
 import type { CategoryType, Habit } from '@/lib/types';
@@ -45,62 +46,13 @@ export function CheckinItemSimplified({
     }).start();
   };
 
-  const getStepSize = (targetValue: number, minValue?: number) => {
-    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
-      const min = habit.frequency_type === 'duration_per_week'
-        ? 0
-        : minValue || habit.min_value;
-      const range = targetValue - min;
-      if (range < 30) return 5;
-      if (range < 60) return 15;
-      if (range < 300) return 30;
-      return 60;
-    }
-    return 1;
-  };
-
-  const stepSize = getStepSize(habit.target_value, habit.min_value);
-
-  const availableValues = useMemo(() => {
-    if (habit.frequency_type === 'times_per_week') {
-      return [0, 1];
-    }
-    if (habit.frequency_type === 'times_per_day') {
-      return Array.from({ length: habit.target_value + 1 }, (_, i) => i);
-    }
-    if (habit.frequency_type === 'duration_per_week') {
-      const values: number[] = [];
-      for (let i = 0; i <= habit.target_value; i += stepSize) values.push(i);
-      if (values[values.length - 1] !== habit.target_value) values.push(habit.target_value);
-      return values;
-    }
-    // per_day: build stepping
-    const values: number[] = [];
-    for (let i = habit.min_value; i <= habit.target_value; i += stepSize) {
-      values.push(i);
-    }
-    if (values[values.length - 1] !== habit.target_value) {
-      values.push(habit.target_value);
-    }
-    return values;
-  }, [habit, stepSize]);
+  const availableValues = useMemo(() => getAvailableTiers(habit), [habit]);
 
   const toggleYesNo = (yesValue: number) => {
     onValueChange(value === yesValue ? 0 : yesValue);
   };
 
-  const formatValue = (v: number) => {
-    if (habit.frequency_type === 'per_day' || habit.frequency_type === 'duration_per_week') {
-      if (v < 60) return `${v}m`;
-      const hours = Math.floor(v / 60);
-      const mins = v % 60;
-      return mins > 0 ? `${hours}h${mins}` : `${hours}h`;
-    }
-    if (habit.frequency_type === 'times_per_day') {
-      return `${v}`;
-    }
-    return v.toString();
-  };
+  const formatValue = (v: number) => formatCheckinValue(habit, v);
 
   const handleDecrement = () => {
     const idx = availableValues.indexOf(value);

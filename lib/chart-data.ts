@@ -249,7 +249,7 @@ function aggregateYearly(
 }
 
 function calculateDayCompletion(habits: Habit[], dayLogs: Record<string, number>): number {
-  const dailyHabits = habits.filter(habit => habit.frequency_type !== 'duration_per_week');
+  const dailyHabits = habits.filter(habit => habit.frequency_type !== 'duration_per_week' && habit.frequency_type !== 'unit_per_week');
   if (dailyHabits.length === 0) return 0;
 
   let totalCompletion = 0;
@@ -268,6 +268,8 @@ function calculateDayCompletion(habits: Habit[], dayLogs: Record<string, number>
     } else if (habit.frequency_type === 'times_per_day') {
       completion = Math.min(100, (value / habit.target_value) * 100);
     } else if (habit.frequency_type === 'times_per_week') {
+      completion = Math.min(100, (value / habit.target_value) * 100);
+    } else if (habit.frequency_type === 'unit_per_day') {
       completion = Math.min(100, (value / habit.target_value) * 100);
     }
 
